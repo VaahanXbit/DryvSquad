@@ -3,40 +3,56 @@
 ================================================================================
 File Name : App.jsx
 Author : Tahseen Raza
-Created Date : 2026-06-10
-Description : Main application component - handles routing and page navigation
-              using singleton pattern for all page components
+Created Date : 2025-01-15
+Description : Main application component with scroll to top functionality
 Company : Vaahan International
-Copyright : (c) 2026 Vaahan International. All rights reserved.
+Copyright : (c) 2025 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import Home from './pages/Home'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import Articles from './pages/Articles'
+import ArticleDetail from './pages/ArticleDetail'
+import CommonHeader from './components/CommonHeader'
+import CommonFooter from './components/CommonFooter'
 
-const Home = lazy(() => import('./pages/Home'))
-const About = lazy(() => import('./pages/About'))
-const Category = lazy(() => import('./pages/Category'))
-const Contact = lazy(() => import('./pages/Contact'))
+// ScrollToTop component - resets scroll position on route change
+function ScrollToTop() {
+  const { pathname } = useLocation()
 
-function LoadingSpinner() {
-  return (
-    <div className="flex justify-center items-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
-    </div>
-  )
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant' // Use 'smooth' for smooth scrolling, 'instant' for immediate
+    })
+  }, [pathname])
+
+  return null
 }
 
 function App() {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/category" element={<Category />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
-    </Suspense>
+    <BrowserRouter>
+      <div className="flex flex-col min-h-screen">
+        <CommonHeader />
+        <main className="flex-grow">
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/articles" element={<Articles />} />
+            <Route path="/article/:slug" element={<ArticleDetail />} />
+          </Routes>
+        </main>
+        <CommonFooter />
+      </div>
+    </BrowserRouter>
   )
 }
 

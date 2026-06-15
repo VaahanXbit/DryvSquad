@@ -3,215 +3,180 @@
 ================================================================================
 File Name : CommonHeader.jsx
 Author : Tahseen Raza
-Created Date : 2026-06-10
-Description : Reusable header component with singleton pattern - only one 
-              instance exists across the entire application
+Created Date : 2025-01-15
+Description : Reusable header component with professional styling
 Company : Vaahan International
-Copyright : (c) 2026 Vaahan International. All rights reserved.
+Copyright : (c) 2025 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-import { Link, NavLink } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import BaseComponent from '../core/BaseComponent'
-import singletonManager from '../core/SingletonManager'
+import { useState, useEffect } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import CategoriesDropdown from './CategoriesDropdown'
 
-class CommonHeader extends BaseComponent {
-  constructor(props = {}) {
-    super(props)
-    this.state = {
-      isOpen: false,
-      isScrolled: false
+const CommonHeader = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const location = useLocation()
+  const brandYellow = '#CFB32B'
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
     }
-    this.brandYellow = '#CFB32B'  // Your exact brand color
-    this.navLinks = [
-      { path: '/', name: 'Home' },
-      { path: '/about', name: 'About' },
-      { path: '/category', name: 'Category' },
-      { path: '/contact', name: 'Contact' },
-    ]
-  }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
-  componentDidMount() {
-    super.componentDidMount()
-    window.addEventListener('scroll', this.handleScroll)
-  }
+  useEffect(() => {
+    setIsOpen(false)
+  }, [location])
 
-  componentWillUnmount() {
-    super.componentWillUnmount()
-    window.removeEventListener('scroll', this.handleScroll)
-  }
+  const navLinks = [
+    { path: '/', name: 'Home' },
+    { path: '/about', name: 'About' },
+    { path: '/contact', name: 'Contact' },
+  ]
 
-  handleScroll = () => {
-    this.setState({ isScrolled: window.scrollY > 20 })
-  }
+  return (
+    <nav
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        isScrolled ? 'py-2 shadow-xl' : 'py-3'
+      }`}
+      style={{
+        backgroundColor: brandYellow,
+        borderBottom: '1px solid rgba(0,0,0,0.08)',
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          {/* Logo - Larger Size */}
+          <Link to="/" className="flex items-center group flex-shrink-0">
+            <img
+              src="/Vaahan_International_Logo1.jpg"
+              alt="Vaahan International"
+              className="h-16 md:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+          </Link>
 
-  toggleMenu = () => {
-    this.setState(prev => ({ isOpen: !prev.isOpen }))
-  }
-
-  closeMenu = () => {
-    this.setState({ isOpen: false })
-  }
-
-  render() {
-    const { isOpen, isScrolled } = this.state
-
-    return (
-      <nav
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          isScrolled ? 'py-2 shadow-xl' : 'py-3'
-        }`}
-        style={{
-          backgroundColor: this.brandYellow,
-          borderBottom: '1px solid rgba(0,0,0,0.08)',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link
-              to="/"
-              className="flex items-center group"
-              onClick={this.closeMenu}
-            >
-              <img
-                src="/Vaahan_International_Logo.jpg"
-                alt="Vaahan International"
-                className="h-16 md:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </Link>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-10">
-              {this.navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) =>
-                    `font-semibold text-[16px] tracking-wide transition-all duration-300 ${
-                      isActive
-                        ? 'text-black border-b-2 border-black pb-1'
-                        : 'text-gray-900 hover:text-black'
-                    }`
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              ))}
-
-              <Link
-                to="/contact"
-                className="
-                  bg-[#0B1F3A]
-                  hover:bg-[#08172C]
-                  text-white
-                  font-semibold
-                  py-3
-                  px-8
-                  rounded-xl
-                  shadow-lg
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                "
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className={({ isActive }) =>
+                  `font-semibold text-[16px] tracking-wide transition-all duration-300 ${
+                    isActive
+                      ? 'text-black border-b-2 border-black pb-1'
+                      : 'text-gray-900 hover:text-black'
+                  }`
+                }
               >
-                Get Started
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={this.toggleMenu}
-              className="md:hidden focus:outline-none"
-              aria-label="Toggle Menu"
+                {link.name}
+              </NavLink>
+            ))}
+            
+            {/* Categories Dropdown */}
+            <CategoriesDropdown />
+            
+            <Link
+              to="/contact"
+              className="
+                bg-[#0B1F3A]
+                hover:bg-[#08172C]
+                text-white
+                font-semibold
+                py-2.5
+                px-6
+                rounded-xl
+                shadow-lg
+                transition-all
+                duration-300
+                hover:-translate-y-1
+              "
             >
-              <div className="w-6 h-5 flex flex-col justify-between">
-                <span
-                  className={`h-0.5 w-full bg-black transition-all duration-300 ${
-                    isOpen ? 'rotate-45 translate-y-2' : ''
-                  }`}
-                />
-                <span
-                  className={`h-0.5 w-full bg-black transition-all duration-300 ${
-                    isOpen ? 'opacity-0' : ''
-                  }`}
-                />
-                <span
-                  className={`h-0.5 w-full bg-black transition-all duration-300 ${
-                    isOpen ? '-rotate-45 -translate-y-2' : ''
-                  }`}
-                />
-              </div>
-            </button>
+              Get Started
+            </Link>
           </div>
 
-          {/* Mobile Menu */}
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{
-              height: isOpen ? 'auto' : 0,
-              opacity: isOpen ? 1 : 0,
-            }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden md:hidden"
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden focus:outline-none flex-shrink-0"
+            aria-label="Toggle Menu"
           >
-            <div className="pt-5 pb-6 space-y-4">
-              {this.navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) =>
-                    `block py-2 font-medium text-lg ${
-                      isActive ? 'text-black' : 'text-gray-900 hover:text-black'
-                    }`
-                  }
-                  onClick={this.closeMenu}
-                >
-                  {link.name}
-                </NavLink>
-              ))}
-
-              <Link
-                to="/contact"
-                className="
-                  block
-                  text-center
-                  bg-[#0B1F3A]
-                  hover:bg-[#08172C]
-                  text-white
-                  font-semibold
-                  py-3
-                  rounded-xl
-                  transition-all
-                  duration-300
-                "
-                onClick={this.closeMenu}
-              >
-                Get Started
-              </Link>
+            <div className="w-6 h-5 flex flex-col justify-between">
+              <span
+                className={`h-0.5 w-full bg-black transition-all duration-300 ${
+                  isOpen ? 'rotate-45 translate-y-2' : ''
+                }`}
+              />
+              <span
+                className={`h-0.5 w-full bg-black transition-all duration-300 ${
+                  isOpen ? 'opacity-0' : ''
+                }`}
+              />
+              <span
+                className={`h-0.5 w-full bg-black transition-all duration-300 ${
+                  isOpen ? '-rotate-45 -translate-y-2' : ''
+                }`}
+              />
             </div>
-          </motion.div>
+          </button>
         </div>
-      </nav>
-    )
-  }
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden md:hidden"
+            >
+              <div className="pt-5 pb-6 space-y-4">
+                {navLinks.map((link) => (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    className={({ isActive }) =>
+                      `block py-2 font-medium text-lg ${
+                        isActive ? 'text-black' : 'text-gray-900 hover:text-black'
+                      }`
+                    }
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.name}
+                  </NavLink>
+                ))}
+                <Link
+                  to="/contact"
+                  className="
+                    block
+                    text-center
+                    bg-[#0B1F3A]
+                    hover:bg-[#08172C]
+                    text-white
+                    font-semibold
+                    py-3
+                    rounded-xl
+                    transition-all
+                    duration-300
+                  "
+                  onClick={() => setIsOpen(false)}
+                >
+                  Get Started
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </nav>
+  )
 }
 
-// Create header instance with proper props
-let headerInstance = null
-
-export const getHeader = () => {
-  if (!headerInstance) {
-    headerInstance = singletonManager.getInstance('CommonHeader', () => new CommonHeader({}))
-  }
-  return headerInstance
-}
-
-// Functional component wrapper for React rendering
-const CommonHeaderComponent = () => {
-  const header = getHeader()
-  return header.render()
-}
-
-export default CommonHeaderComponent
+export default CommonHeader

@@ -84,3 +84,79 @@ html {
   background-repeat: no-repeat;
   background-size: cover;
 }
+
+/* Add to src/index.css for article styling */
+
+.article-content {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.7;
+  color: #333;
+}
+
+.article-content h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #eab308;
+  padding-left: 1rem;
+}
+
+.article-content h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2d2d2d;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.article-content p {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.article-content ul, .article-content ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}
+
+.article-content strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.highlight-box {
+  background: #fef3c7;
+  border-left: 4px solid #eab308;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+}
+
+.highlight-box h3 {
+  margin-top: 0;
+  color: #92400e;
+}
+
+.verdict-box {
+  background: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+}
+
+.verdict-box h2, .verdict-box h3 {
+  margin-top: 0;
+  color: #166534;
+}
+
+.prose {
+  max-width: 100%;
+}

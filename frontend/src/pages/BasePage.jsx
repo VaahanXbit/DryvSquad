@@ -11,29 +11,36 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
+import React from 'react'
 import BaseComponent from '../core/BaseComponent'
-import CommonHeader from '../components/CommonHeader'
-import CommonFooter from '../components/CommonFooter'
 
 class BasePage extends BaseComponent {
-  constructor(props) {
+  constructor(props = {}) {
     super(props)
     this.pageTitle = props.pageTitle || 'Vaahan International'
     this.pageDescription = props.pageDescription || 'Modern Car Features Explained Simply'
+    this.state = props.initialState || {}
   }
 
   // Set page metadata
   setPageMetadata() {
-    document.title = this.pageTitle
-    const metaDescription = document.querySelector('meta[name="description"]')
-    if (metaDescription) {
+    if (typeof document !== 'undefined') {
+      document.title = this.pageTitle
+      let metaDescription = document.querySelector('meta[name="description"]')
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta')
+        metaDescription.setAttribute('name', 'description')
+        document.head.appendChild(metaDescription)
+      }
       metaDescription.setAttribute('content', this.pageDescription)
     }
   }
 
   // Scroll to top on page change
   scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   componentDidMount() {
@@ -42,16 +49,16 @@ class BasePage extends BaseComponent {
     this.scrollToTop()
   }
 
+  // Helper to update state
+  setState(updater, callback) {
+    if (this.setState) {
+      super.setState(updater, callback)
+    }
+  }
+
   render() {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <CommonHeader />
-        <main className="flex-grow pt-20">
-          {this.renderContent()}
-        </main>
-        <CommonFooter />
-      </div>
-    )
+    // Only render the content - NO header or footer here
+    return this.renderContent()
   }
 
   // To be overridden by child classes

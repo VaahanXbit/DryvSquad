@@ -21,14 +21,14 @@ class CommonFooter extends BaseComponent {
     this.quickLinks = [
       { name: 'Home', path: '/' },
       { name: 'About', path: '/about' },
-      { name: 'Category', path: '/category' },
+      { name: 'Articles', path: '/articles' },
       { name: 'Contact', path: '/contact' },
     ]
     this.resources = [
-      { name: 'Safety Features', path: '/category#safety' },
-      { name: 'ADAS', path: '/category#adas' },
-      { name: 'Connected Cars', path: '/category#connected' },
-      { name: 'Electric Vehicles', path: '/category#ev' },
+      { name: 'Feature Reviews', path: '/articles?category=Feature%20Reviews' },
+      { name: 'Tech Insights', path: '/articles?category=Tech%20Insights' },
+      { name: 'New Launches', path: '/articles?category=New%20Launches' },
+      { name: 'All Articles', path: '/articles' },
     ]
     this.socialIcons = [
       { name: 'LinkedIn', icon: 'in', url: '#', color: 'hover:bg-blue-700' },
@@ -44,16 +44,16 @@ class CommonFooter extends BaseComponent {
         <div className="container-custom py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             
-            {/* Brand Column */}
+            {/* Brand Column - Using Logo Image */}
             <div className="col-span-1 md:col-span-1">
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="text-2xl">🚗</span>
-                <div>
-                  <span className="text-xl font-bold text-white">VAAHAN</span>
-                  <span className="text-xl font-semibold text-yellow-500"> INTERNATIONAL</span>
-                </div>
-              </div>
-              <p className="text-gray-400 text-sm mt-2 leading-relaxed">
+              <Link to="/" className="flex items-center space-x-2 mb-4 group">
+                <img
+                  src="/Vaahan_International_Logo1.jpg"
+                  alt="Vaahan International"
+                  className="h-14 md:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+              </Link>
+              <p className="text-gray-400 text-sm mt-4 leading-relaxed">
                 Helping Indian car buyers understand vehicle technology, safety systems, and automotive innovation.
               </p>
             </div>
