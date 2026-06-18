@@ -4,7 +4,7 @@
     {
       "name": "Grand Vitara",
       "slug": "maruti-grand-vitara",
-      "image": "/images/Maruti Suzuki Grand Vitara Zeta+ Smart Hybrid.png",
+      "image": "/images/Maruti Suzuki Grand Vitara Zeta Smart Hybrid.png",
       "variants": [
         {
           "name": "Zeta+ Smart Hybrid",
@@ -47,7 +47,7 @@
     {
       "name": "Brezza",
       "slug": "maruti-brezza",
-       "image": "/images/Maruti Suzuki Brezza ZXi+ 1.5 Petrol.png",
+       "image": "/images/Maruti Suzuki Brezza ZXi 1.5 Petrol.png",
       "variants": [
         {
           "name": "ZXi+ 1.5 Petrol",
