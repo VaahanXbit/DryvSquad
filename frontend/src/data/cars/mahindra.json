@@ -1,0 +1,307 @@
+{
+  "brand": "Mahindra",
+  "models": [
+    {
+      "name": "XUV700",
+      "slug": "mahindra-xuv700",
+      "image": "/images/Mahindra XUV700 AX7L 2.0 Diesel AT.png",
+      "variants": [
+        {
+          "name": "AX7L 2.0 Diesel AT",
+          "price": "₹13,50,000 - ₹24,50,000",
+          "overallScore": 8.7,
+          "scores": {
+            "safetyScore": 9.0,
+            "performanceScore": 8.8,
+            "drivingExperienceScore": 8.5,
+            "suspensionScore": 8.5,
+            "comfortScore": 8.5,
+            "featuresScore": 9.5,
+            "valueForMoneyScore": 8.5,
+            "cityDrivingScore": 7.5,
+            "highwayDrivingScore": 9.0,
+            "familyScore": 8.5,
+            "maintenanceScore": 8.0
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 9.5,
+              "adas": 9.0,
+              "ncapRating": 9.0,
+              "braking": 9.0,
+              "structuralSafety": 9.0
+            },
+            "performanceScore": {
+              "enginePower": 9.0,
+              "torque": 9.0,
+              "acceleration": 8.5,
+              "highwayPerformance": 9.0,
+              "gearboxResponse": 8.5
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 8.5,
+              "handling": 8.5,
+              "stability": 8.5,
+              "rideQuality": 8.5,
+              "driverConfidence": 8.5
+            },
+            "suspensionScore": {
+              "rideComfort": 8.5,
+              "potholeAbsorption": 8.0,
+              "highwayStability": 9.0,
+              "corneringSupport": 8.5
+            },
+            "comfortScore": {
+              "seatQuality": 8.5,
+              "cabinInsulation": 8.5,
+              "acEffectiveness": 8.5,
+              "rearSeatComfort": 8.5,
+              "rideSmoothness": 8.5
+            },
+            "featuresScore": {
+              "infotainment": 9.5,
+              "connectedCar": 9.5,
+              "sunroof": 9.5,
+              "ventilatedSeats": 9.5,
+              "ambientLighting": 9.5
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 8.5,
+              "safetyPackage": 8.5,
+              "performanceValue": 8.5,
+              "resaleValue": 8.0,
+              "overallPackage": 8.5
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 7.5,
+              "turningRadius": 7.0,
+              "visibility": 7.5,
+              "easeOfParking": 7.5,
+              "trafficManeuverability": 8.0
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 9.0,
+              "cruiseControl": 9.0,
+              "overtakingAbility": 9.0,
+              "fuelEfficiency": 8.5,
+              "cabinNoise": 9.0
+            },
+            "familyScore": {
+              "rearSeatSpace": 8.5,
+              "bootCapacity": 8.5,
+              "childSafety": 8.5,
+              "easeOfEntry": 8.5,
+              "familyFeatures": 8.5
+            },
+            "maintenanceScore": {
+              "serviceCost": 8.0,
+              "spareParts": 8.0,
+              "serviceNetwork": 8.0,
+              "reliability": 8.0,
+              "warranty": 8.0
+            }
+          }
+        },
+        {
+          "name": "AX5 2.0 Diesel MT",
+          "price": "₹12,50,000 - ₹20,50,000",
+          "overallScore": 7.9,
+          "scores": {
+            "safetyScore": 8.0,
+            "performanceScore": 8.2,
+            "drivingExperienceScore": 8.0,
+            "suspensionScore": 8.0,
+            "comfortScore": 8.0,
+            "featuresScore": 8.0,
+            "valueForMoneyScore": 8.0,
+            "cityDrivingScore": 7.0,
+            "highwayDrivingScore": 8.5,
+            "familyScore": 8.0,
+            "maintenanceScore": 8.0
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 8.5,
+              "adas": 6.5,
+              "ncapRating": 8.0,
+              "braking": 8.0,
+              "structuralSafety": 8.0
+            },
+            "performanceScore": {
+              "enginePower": 8.5,
+              "torque": 8.5,
+              "acceleration": 8.0,
+              "highwayPerformance": 8.5,
+              "gearboxResponse": 7.5
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 8.0,
+              "handling": 8.0,
+              "stability": 8.0,
+              "rideQuality": 8.0,
+              "driverConfidence": 8.0
+            },
+            "suspensionScore": {
+              "rideComfort": 8.0,
+              "potholeAbsorption": 7.5,
+              "highwayStability": 8.5,
+              "corneringSupport": 8.0
+            },
+            "comfortScore": {
+              "seatQuality": 8.0,
+              "cabinInsulation": 8.0,
+              "acEffectiveness": 8.0,
+              "rearSeatComfort": 8.0,
+              "rideSmoothness": 8.0
+            },
+            "featuresScore": {
+              "infotainment": 8.0,
+              "connectedCar": 8.0,
+              "sunroof": 8.0,
+              "ventilatedSeats": 0.0,
+              "ambientLighting": 0.0
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 8.0,
+              "safetyPackage": 8.0,
+              "performanceValue": 8.0,
+              "resaleValue": 8.0,
+              "overallPackage": 8.0
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 7.0,
+              "turningRadius": 6.5,
+              "visibility": 7.0,
+              "easeOfParking": 7.0,
+              "trafficManeuverability": 7.5
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 8.5,
+              "cruiseControl": 8.5,
+              "overtakingAbility": 8.5,
+              "fuelEfficiency": 8.0,
+              "cabinNoise": 8.0
+            },
+            "familyScore": {
+              "rearSeatSpace": 8.0,
+              "bootCapacity": 8.0,
+              "childSafety": 8.0,
+              "easeOfEntry": 8.0,
+              "familyFeatures": 8.0
+            },
+            "maintenanceScore": {
+              "serviceCost": 8.0,
+              "spareParts": 8.0,
+              "serviceNetwork": 8.0,
+              "reliability": 8.0,
+              "warranty": 8.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scorpio N",
+      "slug": "mahindra-scorpio-n",
+      "image": "/images/Mahindra Scorpio N Z8L 2.2 Diesel AT.png",
+      "variants": [
+        {
+          "name": "Z8L 2.2 Diesel AT",
+          "price": "₹13,00,000 - ₹24,00,000",
+          "overallScore": 7.8,
+          "scores": {
+            "safetyScore": 8.0,
+            "performanceScore": 7.8,
+            "drivingExperienceScore": 7.5,
+            "suspensionScore": 7.5,
+            "comfortScore": 7.5,
+            "featuresScore": 7.5,
+            "valueForMoneyScore": 8.0,
+            "cityDrivingScore": 6.5,
+            "highwayDrivingScore": 8.0,
+            "familyScore": 8.0,
+            "maintenanceScore": 8.0
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 8.5,
+              "adas": 0.0,
+              "ncapRating": 8.0,
+              "braking": 8.0,
+              "structuralSafety": 8.0
+            },
+            "performanceScore": {
+              "enginePower": 8.0,
+              "torque": 8.0,
+              "acceleration": 7.5,
+              "highwayPerformance": 8.0,
+              "gearboxResponse": 7.5
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 7.5,
+              "handling": 7.5,
+              "stability": 7.5,
+              "rideQuality": 7.5,
+              "driverConfidence": 7.5
+            },
+            "suspensionScore": {
+              "rideComfort": 7.5,
+              "potholeAbsorption": 7.0,
+              "highwayStability": 8.0,
+              "corneringSupport": 7.5
+            },
+            "comfortScore": {
+              "seatQuality": 7.5,
+              "cabinInsulation": 7.5,
+              "acEffectiveness": 7.5,
+              "rearSeatComfort": 7.5,
+              "rideSmoothness": 7.5
+            },
+            "featuresScore": {
+              "infotainment": 7.5,
+              "connectedCar": 7.5,
+              "sunroof": 7.5,
+              "ventilatedSeats": 0.0,
+              "ambientLighting": 0.0
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 8.0,
+              "safetyPackage": 8.0,
+              "performanceValue": 8.0,
+              "resaleValue": 8.0,
+              "overallPackage": 8.0
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 6.5,
+              "turningRadius": 6.0,
+              "visibility": 6.5,
+              "easeOfParking": 6.5,
+              "trafficManeuverability": 7.0
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 8.0,
+              "cruiseControl": 8.0,
+              "overtakingAbility": 8.0,
+              "fuelEfficiency": 7.5,
+              "cabinNoise": 8.0
+            },
+            "familyScore": {
+              "rearSeatSpace": 8.0,
+              "bootCapacity": 8.0,
+              "childSafety": 8.0,
+              "easeOfEntry": 8.0,
+              "familyFeatures": 8.0
+            },
+            "maintenanceScore": {
+              "serviceCost": 8.0,
+              "spareParts": 8.0,
+              "serviceNetwork": 8.0,
+              "reliability": 8.0,
+              "warranty": 8.0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

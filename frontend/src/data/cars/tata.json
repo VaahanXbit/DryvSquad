@@ -1,0 +1,307 @@
+{
+  "brand": "Tata",
+  "models": [
+    {
+      "name": "Nexon",
+      "slug": "tata-nexon",
+      "image": "/images/Tata Nexon Fearless Plus 1.5 Diesel.png",
+      "variants": [
+        {
+          "name": "Fearless Plus 1.5 Diesel",
+          "price": "₹8,00,000 - ₹14,50,000",
+          "overallScore": 8.3,
+          "scores": {
+            "safetyScore": 8.5,
+            "performanceScore": 7.8,
+            "drivingExperienceScore": 8.0,
+            "suspensionScore": 8.0,
+            "comfortScore": 8.0,
+            "featuresScore": 8.0,
+            "valueForMoneyScore": 9.0,
+            "cityDrivingScore": 8.5,
+            "highwayDrivingScore": 8.0,
+            "familyScore": 8.0,
+            "maintenanceScore": 8.0
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 9.0,
+              "adas": 0.0,
+              "ncapRating": 9.0,
+              "braking": 8.5,
+              "structuralSafety": 8.5
+            },
+            "performanceScore": {
+              "enginePower": 8.0,
+              "torque": 8.0,
+              "acceleration": 7.5,
+              "highwayPerformance": 7.5,
+              "gearboxResponse": 8.0
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 8.0,
+              "handling": 8.0,
+              "stability": 8.0,
+              "rideQuality": 8.0,
+              "driverConfidence": 8.0
+            },
+            "suspensionScore": {
+              "rideComfort": 8.0,
+              "potholeAbsorption": 8.0,
+              "highwayStability": 8.0,
+              "corneringSupport": 8.0
+            },
+            "comfortScore": {
+              "seatQuality": 8.0,
+              "cabinInsulation": 8.0,
+              "acEffectiveness": 8.0,
+              "rearSeatComfort": 8.0,
+              "rideSmoothness": 8.0
+            },
+            "featuresScore": {
+              "infotainment": 8.0,
+              "connectedCar": 8.0,
+              "sunroof": 8.0,
+              "ventilatedSeats": 0.0,
+              "ambientLighting": 0.0
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 9.0,
+              "safetyPackage": 9.0,
+              "performanceValue": 9.0,
+              "resaleValue": 8.5,
+              "overallPackage": 9.0
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 8.5,
+              "turningRadius": 8.5,
+              "visibility": 8.5,
+              "easeOfParking": 8.5,
+              "trafficManeuverability": 8.5
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 8.0,
+              "cruiseControl": 8.0,
+              "overtakingAbility": 7.5,
+              "fuelEfficiency": 8.0,
+              "cabinNoise": 8.0
+            },
+            "familyScore": {
+              "rearSeatSpace": 8.0,
+              "bootCapacity": 8.0,
+              "childSafety": 8.0,
+              "easeOfEntry": 8.0,
+              "familyFeatures": 8.0
+            },
+            "maintenanceScore": {
+              "serviceCost": 8.0,
+              "spareParts": 8.0,
+              "serviceNetwork": 8.0,
+              "reliability": 8.0,
+              "warranty": 8.0
+            }
+          }
+        },
+        {
+          "name": "Fearless 1.2 Petrol AMT",
+          "price": "₹9,00,000 - ₹14,00,000",
+          "overallScore": 7.6,
+          "scores": {
+            "safetyScore": 8.0,
+            "performanceScore": 7.2,
+            "drivingExperienceScore": 7.5,
+            "suspensionScore": 7.5,
+            "comfortScore": 7.5,
+            "featuresScore": 7.5,
+            "valueForMoneyScore": 8.5,
+            "cityDrivingScore": 8.0,
+            "highwayDrivingScore": 7.5,
+            "familyScore": 7.5,
+            "maintenanceScore": 8.0
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 8.5,
+              "adas": 0.0,
+              "ncapRating": 8.0,
+              "braking": 8.0,
+              "structuralSafety": 8.0
+            },
+            "performanceScore": {
+              "enginePower": 7.5,
+              "torque": 7.0,
+              "acceleration": 7.0,
+              "highwayPerformance": 7.0,
+              "gearboxResponse": 7.5
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 7.5,
+              "handling": 7.5,
+              "stability": 7.5,
+              "rideQuality": 7.5,
+              "driverConfidence": 7.5
+            },
+            "suspensionScore": {
+              "rideComfort": 7.5,
+              "potholeAbsorption": 7.5,
+              "highwayStability": 7.5,
+              "corneringSupport": 7.5
+            },
+            "comfortScore": {
+              "seatQuality": 7.5,
+              "cabinInsulation": 7.5,
+              "acEffectiveness": 7.5,
+              "rearSeatComfort": 7.5,
+              "rideSmoothness": 7.5
+            },
+            "featuresScore": {
+              "infotainment": 7.5,
+              "connectedCar": 7.5,
+              "sunroof": 7.5,
+              "ventilatedSeats": 0.0,
+              "ambientLighting": 0.0
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 8.5,
+              "safetyPackage": 8.5,
+              "performanceValue": 8.5,
+              "resaleValue": 8.0,
+              "overallPackage": 8.5
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 8.0,
+              "turningRadius": 8.0,
+              "visibility": 8.0,
+              "easeOfParking": 8.0,
+              "trafficManeuverability": 8.0
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 7.5,
+              "cruiseControl": 7.5,
+              "overtakingAbility": 7.0,
+              "fuelEfficiency": 7.5,
+              "cabinNoise": 7.5
+            },
+            "familyScore": {
+              "rearSeatSpace": 7.5,
+              "bootCapacity": 7.5,
+              "childSafety": 7.5,
+              "easeOfEntry": 7.5,
+              "familyFeatures": 7.5
+            },
+            "maintenanceScore": {
+              "serviceCost": 8.0,
+              "spareParts": 8.0,
+              "serviceNetwork": 8.0,
+              "reliability": 8.0,
+              "warranty": 8.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Harrier",
+      "slug": "tata-harrier",
+      "image": "/images/Tata Harrier XZA 2.0 Diesel AT.png",
+      "variants": [
+        {
+          "name": "XZA+ 2.0 Diesel AT",
+          "price": "₹14,50,000 - ₹22,00,000",
+          "overallScore": 8.2,
+          "scores": {
+            "safetyScore": 8.5,
+            "performanceScore": 8.2,
+            "drivingExperienceScore": 8.0,
+            "suspensionScore": 8.0,
+            "comfortScore": 8.0,
+            "featuresScore": 8.5,
+            "valueForMoneyScore": 8.0,
+            "cityDrivingScore": 7.5,
+            "highwayDrivingScore": 8.5,
+            "familyScore": 8.0,
+            "maintenanceScore": 7.5
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 9.0,
+              "adas": 7.5,
+              "ncapRating": 8.5,
+              "braking": 8.5,
+              "structuralSafety": 8.5
+            },
+            "performanceScore": {
+              "enginePower": 8.5,
+              "torque": 8.5,
+              "acceleration": 8.0,
+              "highwayPerformance": 8.0,
+              "gearboxResponse": 8.0
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 8.0,
+              "handling": 8.0,
+              "stability": 8.0,
+              "rideQuality": 8.0,
+              "driverConfidence": 8.0
+            },
+            "suspensionScore": {
+              "rideComfort": 8.0,
+              "potholeAbsorption": 7.5,
+              "highwayStability": 8.5,
+              "corneringSupport": 8.0
+            },
+            "comfortScore": {
+              "seatQuality": 8.0,
+              "cabinInsulation": 8.0,
+              "acEffectiveness": 8.0,
+              "rearSeatComfort": 8.0,
+              "rideSmoothness": 8.0
+            },
+            "featuresScore": {
+              "infotainment": 8.5,
+              "connectedCar": 8.5,
+              "sunroof": 8.5,
+              "ventilatedSeats": 8.5,
+              "ambientLighting": 8.5
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 8.0,
+              "safetyPackage": 8.0,
+              "performanceValue": 8.0,
+              "resaleValue": 7.5,
+              "overallPackage": 8.0
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 7.5,
+              "turningRadius": 7.0,
+              "visibility": 7.5,
+              "easeOfParking": 7.5,
+              "trafficManeuverability": 8.0
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 8.5,
+              "cruiseControl": 8.5,
+              "overtakingAbility": 8.5,
+              "fuelEfficiency": 8.0,
+              "cabinNoise": 8.5
+            },
+            "familyScore": {
+              "rearSeatSpace": 8.0,
+              "bootCapacity": 8.0,
+              "childSafety": 8.0,
+              "easeOfEntry": 8.0,
+              "familyFeatures": 8.0
+            },
+            "maintenanceScore": {
+              "serviceCost": 7.5,
+              "spareParts": 7.5,
+              "serviceNetwork": 7.5,
+              "reliability": 7.5,
+              "warranty": 7.5
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

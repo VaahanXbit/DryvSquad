@@ -1,0 +1,73 @@
+{
+  "brand": "Suzuki",
+  "models": [
+    {
+      "name": "Grand Vitara",
+      "slug": "maruti-grand-vitara",
+      "image": "/images/Maruti Suzuki Grand Vitara Zeta Smart Hybrid.png",
+      "variants": [
+        {
+          "name": "Zeta+ Smart Hybrid",
+          "price": "₹10,50,000 - ₹19,50,000",
+          "overallScore": 8.0,
+          "scores": {
+            "safetyScore": 8.0,
+            "performanceScore": 7.2,
+            "drivingExperienceScore": 7.8,
+            "suspensionScore": 7.5,
+            "comfortScore": 8.5,
+            "featuresScore": 8.0,
+            "valueForMoneyScore": 8.5,
+            "cityDrivingScore": 8.5,
+            "highwayDrivingScore": 8.0,
+            "familyScore": 8.5,
+            "maintenanceScore": 8.5
+          }
+        },
+        {
+          "name": "Sigma Petrol MT",
+          "price": "₹10,00,000 - ₹17,00,000",
+          "overallScore": 7.0,
+          "scores": {
+            "safetyScore": 7.0,
+            "performanceScore": 6.8,
+            "drivingExperienceScore": 7.0,
+            "suspensionScore": 7.0,
+            "comfortScore": 7.0,
+            "featuresScore": 6.5,
+            "valueForMoneyScore": 7.5,
+            "cityDrivingScore": 7.5,
+            "highwayDrivingScore": 7.0,
+            "familyScore": 7.0,
+            "maintenanceScore": 8.5
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brezza",
+      "slug": "maruti-brezza",
+       "image": "/images/Maruti Suzuki Brezza ZXi 1.5 Petrol.png",
+      "variants": [
+        {
+          "name": "ZXi+ 1.5 Petrol",
+          "price": "₹8,29,000 - ₹14,14,000",
+          "overallScore": 7.5,
+          "scores": {
+            "safetyScore": 8.0,
+            "performanceScore": 7.0,
+            "drivingExperienceScore": 7.5,
+            "suspensionScore": 7.0,
+            "comfortScore": 7.5,
+            "featuresScore": 7.5,
+            "valueForMoneyScore": 8.0,
+            "cityDrivingScore": 8.0,
+            "highwayDrivingScore": 7.5,
+            "familyScore": 7.5,
+            "maintenanceScore": 8.5
+          }
+        }
+      ]
+    }
+  ]
+}

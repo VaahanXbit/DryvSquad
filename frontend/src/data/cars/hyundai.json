@@ -1,0 +1,307 @@
+{
+  "brand": "Hyundai",
+  "models": [
+    {
+      "name": "Creta",
+      "slug": "hyundai-creta",
+      "image": "/images/Hyundai Creta SX(O) 1.5 Diesel AT.png",
+      "variants": [
+        {
+          "name": "SX(O) 1.5 Diesel AT",
+          "price": "₹11,00,000 - ₹19,00,000",
+          "overallScore": 8.5,
+          "scores": {
+            "safetyScore": 8.5,
+            "performanceScore": 7.8,
+            "drivingExperienceScore": 8.2,
+            "suspensionScore": 8.0,
+            "comfortScore": 9.0,
+            "featuresScore": 9.0,
+            "valueForMoneyScore": 8.5,
+            "cityDrivingScore": 9.0,
+            "highwayDrivingScore": 8.5,
+            "familyScore": 9.0,
+            "maintenanceScore": 8.0
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 9.0,
+              "adas": 8.5,
+              "ncapRating": 9.0,
+              "braking": 8.0,
+              "structuralSafety": 8.0
+            },
+            "performanceScore": {
+              "enginePower": 8.0,
+              "torque": 8.0,
+              "acceleration": 7.5,
+              "highwayPerformance": 8.0,
+              "gearboxResponse": 7.5
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 8.0,
+              "handling": 8.5,
+              "stability": 8.5,
+              "rideQuality": 8.0,
+              "driverConfidence": 8.0
+            },
+            "suspensionScore": {
+              "rideComfort": 8.0,
+              "potholeAbsorption": 7.5,
+              "highwayStability": 8.5,
+              "corneringSupport": 8.0
+            },
+            "comfortScore": {
+              "seatQuality": 9.0,
+              "cabinInsulation": 9.0,
+              "acEffectiveness": 9.0,
+              "rearSeatComfort": 9.0,
+              "rideSmoothness": 9.0
+            },
+            "featuresScore": {
+              "infotainment": 9.0,
+              "connectedCar": 9.0,
+              "sunroof": 9.0,
+              "ventilatedSeats": 9.0,
+              "ambientLighting": 9.0
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 8.5,
+              "safetyPackage": 8.5,
+              "performanceValue": 8.0,
+              "resaleValue": 8.5,
+              "overallPackage": 8.5
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 9.0,
+              "turningRadius": 9.0,
+              "visibility": 9.0,
+              "easeOfParking": 9.0,
+              "trafficManeuverability": 9.0
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 8.5,
+              "cruiseControl": 8.5,
+              "overtakingAbility": 8.0,
+              "fuelEfficiency": 8.5,
+              "cabinNoise": 8.5
+            },
+            "familyScore": {
+              "rearSeatSpace": 9.0,
+              "bootCapacity": 9.0,
+              "childSafety": 9.0,
+              "easeOfEntry": 9.0,
+              "familyFeatures": 9.0
+            },
+            "maintenanceScore": {
+              "serviceCost": 8.0,
+              "spareParts": 8.0,
+              "serviceNetwork": 8.0,
+              "reliability": 8.0,
+              "warranty": 8.0
+            }
+          }
+        },
+        {
+          "name": "SX 1.5 Petrol MT",
+          "price": "₹10,50,000 - ₹17,50,000",
+          "overallScore": 7.8,
+          "scores": {
+            "safetyScore": 8.0,
+            "performanceScore": 7.5,
+            "drivingExperienceScore": 7.8,
+            "suspensionScore": 7.5,
+            "comfortScore": 8.0,
+            "featuresScore": 7.5,
+            "valueForMoneyScore": 8.0,
+            "cityDrivingScore": 8.5,
+            "highwayDrivingScore": 8.0,
+            "familyScore": 8.0,
+            "maintenanceScore": 8.0
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 8.5,
+              "adas": 0.0,
+              "ncapRating": 8.0,
+              "braking": 8.0,
+              "structuralSafety": 8.0
+            },
+            "performanceScore": {
+              "enginePower": 7.5,
+              "torque": 7.5,
+              "acceleration": 7.0,
+              "highwayPerformance": 7.5,
+              "gearboxResponse": 8.0
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 7.5,
+              "handling": 8.0,
+              "stability": 8.0,
+              "rideQuality": 7.5,
+              "driverConfidence": 8.0
+            },
+            "suspensionScore": {
+              "rideComfort": 7.5,
+              "potholeAbsorption": 7.0,
+              "highwayStability": 8.0,
+              "corneringSupport": 7.5
+            },
+            "comfortScore": {
+              "seatQuality": 8.0,
+              "cabinInsulation": 8.0,
+              "acEffectiveness": 8.0,
+              "rearSeatComfort": 8.0,
+              "rideSmoothness": 8.0
+            },
+            "featuresScore": {
+              "infotainment": 7.5,
+              "connectedCar": 7.0,
+              "sunroof": 8.0,
+              "ventilatedSeats": 0.0,
+              "ambientLighting": 0.0
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 8.0,
+              "safetyPackage": 8.0,
+              "performanceValue": 7.5,
+              "resaleValue": 8.0,
+              "overallPackage": 8.0
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 8.5,
+              "turningRadius": 8.5,
+              "visibility": 8.5,
+              "easeOfParking": 8.5,
+              "trafficManeuverability": 8.5
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 8.0,
+              "cruiseControl": 8.0,
+              "overtakingAbility": 7.5,
+              "fuelEfficiency": 8.0,
+              "cabinNoise": 8.0
+            },
+            "familyScore": {
+              "rearSeatSpace": 8.0,
+              "bootCapacity": 8.0,
+              "childSafety": 8.0,
+              "easeOfEntry": 8.0,
+              "familyFeatures": 8.0
+            },
+            "maintenanceScore": {
+              "serviceCost": 8.0,
+              "spareParts": 8.0,
+              "serviceNetwork": 8.0,
+              "reliability": 8.0,
+              "warranty": 8.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alcazar",
+      "slug": "hyundai-alcazar",
+      "image": "/images/Hyundai Alcazar Signature 1.5 Diesel AT.png",
+      "variants": [
+        {
+          "name": "Signature 1.5 Diesel AT",
+          "price": "₹16,00,000 - ₹21,00,000",
+          "overallScore": 7.9,
+          "scores": {
+            "safetyScore": 8.0,
+            "performanceScore": 7.5,
+            "drivingExperienceScore": 7.5,
+            "suspensionScore": 7.5,
+            "comfortScore": 8.5,
+            "featuresScore": 8.5,
+            "valueForMoneyScore": 7.5,
+            "cityDrivingScore": 7.5,
+            "highwayDrivingScore": 8.0,
+            "familyScore": 8.5,
+            "maintenanceScore": 7.5
+          },
+          "factorScores": {
+            "safetyScore": {
+              "airbags": 8.5,
+              "adas": 8.0,
+              "ncapRating": 8.0,
+              "braking": 7.5,
+              "structuralSafety": 8.0
+            },
+            "performanceScore": {
+              "enginePower": 7.5,
+              "torque": 7.5,
+              "acceleration": 7.0,
+              "highwayPerformance": 7.5,
+              "gearboxResponse": 8.0
+            },
+            "drivingExperienceScore": {
+              "steeringFeedback": 7.5,
+              "handling": 7.5,
+              "stability": 7.5,
+              "rideQuality": 7.5,
+              "driverConfidence": 7.5
+            },
+            "suspensionScore": {
+              "rideComfort": 7.5,
+              "potholeAbsorption": 7.0,
+              "highwayStability": 8.0,
+              "corneringSupport": 7.5
+            },
+            "comfortScore": {
+              "seatQuality": 8.5,
+              "cabinInsulation": 8.5,
+              "acEffectiveness": 8.5,
+              "rearSeatComfort": 8.5,
+              "rideSmoothness": 8.5
+            },
+            "featuresScore": {
+              "infotainment": 8.5,
+              "connectedCar": 8.5,
+              "sunroof": 8.5,
+              "ventilatedSeats": 8.5,
+              "ambientLighting": 8.5
+            },
+            "valueForMoneyScore": {
+              "priceVsFeatures": 7.5,
+              "safetyPackage": 7.5,
+              "performanceValue": 7.0,
+              "resaleValue": 7.5,
+              "overallPackage": 8.0
+            },
+            "cityDrivingScore": {
+              "steeringResponsiveness": 7.5,
+              "turningRadius": 7.0,
+              "visibility": 7.5,
+              "easeOfParking": 7.5,
+              "trafficManeuverability": 8.0
+            },
+            "highwayDrivingScore": {
+              "highSpeedStability": 8.0,
+              "cruiseControl": 8.0,
+              "overtakingAbility": 7.5,
+              "fuelEfficiency": 8.0,
+              "cabinNoise": 8.0
+            },
+            "familyScore": {
+              "rearSeatSpace": 8.5,
+              "bootCapacity": 8.5,
+              "childSafety": 8.5,
+              "easeOfEntry": 8.5,
+              "familyFeatures": 8.5
+            },
+            "maintenanceScore": {
+              "serviceCost": 7.5,
+              "spareParts": 7.5,
+              "serviceNetwork": 7.5,
+              "reliability": 7.5,
+              "warranty": 7.5
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

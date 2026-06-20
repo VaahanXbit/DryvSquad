@@ -5,98 +5,315 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   CSS Variables for Theme Support
+   ======================================== */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+  --border-primary: #e2e8f0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-bg: #f1f5f9;
+  --footer-bg: #111827;
+}
+
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-card: #1e293b;
+  --bg-input: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
+  --border-primary: #334155;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --hover-bg: #334155;
+  --footer-bg: #0f172a;
+}
+
+/* ========================================
+   UNIFIED THEME TRANSITION - 0.8s for everything
+   ======================================== */
+
+/* 
+   CRITICAL: All theme-aware elements must use the SAME duration
+   This ensures smooth, professional theme transitions
+*/
+.theme-transition,
+.theme-transition *,
+body,
+html,
+#root,
+div,
+section,
+article,
+header,
+footer,
+main,
+nav,
+aside,
+.card,
+.btn-primary,
+.btn-secondary,
+.input-field,
+.glass-card,
+.bg-theme-primary,
+.bg-theme-secondary,
+.bg-theme-tertiary,
+.bg-theme-card,
+.text-theme-primary,
+.text-theme-secondary,
+.text-theme-tertiary,
+.border-theme,
+.bg-white,
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200,
+.bg-gray-900,
+.bg-dark-800,
+.bg-dark-900,
+.bg-dark-700,
+.bg-dark-950,
+.text-gray-900,
+.text-gray-800,
+.text-gray-700,
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-gray-300,
+.text-white,
+.border-gray-200,
+.border-gray-300,
+.border-dark-700,
+.border-dark-600,
+.shadow-lg,
+.shadow-xl,
+.shadow-md,
+.shadow-sm,
+.shadow-2xl,
+.hover\:bg-gray-50,
+.hover\:bg-gray-100,
+.hover\:bg-dark-700,
+.hover\:bg-dark-600 {
+  transition: 
+    background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    fill 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    background-image 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover/active states should be faster for interactivity */
+.btn-primary:hover,
+.btn-secondary:hover,
+.card:hover,
+button:hover,
+a:hover {
+  transition: 
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent transitions on elements that should change instantly */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
+/* Theme transition class - applied during theme change */
+.theme-transition {
+  --transition-duration: 0.8s;
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
 @layer base {
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
-    @apply bg-light text-dark font-sans antialiased;
+    @apply font-sans antialiased;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
+    color: var(--text-primary);
   }
-  
-  h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl;
+
+  h1 { @apply text-4xl md:text-5xl lg:text-6xl; }
+  h2 { @apply text-3xl md:text-4xl; }
+  h3 { @apply text-2xl md:text-3xl; }
+  h4 { @apply text-xl md:text-2xl; }
+
+  ::selection {
+    @apply bg-yellow-500 text-gray-900;
   }
-  
-  h2 {
-    @apply text-3xl md:text-4xl;
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
-  
-  h3 {
-    @apply text-2xl md:text-3xl;
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--bg-secondary);
   }
-  
-  h4 {
-    @apply text-xl md:text-2xl;
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full;
+    background-color: var(--text-tertiary);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-muted);
   }
 }
 
+/* ========================================
+   Component Styles
+   ======================================== */
 @layer components {
   .container-custom {
     @apply container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
   }
-  
+
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-3 px-6 rounded-lg transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2;
   }
-  
+
   .btn-secondary {
-    @apply bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500;
+    @apply bg-white dark:bg-dark-800 border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-dark-700 font-semibold py-3 px-6 rounded-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500;
   }
-  
-  .btn-outline {
-    @apply border-2 border-dark-300 text-dark-600 hover:bg-dark-50 font-semibold py-2 px-4 rounded-lg transition-all duration-300;
-  }
-  
+
   .card {
-    @apply bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden;
+    background-color: var(--bg-card);
+    @apply rounded-xl shadow-md hover:shadow-xl overflow-hidden border;
+    border-color: var(--border-primary);
   }
-  
+
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
   }
+
+  .input-field::placeholder {
+    color: var(--text-muted);
+  }
+
+  .glass-card {
+    background-color: var(--bg-card);
+    @apply backdrop-blur-md border shadow-xl rounded-xl;
+    border-color: var(--border-primary);
+  }
+
+  /* Theme-aware backgrounds */
+  .bg-theme-primary { background-color: var(--bg-primary); }
+  .bg-theme-secondary { background-color: var(--bg-secondary); }
+  .bg-theme-tertiary { background-color: var(--bg-tertiary); }
+  .bg-theme-card { background-color: var(--bg-card); }
+
+  /* Theme-aware text colors */
+  .text-theme-primary { color: var(--text-primary); }
+  .text-theme-secondary { color: var(--text-secondary); }
+  .text-theme-tertiary { color: var(--text-tertiary); }
+
+  /* Theme-aware borders */
+  .border-theme { border-color: var(--border-primary); }
 }
 
+/* ========================================
+   Utility Styles
+   ======================================== */
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent;
+  }
+
+  /* Responsive text sizes */
+  .text-responsive-hero {
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
+  }
+  .text-responsive-title {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+  .text-responsive-subtitle {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+
+  /* Responsive spacing */
+  .section-padding {
+    @apply py-12 sm:py-16 md:py-20 lg:py-24;
+  }
+  .section-padding-sm {
+    @apply py-8 sm:py-10 md:py-12;
+  }
+
+  /* Grid responsive */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
+  }
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
+  }
+  .grid-responsive-4 {
+    @apply grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6;
   }
 }
 
-/* Add to your index.css */
-section {
-  scroll-margin-top: 80px;
+/* ========================================
+   Layout & Structural Styles
+   ======================================== */
+.fixed { position: fixed; }
+main { margin-top: 0; padding-top: 0; }
+
+@media (max-width: 768px) {
+  main { margin-top: 0; }
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
+section.relative.min-h-screen { margin-top: 0; }
+section { scroll-margin-top: 80px; }
+
+/* ========================================
+   Footer Styles
+   ======================================== */
+footer { 
+  background-color: var(--footer-bg) !important;
 }
+footer .text-gray-400 { color: #9ca3af !important; }
+footer .text-gray-500 { color: #6b7280 !important; }
+footer .text-white { color: #ffffff !important; }
 
-/* Parallax effect for background images */
-.parallax {
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
-/* Add to src/index.css for article styling */
-
+/* ========================================
+   Article Content Styles
+   ======================================== */
 .article-content {
   font-family: 'Inter', sans-serif;
   line-height: 1.7;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .article-content h2 {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-top: 2rem;
   margin-bottom: 1rem;
   border-left: 4px solid #eab308;
@@ -106,7 +323,7 @@ html {
 .article-content h3 {
   font-size: 1.4rem;
   font-weight: 600;
-  color: #2d2d2d;
+  color: var(--text-secondary);
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
 }
@@ -115,22 +332,36 @@ html {
   margin-bottom: 1rem;
   font-size: 1rem;
   line-height: 1.7;
+  color: var(--text-secondary);
 }
 
-.article-content ul, .article-content ol {
+.article-content ul,
+.article-content ol {
   margin: 1rem 0;
   padding-left: 1.5rem;
 }
 
 .article-content li {
   margin-bottom: 0.5rem;
+  color: var(--text-secondary);
 }
 
 .article-content strong {
-  color: #1a1a1a;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
+.article-content a {
+  color: #eab308;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.article-content a:hover {
+  color: #ca8a04;
+}
+
+/* Highlight Box */
 .highlight-box {
   background: #fef3c7;
   border-left: 4px solid #eab308;
@@ -139,11 +370,29 @@ html {
   border-radius: 0.5rem;
 }
 
+.dark .highlight-box {
+  background: #1e293b;
+  border-left-color: #eab308;
+}
+
 .highlight-box h3 {
   margin-top: 0;
   color: #92400e;
 }
 
+.dark .highlight-box h3 {
+  color: #fbbf24;
+}
+
+.highlight-box p {
+  color: #78350f;
+}
+
+.dark .highlight-box p {
+  color: #fde68a;
+}
+
+/* Verdict Box */
 .verdict-box {
   background: #f0fdf4;
   border-left: 4px solid #22c55e;
@@ -152,11 +401,111 @@ html {
   border-radius: 0.5rem;
 }
 
-.verdict-box h2, .verdict-box h3 {
+.dark .verdict-box {
+  background: #1e293b;
+  border-left-color: #22c55e;
+}
+
+.verdict-box h2,
+.verdict-box h3 {
   margin-top: 0;
   color: #166534;
 }
 
+.dark .verdict-box h2,
+.dark .verdict-box h3 {
+  color: #4ade80;
+}
+
+.verdict-box p {
+  color: #14532d;
+}
+
+.dark .verdict-box p {
+  color: #bbf7d0;
+}
+
 .prose {
   max-width: 100%;
+}
+
+.parallax {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* ========================================
+   Scrollbar Hide Utility
+   ======================================== */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========================================
+   Responsive Styles
+   ======================================== */
+/* Mobile menu improvements */
+@media (max-width: 1024px) {
+  .lg\:hidden {
+    display: flex !important;
+  }
+}
+
+/* Small screen adjustments */
+@media (max-width: 640px) {
+  .container-custom {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .article-content h2 {
+    font-size: 1.4rem;
+  }
+  .article-content h3 {
+    font-size: 1.2rem;
+  }
+  .article-content p {
+    font-size: 0.95rem;
+  }
+  .highlight-box,
+  .verdict-box {
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+  }
+}
+
+/* Touch-friendly dropdown for mobile */
+@media (max-width: 768px) {
+  .dropdown-touch {
+    cursor: pointer;
+  }
+  .parallax {
+    background-attachment: scroll;
+  }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .dark {
+    --bg-primary: #ffffff;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+  }
 }

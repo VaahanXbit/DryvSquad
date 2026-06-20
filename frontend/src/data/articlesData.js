@@ -291,7 +291,7 @@ export const featureReviews = [
         </div>
       </div>
     `,
-    image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&h=500&fit=crop",
+    image: "/AWDvsFWD.png",
     author: "Tahseen Raza",
     date: "January 15, 2025",
     readTime: "8 min read",
