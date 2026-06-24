@@ -10,47 +10,63 @@ def cosine_similarity(a, b):
         * np.linalg.norm(b)
     )
 
-
-def retrieve(
-    query,
-    top_k=5
-):
-
-    query_vector = embed_query(
-        query
-    )[0]
-
-    chunks = list(
-        chunks_collection.find({})
-    )
-
-    scored = []
-
-    for chunk in chunks:
-
-        embedding = np.array(
-            chunk["embedding"]
-        )
-
-        score = cosine_similarity(
-            query_vector,
-            embedding
-        )
-
-        scored.append(
-            (score, chunk)
-        )
-
-    scored.sort(
-        key=lambda x: x[0],
-        reverse=True
-    )
-
-    return [
-        chunk
-        for score, chunk
-        in scored[:top_k]
+def retrieve(query, top_k=5):
+    query_vector = embed_query(query)[0].tolist() # Convert NumPy array to list
+    
+    pipeline = [
+        {
+            "$vectorSearch": {
+                "index": "vector_index",  # Must match the name created in Atlas
+                "path": "embedding",
+                "queryVector": query_vector,
+                "numCandidates": top_k * 10,
+                "limit": top_k
+            }
+        }
     ]
+    
+    return list(chunks_collection.aggregate(pipeline))
+
+# def retrieve(
+#     query,
+#     top_k=5
+# ):
+
+#     query_vector = embed_query(
+#         query
+#     )[0]
+
+#     chunks = list(
+#         chunks_collection.find({})
+#     )
+
+#     scored = []
+
+#     for chunk in chunks:
+
+#         embedding = np.array(
+#             chunk["embedding"]
+#         )
+
+#         score = cosine_similarity(
+#             query_vector,
+#             embedding
+#         )
+
+#         scored.append(
+#             (score, chunk)
+#         )
+
+#     scored.sort(
+#         key=lambda x: x[0],
+#         reverse=True
+#     )
+
+#     return [
+#         chunk
+#         for score, chunk
+#         in scored[:top_k]
+#     ]
 
 if __name__ == "__main__":
     while True:

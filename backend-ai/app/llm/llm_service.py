@@ -6,10 +6,10 @@ import time
 
 load_dotenv()
 
-MOCK_MODE =  True
+MOCK_MODE = True
 
 # Gemini client
-gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+gemini_client = genai.Client(api_key=os.getenv("GROQ_API_KEY"))
 
 def generate(prompt: str) -> str:
     if MOCK_MODE:

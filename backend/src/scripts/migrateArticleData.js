@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 const Article = require('../models/Article');
 
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vaahan_auth');
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ MongoDB Connected');
     console.log(`📊 Database: ${mongoose.connection.db.databaseName}`);
   } catch (error) {
@@ -43,10 +43,17 @@ const migrateArticles = async () => {
   
   await connectDB();
   
-  // Clear existing articles
+  // Clear existing articles and chunks
   console.log('\n🗑️ Clearing existing articles...');
   await Article.deleteMany({});
-  console.log('✅ Existing articles cleared\n');
+  
+  console.log('🗑️ Clearing existing vector chunks...');
+  try {
+    await mongoose.connection.db.collection('ai_chunks').deleteMany({});
+    console.log('✅ Existing articles and chunks cleared\n');
+  } catch (err) {
+    console.warn('⚠️ Warning: Could not clear chunks collection:', err.message);
+  }
   
   const articlesData = loadArticleData();
   
@@ -76,6 +83,7 @@ const migrateArticles = async () => {
         status: articleData.status || 'published',
         seoTitle: articleData.seoTitle || articleData.title,
         seoDescription: articleData.seoDescription || articleData.excerpt,
+        seoKeywords: articleData.seoKeywords || articleData.tags || [],
         publishedAt: articleData.publishedAt || new Date(),
       });
       

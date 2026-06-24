@@ -15,8 +15,6 @@ from app.rag.embedder import embed_texts
 
 def ingest():
 
-    print("Clearing old chunks...")
-
     articles = articles_collection.find({
         "$or": [
             {
@@ -40,6 +38,12 @@ def ingest():
     print(
         f"Found {len(articles)} articles"
     )
+
+    # Actually delete existing chunks for these articles to prevent duplicates/errors
+    article_ids = [str(a["_id"]) for a in articles]
+    if article_ids:
+        print(f"Clearing old chunks for {len(article_ids)} articles...")
+        chunks_collection.delete_many({"source_id": {"$in": article_ids}})
 
     all_chunks = []
 
@@ -78,13 +82,24 @@ def ingest():
     
         chunk["updated_at"] = datetime.utcnow()
 
-    chunks_collection.insert_many(
-        all_chunks
-    )
+    if all_chunks:
+        chunks_collection.insert_many(
+            all_chunks
+        )
 
-    print(
-        f"Inserted {len(all_chunks)} chunks into MongoDB"
-    )
+        print(
+            f"Inserted {len(all_chunks)} chunks into MongoDB"
+        )
+
+        # Update last_embedded_at on the processed articles
+        for article in articles:
+            articles_collection.update_one(
+                {"_id": article["_id"]},
+                {"$set": {"last_embedded_at": datetime.utcnow()}}
+            )
+        print("Updated last_embedded_at timestamp for all processed articles")
+    else:
+        print("No new chunks to insert.")
 
 
 if __name__ == "__main__":

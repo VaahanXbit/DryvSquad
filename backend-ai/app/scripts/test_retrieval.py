@@ -10,22 +10,18 @@ sys.path.append(
 
 from app.rag.retriever import retrieve
 
-query = "Is AWD worth buying in India?"
+query = "Which ADAS feature is useful for lane keeping and lane departure warning?"
 
 results = retrieve(query)
 
 print("\nRESULTS\n")
 
 for r in results:
-
     print("=" * 50)
-
-    print(r["title"])
-
+    title_safe = r["title"].encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8')
+    print(title_safe)
     print()
-
-    print(
-        r["chunk_text"][:300]
-    )
+    text_safe = r["chunk_text"][:300].encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8')
+    print(text_safe)
 
     print()

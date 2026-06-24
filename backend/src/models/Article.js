@@ -65,6 +65,10 @@ const ArticleSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  seoKeywords: {
+    type: [String],
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,
