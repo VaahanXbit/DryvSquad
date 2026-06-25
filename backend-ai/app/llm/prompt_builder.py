@@ -10,9 +10,9 @@ A user asked: "{query}"
 
 No relevant information was found in Vaahan's knowledge base for this query.
 
-Respond with exactly this JSON and nothing else:
+Respond with exactly this JSON and nothing else(STRICTLY):
 {{
-  "reasoning": "I couldn't find relevant information in Vaahan's knowledge base for this query.",
+  "reasoning": "",
   "pros": [],
   "cons": [],
   "verdict": "Please try searching for a more specific automotive topic.",
@@ -62,7 +62,11 @@ USER QUESTION: {query}
 INSTRUCTIONS:
 - Answer ONLY from the context above
 - Be direct and opinionated, give a clear recommendation
-- If context doesn't contain enough info, say "I couldn't find relevant information in Vaahan's knowledge base"
+- If context doesn't contain enough info or the query is irrelevant:
+  1. Set "verdict" to "I couldn't find relevant information in Vaahan's knowledge base"
+  2. Set "has_answer" to false
+  3. Set "pros" and "cons" to empty arrays []
+  4. Keep "reasoning" empty or concise explaining why it is not relevant
 - Do NOT use general internet knowledge
 - Keep reasoning concise (2-3 sentences)
 - Pros and cons should be specific to Indian conditions

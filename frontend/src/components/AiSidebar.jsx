@@ -24,6 +24,10 @@ const AiSidebar = ({
     }
   }
 
+  const isRelevant = aiResult && aiResult.has_answer !== false && 
+    !aiResult.verdict?.toLowerCase().includes("couldn't find relevant") &&
+    !aiResult.verdict?.toLowerCase().includes("please try searching");
+
   return (
     <>
       {/* Backdrop overlay with blur */}
@@ -154,15 +158,17 @@ const AiSidebar = ({
               </div>
 
               {/* Reasoning */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">Reasoning</span>
-                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
-                  {aiResult.reasoning}
-                </p>
-              </div>
+              {isRelevant && aiResult.reasoning && (
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">Reasoning</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
+                    {aiResult.reasoning}
+                  </p>
+                </div>
+              )}
 
               {/* Pros & Cons */}
-              {(aiResult.pros?.length > 0 || aiResult.cons?.length > 0) && (
+              {isRelevant && (aiResult.pros?.length > 0 || aiResult.cons?.length > 0) && (
                 <div className="grid grid-cols-1 gap-4">
                   {aiResult.pros?.length > 0 && (
                     <div className="p-4.5 ">
@@ -195,7 +201,7 @@ const AiSidebar = ({
               )}
 
               {/* Empty Source state */}
-              {aiResult.has_answer === false && (
+              {!isRelevant && (
                 <div className="bg-gray-50 dark:bg-gray-800/40 rounded-xl p-4 text-center border border-gray-100 dark:border-gray-800">
                   <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
                     No specific documentation matches this query in the Vaahan Knowledge base.
@@ -211,7 +217,7 @@ const AiSidebar = ({
               )}
 
               {/* Sources */}
-              {aiResult.sources?.length > 0 && (
+              {isRelevant && aiResult.sources?.length > 0 && (
                 <div className="space-y-2 pt-2">
                   <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
                     Related Articles
