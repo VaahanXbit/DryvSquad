@@ -65,7 +65,7 @@ const ArticleSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  seoKeywords: {
+  seoKeywords: {     // SEO keywords for the article
     type: [String],
     default: [],
   },

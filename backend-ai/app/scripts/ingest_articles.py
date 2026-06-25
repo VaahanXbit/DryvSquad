@@ -39,7 +39,6 @@ def ingest():
         f"Found {len(articles)} articles"
     )
 
-    # Actually delete existing chunks for these articles to prevent duplicates/errors
     article_ids = [str(a["_id"]) for a in articles]
     if article_ids:
         print(f"Clearing old chunks for {len(article_ids)} articles...")
@@ -91,7 +90,6 @@ def ingest():
             f"Inserted {len(all_chunks)} chunks into MongoDB"
         )
 
-        # Update last_embedded_at on the processed articles
         for article in articles:
             articles_collection.update_one(
                 {"_id": article["_id"]},

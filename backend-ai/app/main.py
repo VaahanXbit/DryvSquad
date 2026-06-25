@@ -1,9 +1,12 @@
 import sys
 import os
 import json
-from rag.retriever import retrieve
 
-sys.path.append(os.path.dirname(__file__))
+# Add 'app' and its parent 'backend-ai' to python path before any local imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from rag.retriever import retrieve
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +20,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS — allow React frontend to call this API
+# CORS -> allow React frontend to call this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],

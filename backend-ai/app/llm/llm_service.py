@@ -6,10 +6,9 @@ import time
 
 load_dotenv()
 
-MOCK_MODE = True
+MOCK_MODE = False
 
-# Gemini client
-gemini_client = genai.Client(api_key=os.getenv("GROQ_API_KEY"))
+gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def generate(prompt: str) -> str:
     if MOCK_MODE:
@@ -22,13 +21,49 @@ def generate(prompt: str) -> str:
           "has_answer": true
         }'''
     try:
-        return generate_with_gemini(prompt)
-    except Exception as e:
-        print(f"⚠️ Gemini failed: {e}. Trying OpenAI...")
+        print("[INFO] Attempting answer generation with Groq...")
+        return generate_with_groq(prompt)
+    except Exception as e_groq:
+        print(f"[WARNING] Groq failed: {e_groq}. Trying Gemini...")
         try:
-            return generate_with_openai(prompt)
-        except Exception as e2:
-            raise Exception(f"Both LLMs failed. Gemini: {e}. OpenAI: {e2}")
+            return generate_with_gemini(prompt)
+        except Exception as e:
+            print(f"[WARNING] Gemini failed: {e}. Trying OpenAI...")
+            try:
+                return generate_with_openai(prompt)
+            except Exception as e2:
+                raise Exception(f"All LLMs failed. Groq: {e_groq}. Gemini: {e}. OpenAI: {e2}")
+
+
+def generate_with_groq(prompt: str) -> str:
+    from groq import Groq
+    
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not defined in environment variables.")
+        
+    client = Groq(api_key=api_key)
+    
+    # Try [llama-3.3-70b-versatile], fallback to [llama-3.1-8b-instant] 
+    try:
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3
+        )
+        result = completion.choices[0].message.content
+        print("[SUCCESS] Answered using Groq (llama-3.3-70b-versatile) with API key from: GROQ_API_KEY")
+        return result
+    except Exception as e:
+        print(f"[INFO] Groq llama-3.3-70b-versatile failed: {e}. Trying llama-3.1-8b-instant fallback...")
+        completion = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3
+        )
+        result = completion.choices[0].message.content
+        print("[SUCCESS] Answered using Groq (llama-3.1-8b-instant) with API key from: GROQ_API_KEY")
+        return result
 
 
 def generate_with_gemini(prompt: str) -> str:
@@ -43,7 +78,9 @@ def generate_with_gemini(prompt: str) -> str:
                     max_output_tokens=1000,
                 )
             )
-            return response.text
+            result = response.text
+            print("[SUCCESS] Answered using Gemini (gemini-2.5-flash) with API key from: GEMINI_API_KEY")
+            return result
         except Exception as e:
             error_str = str(e)
             if ("503" in error_str or "429" in error_str) and attempt < max_retries - 1:
@@ -56,9 +93,12 @@ def generate_with_gemini(prompt: str) -> str:
 
 def generate_with_openai(prompt: str) -> str:
     from openai import OpenAI
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    api_key = os.getenv("OPENAI_API_KEY", "")
+    client = OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-4.1-mini",
         messages=[{"role": "user", "content": prompt}]
     )
-    return response.choices[0].message.content
+    result = response.choices[0].message.content
+    print("[SUCCESS] Answered using OpenAI (gpt-4.1-mini) with API key from: OPENAI_API_KEY")
+    return result

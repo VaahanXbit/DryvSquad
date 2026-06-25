@@ -11,5 +11,3 @@ db = client[os.getenv("MONGODB_DB_NAME")]
 articles_collection = db["articles"]
 chunks_collection = db["ai_chunks"]
 cache_collection = db["ai_cache"]
-
-# print(client.list_database_names())

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { searchArticles } from '../data/articlesData'
+import AiSidebar from './AiSidebar'
 
 const SearchBar = () => {
   const [query, setQuery] = useState('')
@@ -47,7 +48,7 @@ const SearchBar = () => {
     e.preventDefault()
     if (query.trim()) {
       if (aiMode) {
-        handleAiSearch()
+        handleAiSearch(query)
       } else {
         navigate(`/articles?search=${encodeURIComponent(query)}`)
         setIsOpen(false)
@@ -71,22 +72,24 @@ const SearchBar = () => {
       .filter(word => word.length > 2 && !stopWords.has(word))
   }
 
-  const handleAiSearch = async () => {
-    if (!query.trim()) return
+  const handleAiSearch = async (searchQuery = query) => {
+    const activeQuery = searchQuery.trim()
+    if (!activeQuery) return
 
     setAiLoading(true)
     setAiResult(null)
     setAiError(null)
     setIsOpen(false)
+    setAiMode(true) 
 
-    const keywords = extractKeywords(query)
+    const keywords = extractKeywords(activeQuery)
 
     try {
       const response = await fetch('http://localhost:8000/api/ai-mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: query,
+          query: activeQuery,
           keywords: keywords
         })
       })
@@ -238,178 +241,17 @@ const SearchBar = () => {
         </div>
       )}
 
-      {aiMode && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-yellow-200 z-50 overflow-hidden">
-
-          {/* Header */}
-          <div className="px-4 py-3 bg-yellow-50 border-b border-yellow-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-500">✨</span>
-              <span className="text-sm font-semibold text-gray-700">AI Mode — Vaahan Knowledge Base</span>
-            </div>
-            <button
-              onClick={() => { setAiMode(false); setAiResult(null) }}
-              className="text-gray-400 hover:text-gray-600 text-lg leading-none"
-            >
-              ✕
-            </button>
-          </div>
-
-          {!aiLoading && !aiResult && !aiError && (
-            <div className="px-4 py-6 text-center">
-              <p className="text-sm text-gray-500 mb-3">
-                Type your question and press Enter or click below
-              </p>
-              {/* Suggested prompts */}
-              <div className="flex flex-wrap gap-2 justify-center">
-                {[
-                  'Is AWD worth it for city driving?',
-                  'How does ABS work?',
-                  'Diesel vs Petrol for highway driving?',
-                  'Is ADAS useful on Indian roads?'
-                ].map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => {
-                      setQuery(suggestion)
-                      setTimeout(() => handleAiSearch(), 100)
-                    }}
-                    className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-yellow-100 hover:text-yellow-700 text-gray-600 rounded-full transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {aiLoading && (
-            <div className="px-4 py-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">Searching Vaahan knowledge base...</p>
-              {query && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Keywords: {extractKeywords(query).join(', ')}
-                </p>
-              )}
-            </div>
-          )}
-
-          {aiError && (
-            <div className="px-4 py-6 text-center">
-              <p className="text-sm text-red-500">{aiError}</p>
-              <button
-                onClick={handleAiSearch}
-                className="mt-2 text-sm text-yellow-600 hover:text-yellow-700 font-medium"
-              >
-                Try again →
-              </button>
-            </div>
-          )}
-
-          {aiResult && !aiLoading && (
-            <div className="px-4 py-4 max-h-96 overflow-y-auto">
-
-              <div className="mb-3 flex items-start gap-2">
-                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mt-0.5 shrink-0">You</span>
-                <p className="text-sm text-gray-700 font-medium">{query}</p>
-              </div>
-
-              <div className="flex items-start gap-2 mb-4">
-                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-0.5 shrink-0">VAHAN</span>
-
-                <div className="flex-1 space-y-3">
-
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
-                    <p className="text-xs text-yellow-600 font-semibold uppercase tracking-wide mb-1">Verdict</p>
-                    <p className="text-sm text-gray-800 font-medium">{aiResult.verdict}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Reasoning</p>
-                    <p className="text-sm text-gray-600 leading-relaxed">{aiResult.reasoning}</p>
-                  </div>
-
-                  {(aiResult.pros?.length > 0 || aiResult.cons?.length > 0) && (
-                    <div className="grid grid-cols-2 gap-2">
-                      {aiResult.pros?.length > 0 && (
-                        <div className="bg-green-50 rounded-lg px-3 py-2">
-                          <p className="text-xs text-green-600 font-semibold uppercase tracking-wide mb-1">Pros</p>
-                          <ul className="space-y-1">
-                            {aiResult.pros.map((pro, i) => (
-                              <li key={i} className="text-xs text-gray-600 flex items-start gap-1">
-                                <span className="text-green-500 mt-0.5 shrink-0">✓</span>
-                                {pro}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {aiResult.cons?.length > 0 && (
-                        <div className="bg-red-50 rounded-lg px-3 py-2">
-                          <p className="text-xs text-red-500 font-semibold uppercase tracking-wide mb-1">Cons</p>
-                          <ul className="space-y-1">
-                            {aiResult.cons.map((con, i) => (
-                              <li key={i} className="text-xs text-gray-600 flex items-start gap-1">
-                                <span className="text-red-400 mt-0.5 shrink-0">✗</span>
-                                {con}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {aiResult.has_answer === false && (
-                    <div className="bg-gray-50 rounded-lg px-3 py-2 text-center">
-                      <p className="text-sm text-gray-500">
-                        No relevant information found in Vaahan's knowledge base.
-                      </p>
-                      <Link
-                        to={`/articles?search=${encodeURIComponent(query)}`}
-                        className="text-xs text-yellow-600 hover:text-yellow-700 font-medium mt-1 inline-block"
-                        onClick={() => setAiMode(false)}
-                      >
-                        Search articles instead →
-                      </Link>
-                    </div>
-                  )}
-
-                  {aiResult.sources?.length > 0 && (
-                    <div>
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Sources</p>
-                      <div className="flex flex-wrap gap-1">
-                        {[...new Map(aiResult.sources.map(s => [s.title, s])).values()].map((source, i) => (
-                          <Link
-                            key={i}
-                            to={`/article/${source.slug}`}
-                            onClick={() => setAiMode(false)}
-                            className="text-xs px-2 py-1 bg-gray-100 hover:bg-yellow-100 text-gray-600 hover:text-yellow-700 rounded-full transition-colors"
-                          >
-                            {source.title}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-              </div>
-
-              <div className="border-t border-gray-100 pt-3 text-center">
-                <button
-                  onClick={() => { setAiResult(null); setQuery('') }}
-                  className="text-xs text-yellow-600 hover:text-yellow-700 font-medium"
-                >
-                  + Ask another question
-                </button>
-              </div>
-
-            </div>
-          )}
-        </div>
-      )}
+      {/* AI Mode Right Sidebar */}
+      <AiSidebar
+        isOpen={aiMode}
+        onClose={() => { setAiMode(false); setAiResult(null); setAiError(null); }}
+        query={query}
+        setQuery={setQuery}
+        aiLoading={aiLoading}
+        aiResult={aiResult}
+        aiError={aiError}
+        handleAiSearch={handleAiSearch}
+      />
     </div>
   )
 }

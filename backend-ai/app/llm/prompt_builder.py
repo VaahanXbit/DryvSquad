@@ -1,7 +1,7 @@
 def build_prompt(query: str, chunks: list[dict]) -> str:
     """
     Build the RAG prompt from retrieved chunks and user query.
-    Strict RAG — answer only from provided context.
+    Strict RAG, answer only from provided context.
     """
     if not chunks:
         return f"""You are VAHAN, an automotive knowledge assistant for Indian car buyers.
@@ -20,7 +20,7 @@ Respond with exactly this JSON and nothing else:
   "has_answer": false
 }}"""
 
-    # Build context from chunks
+    # Building from chunks
     context_parts = []
     seen_titles = set()
 
@@ -51,7 +51,7 @@ Respond with exactly this JSON and nothing else:
 
     prompt = f"""You are VAHAN, an expert automotive knowledge assistant for Indian car buyers.
 You answer questions STRICTLY based on the provided context from Vaahan's knowledge base.
-You give honest, practical, opinionated advice — not generic yes/no answers.
+You give honest, practical, opinionated advice, not generic yes/no answers.
 If the answer cannot be found in the context, say so clearly.
 
 CONTEXT FROM VAAHAN KNOWLEDGE BASE:
@@ -61,7 +61,7 @@ USER QUESTION: {query}
 
 INSTRUCTIONS:
 - Answer ONLY from the context above
-- Be direct and opinionated — give a clear recommendation
+- Be direct and opinionated, give a clear recommendation
 - If context doesn't contain enough info, say "I couldn't find relevant information in Vaahan's knowledge base"
 - Do NOT use general internet knowledge
 - Keep reasoning concise (2-3 sentences)
