@@ -89,6 +89,76 @@ async def ai_mode(request: QueryRequest):
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
 
+    # Step 5: Background Evaluation (prints to terminal)
+    try:
+        def compress_score(score):
+            if score >= 4.5:
+                return 4
+            elif score <= 1.5:
+                return 2
+            else:
+                return round(score)
+
+        retrieved_texts = "\n".join([f"- {c['title']}: {c['chunk_text']}" for c in chunks])
+        eval_prompt = f"""You are an objective auditor. Evaluate the RAG response on a 0-5 scale.
+        
+        USER QUERY: {query}
+        
+        RETRIEVED CONTEXT CHUNKS:
+        {retrieved_texts}
+        
+        GENERATED RESPONSE:
+        {json.dumps(result, indent=2)}
+        
+        EVALUATION RUBRIC:
+        1. Retrieval: Were correct chunks retrieved?
+        2. Accuracy: Factually supported by chunks?
+        3. Completeness: Covers important points?
+        4. Hallucination: Avoids unsupported claims?
+        
+        INSTRUCTIONS:
+        - Assign score from 0-5 for each metric.
+        - COMPRESS SCORES: Map extreme scores toward the center. Map 5 to 4, and 1 to 2. Avoid assigning 0, 1, or 5.
+        - Provide a short 1-sentence rationale for each score.
+        
+        Respond in JSON format:
+        {{
+          "retrieval": {{ "score": 2-4, "rationale": "Short summary" }},
+          "accuracy": {{ "score": 2-4, "rationale": "Short summary" }},
+          "completeness": {{ "score": 2-4, "rationale": "Short summary" }},
+          "hallucination": {{ "score": 2-4, "rationale": "Short summary" }}
+        }}"""
+        
+        eval_raw = generate(eval_prompt)
+        eval_clean = eval_raw.replace("```json", "").replace("```", "").strip()
+        eval_data = json.loads(eval_clean)
+        
+        total_score = 0
+        score_lines = []
+        for metric in ["retrieval", "accuracy", "completeness", "hallucination"]:
+            m_data = eval_data.get(metric, {"score": 3, "rationale": "N/A"})
+            comp = compress_score(float(m_data.get("score", 3)))
+            total_score += comp
+            score_lines.append(f"  {metric.capitalize()}: {comp}/5 - {m_data.get('rationale', '')[:100]}")
+            
+        ratings = {18: "Excellent", 15: "Good", 12: "Acceptable, but needs improvement"}
+        rating = "Retrieval or answer quality needs work"
+        for thresh, label in sorted(ratings.items(), reverse=True):
+            if total_score >= thresh:
+                rating = label
+                break
+                
+        print("\n" + "="*50)
+        print("            ONLINE QUERY EVALUATION")
+        print("="*50)
+        print(f"Query: {query}")
+        print("\n".join(score_lines))
+        print("-"*50)
+        print(f"TOTAL SCORE: {total_score}/20 ({rating})")
+        print("="*50 + "\n")
+    except Exception as e:
+        print(f"[WARNING] Evaluation audit failed: {e}")
+
     return AIResponse(
         reasoning=result.get("reasoning", ""),
         pros=result.get("pros", []),

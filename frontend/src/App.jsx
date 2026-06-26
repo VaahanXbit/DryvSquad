@@ -23,6 +23,7 @@ import CommonHeader from './components/CommonHeader'
 import CommonFooter from './components/CommonFooter'
 import CategoryArticle from './pages/CategoryArticle'
 import FeatureDetail from './pages/FeatureDetail'
+import AiModePage from './pages/AiModePage'
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -36,6 +37,9 @@ const ScrollToTop = () => {
 }
 
 function App() {
+  const location = useLocation()
+  const isAiModePage = location.pathname === '/ai-mode'
+
   return (
     <ThemeProvider>
       <div className="flex flex-col min-h-screen bg-white dark:bg-dark-950 transition-colors duration-100">
@@ -51,9 +55,10 @@ function App() {
             <Route path="/compare-cars" element={<CompareCars />} />
             <Route path="/category/:categoryId" element={<CategoryArticle />} />
             <Route path="/feature/:categoryId/:featureId" element={<FeatureDetail />} />
+            <Route path="/ai-mode" element={<AiModePage />} />
           </Routes>
         </main>
-        <CommonFooter />
+        {!isAiModePage && <CommonFooter />}
       </div>
     </ThemeProvider>
   )
