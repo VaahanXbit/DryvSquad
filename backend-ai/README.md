@@ -35,11 +35,26 @@ venv\Scripts\python.exe app\scripts\create_search_index.py
 ```
 
 ### 2. Ingest Articles & Generate Embeddings
-Run this to parse and embed migrated articles into MongoDB Atlas:
+Run this to parse and embed migrated articles from the MongoDB `articles` collection:
 ```bash
 venv\Scripts\python.exe app\scripts\ingest_articles.py
 ```
 *Note: This automatically deletes old chunks for processed articles and updates the `last_embedded_at` timestamp on completion.*
+
+### 3. Ingest Articles from PDF Files
+We have added scripts to support direct PDF ingestion into the RAG database:
+
+* **For a single article PDF**:
+  ```bash
+  venv\Scripts\python.exe app\scripts\ingest_pdf.py --pdf "path/to/document.pdf" --title "Article Title" --category "Tech Insights"
+  ```
+  *(Creates a single article doc and embeds it)*
+
+* **For a multi-article PDF (AI-Assisted Splitting)**:
+  If a single PDF contains multiple (e.g. 10) articles, run this to automatically split and ingest them as separate documents:
+  ```bash
+  venv\Scripts\python.exe app\scripts\ingest_multi_article_pdf.py --pdf "path/to/articles.pdf"
+  ```
 
 ---
 
@@ -90,7 +105,7 @@ Raw Response:
 ---
 
 ## Verification Info
-* **Last Verified Date:** June 25, 2026
-* **Verification Status:** Passed (Atlas Vector Search Index, Ingestion, Groq-Cascade LLM, and Frontend Sidebar fully operational)
+* **Last Verified Date:** June 26, 2026
+* **Verification Status:** Passed (Atlas Vector Search Index, Plain-text Chunker, PDF splits/ingestion, Groq-Cascade LLM, Hybrid Search, CrossEncoder Re-ranking, and Frontend Full-page AI Mode Page fully operational)
 * **Owner:** Shravani Pachkawade (AI Full Stack Intern)
 * **Branch:** `dev-shravani-ai`

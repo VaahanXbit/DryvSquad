@@ -12,6 +12,8 @@ import {
   Trash2
 } from 'lucide-react'
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AiModePage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -23,7 +25,7 @@ const AiModePage = () => {
   const [error, setError] = useState(null)
   const messagesEndRef = useRef(null)
   
-  // Continuous chat history loaded from local memory (localStorage)
+  //(localStorage)
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem('vaahan_chat_history')
@@ -42,7 +44,6 @@ const AiModePage = () => {
     localStorage.setItem('vaahan_chat_history', JSON.stringify(messages))
   }, [messages])
 
-  // Suggested starter questions
   const suggestions = [
     'Is AWD worth it for city driving in India?',
     'Can Your FWD Car Handle Spiti in Winter?',
@@ -50,10 +51,8 @@ const AiModePage = () => {
     'Explain if ADAS features are useful on Indian roads'
   ]
 
-  // Consume query parameters (e.g. from homepage redirect)
   useEffect(() => {
     if (queryParam.trim()) {
-      // Prevent duplicate searches if the query is already the latest user message
       const latestUserMsg = [...messages].reverse().find(msg => msg.sender === 'user')
       if (!latestUserMsg || latestUserMsg.text !== queryParam.trim()) {
         handleSendMessage(queryParam.trim())
@@ -61,7 +60,7 @@ const AiModePage = () => {
     }
   }, [queryParam])
 
-  // Auto-scroll to the bottom of the page when chat updates
+  // Auto-scroll to the bottom 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
@@ -69,7 +68,6 @@ const AiModePage = () => {
   const handleSendMessage = async (text) => {
     if (!text.trim()) return
 
-    // 1. Add user message
     const userMsg = {
       sender: 'user',
       text: text.trim(),
@@ -81,7 +79,7 @@ const AiModePage = () => {
     setError(null)
     
     try {
-      const response = await fetch('http://localhost:8000/api/ai-mode', {
+      const response = await fetch(`${API_URL}/api/ai-mode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: text.trim() })
@@ -93,7 +91,6 @@ const AiModePage = () => {
 
       const data = await response.json()
       
-      // 2. Add AI response message
       const aiMsg = {
         sender: 'ai',
         result: data,
@@ -111,7 +108,6 @@ const AiModePage = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault()
     if (inputVal.trim()) {
-      // If we are performing a new search from the input bar, update URL search params
       setSearchParams({ q: inputVal.trim() })
       setInputVal('')
     }
@@ -125,7 +121,6 @@ const AiModePage = () => {
     localStorage.removeItem('vaahan_chat_history')
   }
 
-  // Derived state: extract latest user query and latest AI response
   const latestUserMsg = [...messages].reverse().find(msg => msg.sender === 'user')
   const currentQuery = latestUserMsg?.text || ''
 
@@ -147,7 +142,7 @@ const AiModePage = () => {
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col space-y-6">
           
-          {/* Empty state (No chat history yet) */}
+          {/* Empty state (No chat history) */}
           {messages.length === 0 && !loading && (
             <div className="max-w-2xl mx-auto w-full my-auto text-center space-y-8 py-12">
               <div className="space-y-3">
@@ -310,11 +305,9 @@ const AiModePage = () => {
           
         </main>
 
-        {/* Right Sidebar (Related Articles) - Height fit-content (no extra blank space) */}
+        {/* Right Sidebar (Related Articles)*/}
         {currentQuery && !loading && isRelevant && uniqueSources.length > 0 && (
           <aside className="w-[320px] bg-white dark:bg-[#1e1f20] border border-slate-200 dark:border-[#2f3032] rounded-2xl p-5 flex flex-col space-y-4 shrink-0 hidden lg:flex sticky top-28 h-fit max-h-[calc(100vh-160px)] overflow-y-auto shadow-md dark:shadow-sm">
-            
-            {/* Sidebar Source Summary Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#2f3032]">
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-yellow-600 dark:text-yellow-500" />
@@ -366,12 +359,11 @@ const AiModePage = () => {
 
       </div>
 
-      {/* Floating Input Search Bar */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent dark:from-[#131314] dark:via-[#131314] dark:to-transparent pt-8 pb-6 px-6 z-40 flex justify-center transition-colors duration-200">
+      {/*Search Bar */}
+      <footer className="fixed bottom-0 left-0 right-0 from-slate-50 via-slate-50 to-transparent dark:from-[#131314] dark:via-[#131314] dark:to-transparent pt-8 pb-6 px-6 z-40 flex justify-center transition-colors duration-200">
         <form onSubmit={handleSearchSubmit} className="max-w-2xl w-full">
           <div className="w-full bg-white dark:bg-[#1e1f20] border border-slate-200 dark:border-[#2f3032] rounded-2xl flex items-center px-4 py-2.5 shadow-lg focus-within:ring-1 focus-within:ring-yellow-500/50">
             
-            {/* Clear/New Chat Add Button */}
             <button 
               type="button"
               onClick={handleNewChat}
@@ -392,13 +384,13 @@ const AiModePage = () => {
             />
 
             {/* Mic Icon */}
-            <button 
+            {/* <button 
               type="button"
               className="w-9 h-9 text-gray-400 hover:text-slate-600 dark:hover:text-white flex items-center justify-center transition-colors shrink-0"
               title="Voice Input (mock)"
             >
               <Mic className="w-5 h-5" />
-            </button>
+            </button> */}
 
           </div>
         </form>

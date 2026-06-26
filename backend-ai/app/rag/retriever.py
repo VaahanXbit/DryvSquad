@@ -4,7 +4,7 @@ from app.rag.embedder import embed_query
 import numpy as np
 from sentence_transformers import CrossEncoder
 
-# Proactively build text index for keyword search
+# build text index for keyword search
 try:
     chunks_collection.create_index([("title", "text"), ("chunk_text", "text")], name="text_search_index")
 except Exception as e:
@@ -29,7 +29,7 @@ def retrieve(query, top_k=5):
     # Step 1: Run Vector Search
     query_vector = embed_query(query)[0].tolist()
     vector_results = []
-    # Retrieve more candidates for re-ranking (e.g. top_k * 3)
+
     candidate_limit = top_k * 3
     try:
         pipeline = [
@@ -44,11 +44,11 @@ def retrieve(query, top_k=5):
             }
         ]
         vector_results = list(chunks_collection.aggregate(pipeline))
-        # Filter vector search results to only keep active chunks
+
         vector_results = [doc for doc in vector_results if doc.get("is_active", True) is True]
     except Exception as e:
         print(f"[WARNING] Vector search failed: {e}. Falling back to in-memory cosine similarity.")
-        # Fallback to in-memory cosine similarity (already filters by is_active)
+        # Fallback - in-memory cosine similarity
         all_chunks = list(chunks_collection.find({"is_active": True}))
         if all_chunks:
             scored = []
@@ -61,13 +61,12 @@ def retrieve(query, top_k=5):
     # Step 2: Run Keyword Search
     keyword_results = []
     try:
-        # Search text index only for active chunks
         keyword_results = list(chunks_collection.find(
             {"$text": {"$search": query}, "is_active": True},
             {"score": {"$meta": "textScore"}}
         ).sort([("score", {"$meta": "textScore"})]).limit(candidate_limit * 2))
     except Exception:
-        # Regex search fallback if text search fails or indices are missing
+        # Regex search fallback 
         keywords = [kw for kw in query.split() if len(kw) > 2]
         if keywords:
             regex_queries = [{"chunk_text": {"$regex": kw, "$options": "i"}} for kw in keywords]
@@ -81,15 +80,13 @@ def retrieve(query, top_k=5):
                 "is_active": True
             }).limit(candidate_limit * 2))
 
-    # Step 3: Reciprocal Rank Fusion (RRF) to merge candidates
+    # Step 3: Reciprocal Rank Fusion (RRF) merge candidates
     merged_results = reciprocal_rank_fusion(vector_results, keyword_results, limit=candidate_limit)
 
-    # Step 4: Re-ranking using CrossEncoder
     if reranker_model is not None and len(merged_results) > 0:
         try:
             pairs = [[query, doc["chunk_text"]] for doc in merged_results]
             scores = reranker_model.predict(pairs)
-            # Attach scores to documents and sort
             scored_docs = []
             for idx, score in enumerate(scores):
                 doc = merged_results[idx]
