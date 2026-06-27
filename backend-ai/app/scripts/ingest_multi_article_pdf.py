@@ -80,7 +80,7 @@ JSON Format:
 ]"""
 
     try:
-        raw_response = generate(prompt)
+        raw_response = generate(prompt, max_tokens=8192)
         # Clean response string of any code block wrappers
         cleaned = raw_response.replace("```json", "").replace("```", "").strip()
         articles_list = json.loads(cleaned)

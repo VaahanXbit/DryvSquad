@@ -12,7 +12,7 @@ import {
   Trash2
 } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_AI_API_URL || 'http://localhost:8000';
 
 const AiModePage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -24,6 +24,7 @@ const AiModePage = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const messagesEndRef = useRef(null)
+  const processedQueryRef = useRef('')
   
   //(localStorage)
   const [messages, setMessages] = useState(() => {
@@ -51,12 +52,12 @@ const AiModePage = () => {
     'Explain if ADAS features are useful on Indian roads'
   ]
 
+  // Consume query parameters (e.g. from homepage redirect)
   useEffect(() => {
-    if (queryParam.trim()) {
-      const latestUserMsg = [...messages].reverse().find(msg => msg.sender === 'user')
-      if (!latestUserMsg || latestUserMsg.text !== queryParam.trim()) {
-        handleSendMessage(queryParam.trim())
-      }
+    const trimmedQuery = queryParam.trim()
+    if (trimmedQuery && processedQueryRef.current !== trimmedQuery) {
+      processedQueryRef.current = trimmedQuery
+      handleSendMessage(trimmedQuery)
     }
   }, [queryParam])
 
@@ -118,6 +119,7 @@ const AiModePage = () => {
     setInputVal('')
     setError(null)
     setSearchParams({})
+    processedQueryRef.current = ''
     localStorage.removeItem('vaahan_chat_history')
   }
 
