@@ -82,3 +82,4 @@ websockets==16.0
 pypdf
 pymongo==4.17.0
 groq==1.5.0
+pinecone

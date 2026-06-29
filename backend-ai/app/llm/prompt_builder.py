@@ -106,14 +106,14 @@ INSTRUCTIONS:
      - Set "pros" and "cons" to [].
 
 Respond STRICTLY in JSON format (do not wrap in markdown or backticks, do not include any text before or after the JSON):
-{
+{{
   "reasoning": "Explanation matching the query type or why the topic is out of scope (4-5 sentences)",
   "pros": ["pro 1", "pro 2"] or [],
   "cons": ["con 1", "con 2"] or [],
   "verdict": "One-line recommendation, definition, or 'I couldn't find relevant information in Vaahan's knowledge base.'",
   "sources": {sources_json},
   "has_answer": true or false
-}"""
+}}"""
 
     return prompt
 
@@ -154,7 +154,11 @@ def check_small_talk(query: str) -> bool:
     """
     Check if the user query is a simple greeting, capability inquiry, or small talk.
     """
+    import re
     q = query.lower().strip("?!. \t,")
+    
+    # Normalize trailing repeated characters (e.g. "hii" -> "hi", "hellooo" -> "hello", "heyyy" -> "hey")
+    q_norm = re.sub(r'(.)\1+$', r'\1', q)
     
     greetings = {
         "hi", "hello", "hey", "greetings", "hola", "namaste", "wassup", "what's up",
@@ -169,12 +173,12 @@ def check_small_talk(query: str) -> bool:
         "how do i use this", "what is this"
     }
     
-    # Check for exact matches
-    if q in greetings or q in capabilities:
+    # Check for exact or normalized matches
+    if q in greetings or q in capabilities or q_norm in greetings or q_norm in capabilities:
         return True
         
     # Check for common substring matches for greetings
-    if any(greet in q for greet in ["hello vahan", "hello vaahan", "hi vahan", "hi vaahan"]):
+    if any(greet in q or greet in q_norm for greet in ["hello vahan", "hello vaahan", "hi vahan", "hi vaahan"]):
         return True
         
     return False

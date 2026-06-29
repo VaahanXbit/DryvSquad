@@ -9,7 +9,8 @@ import {
   Globe,
   ExternalLink,
   ChevronRight,
-  Trash2
+  Trash2,
+  Send
 } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_AI_API_URL || 'http://localhost:8000';
@@ -433,14 +434,15 @@ const AiModePage = () => {
               className="flex-grow bg-transparent text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none px-4 py-2 disabled:opacity-50"
             />
 
-            {/* Mic Icon */}
-            {/* <button 
-              type="button"
-              className="w-9 h-9 text-gray-400 hover:text-slate-600 dark:hover:text-white flex items-center justify-center transition-colors shrink-0"
-              title="Voice Input (mock)"
+            {/* Send Button */}
+            <button 
+              type="submit"
+              disabled={loading || !inputVal.trim()}
+              className="w-9 h-9 rounded-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-slate-100 dark:disabled:bg-[#2f3032] text-white disabled:text-slate-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md shrink-0 disabled:shadow-none disabled:cursor-not-allowed ml-2"
+              title="Send Message"
             >
-              <Mic className="w-5 h-5" />
-            </button> */}
+              <Send className="w-4 h-4" />
+            </button>
 
           </div>
         </form>

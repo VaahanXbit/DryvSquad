@@ -10,7 +10,7 @@ MOCK_MODE = False
 
 gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-def generate(prompt: str, max_tokens: int = 2000) -> str:
+def generate(prompt: str, max_tokens: int = 800) -> str:
     if MOCK_MODE:
         return '''{
           "reasoning": "Based on Vaahan knowledge base analysis of Indian driving conditions.",
@@ -35,7 +35,7 @@ def generate(prompt: str, max_tokens: int = 2000) -> str:
                 raise Exception(f"All LLMs failed. Groq: {e_groq}. Gemini: {e}. OpenAI: {e2}")
 
 
-def generate_with_groq(prompt: str, max_tokens: int = 2000) -> str:
+def generate_with_groq(prompt: str, max_tokens: int = 800) -> str:
     from groq import Groq
     
     api_key = os.getenv("GROQ_API_KEY")
@@ -68,7 +68,7 @@ def generate_with_groq(prompt: str, max_tokens: int = 2000) -> str:
         return result
 
 
-def generate_with_gemini(prompt: str, max_tokens: int = 2000) -> str:
+def generate_with_gemini(prompt: str, max_tokens: int = 800) -> str:
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -93,7 +93,7 @@ def generate_with_gemini(prompt: str, max_tokens: int = 2000) -> str:
             raise
 
 
-def generate_with_openai(prompt: str, max_tokens: int = 2000) -> str:
+def generate_with_openai(prompt: str, max_tokens: int = 800) -> str:
     from openai import OpenAI
     api_key = os.getenv("OPENAI_API_KEY", "")
     client = OpenAI(api_key=api_key)

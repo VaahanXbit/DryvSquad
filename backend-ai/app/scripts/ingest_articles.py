@@ -43,6 +43,20 @@ def ingest():
     if article_ids:
         print(f"Clearing old chunks for {len(article_ids)} articles...")
         chunks_collection.delete_many({"source_id": {"$in": article_ids}})
+        pinecone_api_key = os.getenv("PINECONE_API_KEY")
+        pinecone_index_name = os.getenv("PINECONE_INDEX_NAME")
+        if not pinecone_api_key or not pinecone_index_name:
+            raise ValueError("Pinecone configuration keys (PINECONE_API_KEY, PINECONE_INDEX_NAME) are missing from the environment.")
+            
+        from pinecone import Pinecone
+        pc = Pinecone(api_key=pinecone_api_key)
+        index = pc.Index(pinecone_index_name)
+        for art_id in article_ids:
+            try:
+                index.delete(filter={"source_id": art_id})
+            except Exception as e:
+                print(f"[WARNING] Pinecone delete for article {art_id} failed: {e}")
+        print("Cleared old chunks from Pinecone.")
 
     all_chunks = []
 
@@ -89,6 +103,32 @@ def ingest():
         print(
             f"Inserted {len(all_chunks)} chunks into MongoDB"
         )
+
+        # Upsert vectors to Pinecone (strictly enforced)
+        pinecone_api_key = os.getenv("PINECONE_API_KEY")
+        pinecone_index_name = os.getenv("PINECONE_INDEX_NAME")
+        if not pinecone_api_key or not pinecone_index_name:
+            raise ValueError("Pinecone configuration keys (PINECONE_API_KEY, PINECONE_INDEX_NAME) are missing from the environment.")
+            
+        from pinecone import Pinecone
+        print("Connecting to Pinecone for vector upsert...")
+        pc = Pinecone(api_key=pinecone_api_key)
+        index = pc.Index(pinecone_index_name)
+        
+        vectors_to_upsert = []
+        for chunk in all_chunks:
+            vectors_to_upsert.append((
+                str(chunk["_id"]),
+                chunk["embedding"],
+                {"source_id": str(chunk.get("source_id", ""))}
+            ))
+        
+        print(f"Upserting {len(vectors_to_upsert)} vectors to Pinecone index '{pinecone_index_name}'...")
+        batch_size = 100
+        for start_idx in range(0, len(vectors_to_upsert), batch_size):
+            batch = vectors_to_upsert[start_idx:start_idx + batch_size]
+            index.upsert(vectors=batch)
+        print("[SUCCESS] Successfully upserted vectors to Pinecone.")
 
         for article in articles:
             articles_collection.update_one(

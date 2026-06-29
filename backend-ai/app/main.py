@@ -27,7 +27,12 @@ app = FastAPI(
 # CORS -> allow React frontend to call this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -84,8 +89,8 @@ async def ai_mode(request: QueryRequest):
 
     search_query = query
 
-    # Step 1: Slice history to keep last 6 messages (3 turns) to prevent prompt bloat
-    sliced_history = request.history[-6:]
+    # Step 1: Slice history to keep last 2 messages (1 turn) to prevent prompt bloat and context bleed
+    sliced_history = request.history[-2:]
     history_list = [
         {
             "sender": h.sender,
@@ -170,7 +175,7 @@ async def ai_mode(request: QueryRequest):
             print(f"[WARNING] Cache lookup failed: {e}")
 
         # Step 3: Retrieve relevant chunks using the (possibly rewritten) search query
-        chunks = retrieve(search_query, top_k=5)
+        chunks = retrieve(search_query, top_k=4)
 
         # Step 4: Build prompt with original query and conversation history
         prompt = build_prompt(query, chunks, history=history_list)

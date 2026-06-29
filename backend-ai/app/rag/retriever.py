@@ -2,6 +2,7 @@ from app.db.mongodb import chunks_collection
 from app.rag.embedder import embed_query
 
 import numpy as np
+import os
 from sentence_transformers import CrossEncoder
 
 # build text index for keyword search
@@ -32,31 +33,30 @@ def retrieve(query, top_k=5):
 
     candidate_limit = 8
     try:
-        pipeline = [
-            {
-                "$vectorSearch": {
-                    "index": "vector_index",  
-                    "path": "embedding",
-                    "queryVector": query_vector,
-                    "numCandidates": candidate_limit * 10,
-                    "limit": candidate_limit * 2
-                }
-            }
-        ]
-        vector_results = list(chunks_collection.aggregate(pipeline))
-
-        vector_results = [doc for doc in vector_results if doc.get("is_active", True) is True]
+        from pinecone import Pinecone
+        from bson import ObjectId
+        
+        pinecone_api_key = os.getenv("PINECONE_API_KEY")
+        pinecone_index_name = os.getenv("PINECONE_INDEX_NAME")
+        if not pinecone_api_key or not pinecone_index_name:
+            raise ValueError("Pinecone configuration keys (PINECONE_API_KEY, PINECONE_INDEX_NAME) are missing from the environment.")
+            
+        pc = Pinecone(api_key=pinecone_api_key)
+        index = pc.Index(pinecone_index_name)
+        
+        res = index.query(vector=query_vector, top_k=candidate_limit * 2, include_metadata=False)
+        match_ids = [m.id for m in res.matches if m.score >= 0.50]
+        
+        if match_ids:
+            vector_results = list(chunks_collection.find({
+                "_id": {"$in": [ObjectId(mid) for mid in match_ids]},
+                "is_active": True
+            }))
+            doc_map = {str(doc["_id"]): doc for doc in vector_results}
+            vector_results = [doc_map[mid] for mid in match_ids if mid in doc_map]
     except Exception as e:
-        print(f"[WARNING] Vector search failed: {e}. Falling back to in-memory cosine similarity.")
-        # Fallback - in-memory cosine similarity
-        all_chunks = list(chunks_collection.find({"is_active": True}))
-        if all_chunks:
-            scored = []
-            for doc in all_chunks:
-                sim = cosine_similarity(query_vector, doc["embedding"])
-                scored.append((sim, doc))
-            scored.sort(key=lambda x: x[0], reverse=True)
-            vector_results = [doc for _, doc in scored[:candidate_limit * 2]]
+        print(f"[ERROR] Pinecone vector search failed: {e}")
+        raise e
 
     # Step 2: Run Keyword Search
     keyword_results = []
