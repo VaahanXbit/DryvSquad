@@ -44,14 +44,13 @@
    THEME TRANSITIONS - Only apply to specific elements
    ======================================== */
 
-/* 
-   IMPORTANT: Only apply transitions to theme-aware elements,
+/* IMPORTANT: Only apply transitions to theme-aware elements,
    not to everything. This prevents hover states from being sluggish.
 */
 .theme-transition {
   transition: 
     background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1), /* FIXED: Snappier text transition */
     border-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
@@ -62,7 +61,7 @@ html,
 #root {
   transition: 
     background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED: Snappier text transition */
 }
 
 /* Background elements */
@@ -83,7 +82,7 @@ html,
     background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Text elements */
+/* FIXED: Text color transition from 0.8s to 0.2s */
 .text-gray-900,
 .text-gray-800,
 .text-gray-700,
@@ -96,7 +95,7 @@ html,
 .text-theme-secondary,
 .text-theme-tertiary {
   transition: 
-    color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Border elements */
@@ -234,13 +233,13 @@ a:hover,
     border: 1px solid var(--border-primary);
     transition: 
       background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-      color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.2s cubic-bezier(0.4, 0, 0.2, 1), /* FIXED: Snappier text */
       border-color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   .input-field::placeholder {
     color: var(--text-muted);
-    transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED: Snappier text */
   }
 
   .glass-card {
@@ -337,7 +336,7 @@ footer .text-white { color: #ffffff !important; }
   font-family: 'Inter', sans-serif;
   line-height: 1.7;
   color: var(--text-primary);
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .article-content h2 {
@@ -348,7 +347,7 @@ footer .text-white { color: #ffffff !important; }
   margin-bottom: 1rem;
   border-left: 4px solid #eab308;
   padding-left: 1rem;
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .article-content h3 {
@@ -357,7 +356,7 @@ footer .text-white { color: #ffffff !important; }
   color: var(--text-secondary);
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .article-content p {
@@ -365,7 +364,7 @@ footer .text-white { color: #ffffff !important; }
   font-size: 1rem;
   line-height: 1.7;
   color: var(--text-secondary);
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .article-content ul,
@@ -377,13 +376,13 @@ footer .text-white { color: #ffffff !important; }
 .article-content li {
   margin-bottom: 0.5rem;
   color: var(--text-secondary);
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .article-content strong {
   color: var(--text-primary);
   font-weight: 600;
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .article-content a {
@@ -416,7 +415,7 @@ footer .text-white { color: #ffffff !important; }
 .highlight-box h3 {
   margin-top: 0;
   color: #92400e;
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .dark .highlight-box h3 {
@@ -425,7 +424,7 @@ footer .text-white { color: #ffffff !important; }
 
 .highlight-box p {
   color: #78350f;
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .dark .highlight-box p {
@@ -453,7 +452,7 @@ footer .text-white { color: #ffffff !important; }
 .verdict-box h3 {
   margin-top: 0;
   color: #166534;
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .dark .verdict-box h2,
@@ -463,7 +462,7 @@ footer .text-white { color: #ffffff !important; }
 
 .verdict-box p {
   color: #14532d;
-  transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* FIXED */
 }
 
 .dark .verdict-box p {

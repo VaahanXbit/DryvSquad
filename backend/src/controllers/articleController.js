@@ -4,7 +4,7 @@
 File Name : articleController.js
 Author : Tahseen Raza
 Created Date : 2026-06-22
-Description : Article controller with all CRUD operations
+Description : Article controller with all CRUD operations (Regex Search Enabled)
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -94,26 +94,35 @@ exports.getArticlesByCategory = async (req, res) => {
 };
 
 // ========================================
-// GET /api/articles/search/:query - Search articles
+// GET /api/articles/search/:query - Search articles (MODIFIED FOR PARTIAL MATCH)
 // ========================================
 exports.searchArticles = async (req, res) => {
   try {
     const { query } = req.params;
     
-    if (!query || query.trim().length < 2) {
+    // Allow searching with just 1 character
+    if (!query || query.trim().length < 1) {
       return res.status(400).json({
         success: false,
-        message: 'Search query must be at least 2 characters',
+        message: 'Search query must not be empty',
       });
     }
     
-    const articles = await Article.find(
-      { 
-        $text: { $search: query },
-        status: 'published'
-      },
-      { score: { $meta: 'textScore' } }
-    ).sort({ score: { $meta: 'textScore' } });
+    // Create a case-insensitive regular expression for partial matching
+    const searchRegex = new RegExp(query, 'i');
+    
+    // Search across multiple fields using $or
+    const articles = await Article.find({ 
+      status: 'published',
+      $or: [
+        { title: searchRegex },
+        { excerpt: searchRegex },
+        { content: searchRegex },
+        { category: searchRegex },
+        { tags: searchRegex },
+        { slug: searchRegex }
+      ]
+    }).sort({ createdAt: -1 }); // Sort by newest
     
     res.status(200).json({
       success: true,

@@ -14,6 +14,7 @@ const CategoriesDropdown = () => {
   const categories = [
     {
       name: "Feature Reviews",
+      baseRoute: "/article",
       articles: [
         { title: "AWD vs FWD: The ₹2 Lakh Question", slug: "awd-vs-fwd" },
         { title: "ADAS Lane Keep Assist Review", slug: "adas-lane-keep-assist" },
@@ -23,6 +24,7 @@ const CategoriesDropdown = () => {
     },
     {
       name: "New Launches",
+      baseRoute: "/article",
       articles: [
         { title: "2026 Hyundai Creta Launch", slug: "hyundai-creta-2026-launch" },
         { title: "New Kia Seltos 2026", slug: "kia-seltos-2026" }
@@ -30,11 +32,22 @@ const CategoriesDropdown = () => {
     },
     {
       name: "Tech Insights",
+      baseRoute: "/article",
       articles: [
         { title: "What is ADAS? Complete Guide", slug: "what-is-adas" },
         { title: "What is ABS? How It Works", slug: "what-is-abs" },
         { title: "What is EBD? Explained", slug: "what-is-ebd" },
         { title: "What is ESC? Stability Control", slug: "what-is-esc" }
+      ]
+    },
+    {
+      name: "Travelogues",
+      baseRoute: "/travelogue",
+      articles: [
+        { title: "First Job, First Decision: Bike vs Car?", slug: "first-job-bike-vs-car" },
+        { title: "First Car: Sedan vs SUV vs Hatchback", slug: "first-car-sedan-vs-suv-vs-hatchback" },
+        { title: "Renting vs Buying a Car: True Cost", slug: "renting-vs-buying-car-true-cost" },
+        { title: "First Long Drive: Beginner Tips", slug: "first-long-drive-beginner-tips" }
       ]
     }
   ]
@@ -160,7 +173,7 @@ const CategoriesDropdown = () => {
                     {category.articles.map((article, articleIdx) => (
                       <Link
                         key={articleIdx}
-                        to={`/article/${article.slug}`}
+                        to={`${category.baseRoute || '/article'}/${article.slug}`}
                         className={`block px-3 sm:px-4 py-1.5 sm:py-2 ${subHoverBg} transition-colors`}
                         onClick={() => setIsOpen(false)}
                       >

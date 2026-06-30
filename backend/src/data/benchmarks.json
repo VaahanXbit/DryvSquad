@@ -1,0 +1,1895 @@
+{
+  "benchmarks": [
+    {
+      "key": "torque",
+      "label": "Max Torque",
+      "category": "engine",
+      "subCategory": "torque",
+      "minValue": 100,
+      "maxValue": 400,
+      "unit": "Nm",
+      "isHigherBetter": true,
+      "icon": "⚡",
+      "variantFieldPath": "torqueNumeric",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent torque output. Effortless overtaking and highway cruising.",
+          "details": ["Strong pulling power from low RPMs", "Minimal downshifting required", "Confident highway overtaking"]
+        },
+        "good": {
+          "summary": "Good torque for daily driving. Reliable performance.",
+          "details": ["Smooth acceleration in city traffic", "Adequate for highway overtaking", "Good balance of performance and efficiency"]
+        },
+        "average": {
+          "summary": "Average torque. Gets the job done but lacks excitement.",
+          "details": ["Requires planning for highway overtakes", "May feel underpowered with full load", "More gear changes required"]
+        },
+        "needsImprovement": {
+          "summary": "Below average torque. Consider higher power variants.",
+          "details": ["Struggles with highway overtaking", "Frequent downshifting needed", "Feels strained with passengers"]
+        }
+      }
+    },
+    {
+      "key": "power",
+      "label": "Max Power",
+      "category": "engine",
+      "subCategory": "power",
+      "minValue": 60,
+      "maxValue": 200,
+      "unit": "PS",
+      "isHigherBetter": true,
+      "icon": "🏎️",
+      "variantFieldPath": "powerNumeric",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Powerful engine. Thrilling performance.",
+          "details": ["Quick acceleration", "High-speed stability", "Confident overtaking"]
+        },
+        "good": {
+          "summary": "Good power for everyday driving.",
+          "details": ["Adequate for city and highway", "Balanced performance", "Good drivability"]
+        },
+        "average": {
+          "summary": "Average power output. Functional but not exciting.",
+          "details": ["Decent for city use", "May feel underpowered on highways", "Fine for daily commute"]
+        },
+        "needsImprovement": {
+          "summary": "Low power output. Consider upgrading.",
+          "details": ["Feels strained at highway speeds", "Overtaking requires planning", "Better suited for city driving"]
+        }
+      }
+    },
+    {
+      "key": "mileage",
+      "label": "Fuel Efficiency",
+      "category": "performance",
+      "subCategory": "mileage",
+      "minValue": 10,
+      "maxValue": 30,
+      "unit": "km/l",
+      "isHigherBetter": true,
+      "icon": "⛽",
+      "variantFieldPath": "mileageNumeric",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent fuel efficiency. Saves money on every trip.",
+          "details": ["Great for daily commuting", "Low running costs", "Environment friendly"]
+        },
+        "good": {
+          "summary": "Good fuel economy. Decent savings.",
+          "details": ["Balanced efficiency", "Decent for city/highway mix", "Competitive in segment"]
+        },
+        "average": {
+          "summary": "Average efficiency. Typical for this segment.",
+          "details": ["Acceptable running costs", "Similar to competitors", "Consider driving style"]
+        },
+        "needsImprovement": {
+          "summary": "Below average efficiency. Higher running costs.",
+          "details": ["More frequent fuel stops", "Higher monthly running cost", "Consider alternative fuel options"]
+        }
+      }
+    },
+    {
+      "key": "bootSpace",
+      "label": "Boot Space",
+      "category": "dimensions",
+      "subCategory": "bootSpace",
+      "minValue": 200,
+      "maxValue": 600,
+      "unit": "L",
+      "isHigherBetter": true,
+      "icon": "🧳",
+      "variantFieldPath": "specifications.bootSpace",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Spacious boot. Great for families and road trips.",
+          "details": ["Fits multiple large suitcases", "Perfect for weekend getaways", "Family-friendly cargo space"]
+        },
+        "good": {
+          "summary": "Good boot capacity. Suitable for most needs.",
+          "details": ["Fits standard luggage", "Adequate for daily use", "Good for small families"]
+        },
+        "average": {
+          "summary": "Average boot space. Basic needs covered.",
+          "details": ["Limited for large items", "Works for daily essentials", "Consider folding seats for more space"]
+        },
+        "needsImprovement": {
+          "summary": "Limited boot space. May need to fold seats.",
+          "details": ["Tight for large luggage", "Better for city use", "Limited cargo capacity"]
+        }
+      }
+    },
+    {
+      "key": "groundClearance",
+      "label": "Ground Clearance",
+      "category": "dimensions",
+      "subCategory": "groundClearance",
+      "minValue": 150,
+      "maxValue": 220,
+      "unit": "mm",
+      "isHigherBetter": true,
+      "icon": "🛤️",
+      "variantFieldPath": "specifications.groundClearance",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ground clearance. Conquer bad roads with ease.",
+          "details": ["Glides over speed bumps", "Perfect for rural roads", "No scraping on uneven terrain"]
+        },
+        "good": {
+          "summary": "Good clearance. Handles most road conditions.",
+          "details": ["Adequate for speed bumps", "Works on rough patches", "Balanced for city and rural"]
+        },
+        "average": {
+          "summary": "Average clearance. Fine for city roads.",
+          "details": ["May scrape on steep speed bumps", "Ok for urban driving", "Be careful on rough roads"]
+        },
+        "needsImprovement": {
+          "summary": "Low clearance. Best for smooth roads only.",
+          "details": ["Avoid steep speed bumps", "Not for rural roads", "Careful on uneven surfaces"]
+        }
+      }
+    },
+    {
+      "key": "turningRadius",
+      "label": "Turning Radius",
+      "category": "dimensions",
+      "subCategory": "turningRadius",
+      "minValue": 4.5,
+      "maxValue": 6.0,
+      "unit": "m",
+      "isHigherBetter": false,
+      "icon": "🔄",
+      "variantFieldPath": "specifications.turningRadius",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Tight turning radius. Effortless U-turns and parking.",
+          "details": ["Easy city maneuverability", "Simple parking in tight spots", "Great for narrow lanes"]
+        },
+        "good": {
+          "summary": "Good turning radius. City-friendly.",
+          "details": ["Decent U-turns", "Adequate parking ease", "Works in most city conditions"]
+        },
+        "average": {
+          "summary": "Average turning radius. Typical for this segment.",
+          "details": ["May need 3-point turns", "Fine for most situations", "Expected in this category"]
+        },
+        "needsImprovement": {
+          "summary": "Wide turning radius. More effort in city.",
+          "details": ["Challenging U-turns", "Tight parking is difficult", "Better for highways"]
+        }
+      }
+    },
+    {
+      "key": "price",
+      "label": "Ex-Showroom Price",
+      "category": "pricing",
+      "subCategory": "price",
+      "minValue": 500000,
+      "maxValue": 8000000,
+      "unit": "₹",
+      "isHigherBetter": false,
+      "icon": "💰",
+      "variantFieldPath": "exShowroomPrice",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent value. Great features for the price.",
+          "details": ["Competitive pricing", "Great value proposition", "Affordable for the segment"]
+        },
+        "good": {
+          "summary": "Good pricing. Competitive in the segment.",
+          "details": ["Fairly priced", "Competitive with rivals", "Good value"]
+        },
+        "average": {
+          "summary": "Average pricing. Nothing special.",
+          "details": ["On par with competitors", "Expected price range", "Consider offers"]
+        },
+        "needsImprovement": {
+          "summary": "Premium pricing. Check for value additions.",
+          "details": ["Higher than rivals", "Check for features", "Consider waiting for offers"]
+        }
+      }
+    },
+    {
+      "key": "airbags",
+      "label": "Airbags",
+      "category": "safety",
+      "subCategory": "airbags",
+      "minValue": 2,
+      "maxValue": 10,
+      "unit": "Count",
+      "isHigherBetter": true,
+      "icon": "🛡️",
+      "variantFieldPath": "factorScores.safetyScore.airbags",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent safety. Multiple airbags for complete protection.",
+          "details": ["6+ airbags provide comprehensive protection", "Side and curtain airbags protect all passengers", "Best-in-class safety coverage"]
+        },
+        "good": {
+          "summary": "Good safety. Adequate airbag coverage.",
+          "details": ["4-5 airbags offer solid protection", "Front and side impact protection", "Meets modern safety standards"]
+        },
+        "average": {
+          "summary": "Average safety. Basic airbag setup.",
+          "details": ["2-3 airbags provide basic protection", "Covers driver and front passenger", "Meets minimum safety requirements"]
+        },
+        "needsImprovement": {
+          "summary": "Limited safety. Consider higher variants.",
+          "details": ["1-2 airbags offer minimal protection", "Rear passengers may not have side protection", "Better safety available in higher trims"]
+        }
+      }
+    },
+    {
+      "key": "adas",
+      "label": "ADAS Features",
+      "category": "safety",
+      "subCategory": "adas",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛡️",
+      "variantFieldPath": "factorScores.safetyScore.adas",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ADAS package. Advanced driver assistance.",
+          "details": ["Level 2+ ADAS with multiple features", "Autonomous emergency braking", "Lane keep assist and adaptive cruise control"]
+        },
+        "good": {
+          "summary": "Good ADAS features. Useful safety aids.",
+          "details": ["Level 1 ADAS with essential features", "Forward collision warning", "Lane departure warning"]
+        },
+        "average": {
+          "summary": "Average ADAS. Basic assistance features.",
+          "details": ["Limited ADAS features", "Basic safety alerts", "Could benefit from more advanced features"]
+        },
+        "needsImprovement": {
+          "summary": "No ADAS features. Basic safety only.",
+          "details": ["No advanced driver assistance", "Relies on passive safety only", "Consider higher trims for ADAS"]
+        }
+      }
+    },
+    {
+      "key": "ncapRating",
+      "label": "NCAP Rating",
+      "category": "safety",
+      "subCategory": "ncapRating",
+      "minValue": 0,
+      "maxValue": 5,
+      "unit": "Stars",
+      "isHigherBetter": true,
+      "icon": "🛡️",
+      "variantFieldPath": "factorScores.safetyScore.ncapRating",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent NCAP rating. Top safety performer.",
+          "details": ["5-star safety rating", "Excellent adult and child protection", "Best-in-class safety performance"]
+        },
+        "good": {
+          "summary": "Good NCAP rating. Solid safety.",
+          "details": ["4-star safety rating", "Good adult protection", "Better than many competitors"]
+        },
+        "average": {
+          "summary": "Average NCAP rating. Meets safety standards.",
+          "details": ["3-star safety rating", "Adequate adult protection", "Meets minimum safety requirements"]
+        },
+        "needsImprovement": {
+          "summary": "Low NCAP rating. Consider alternatives.",
+          "details": ["2-star or below", "Limited adult/child protection", "Better safety available elsewhere"]
+        }
+      }
+    },
+    {
+      "key": "braking",
+      "label": "Braking Performance",
+      "category": "safety",
+      "subCategory": "braking",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛡️",
+      "variantFieldPath": "factorScores.safetyScore.braking",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent braking. Confidence-inspiring stopping power.",
+          "details": ["Short stopping distance", "Strong brake feel", "Great emergency braking"]
+        },
+        "good": {
+          "summary": "Good braking. Reliable stopping power.",
+          "details": ["Adequate stopping distance", "Consistent brake feel", "Good for daily driving"]
+        },
+        "average": {
+          "summary": "Average braking. Gets the job done.",
+          "details": ["Average stopping distance", "Slightly soft brake feel", "Fine for city driving"]
+        },
+        "needsImprovement": {
+          "summary": "Below average braking. Need improvement.",
+          "details": ["Longer stopping distance", "Spongy brake feel", "Consider better brake pads"]
+        }
+      }
+    },
+    {
+      "key": "structuralSafety",
+      "label": "Structural Safety",
+      "category": "safety",
+      "subCategory": "structuralSafety",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛡️",
+      "variantFieldPath": "factorScores.safetyScore.structuralSafety",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent structural safety. Strong body construction.",
+          "details": ["Rigid body structure", "Excellent crash energy management", "Superior occupant protection"]
+        },
+        "good": {
+          "summary": "Good structural safety. Solid build quality.",
+          "details": ["Strong shell design", "Adequate crash protection", "Good body rigidity"]
+        },
+        "average": {
+          "summary": "Average structural safety. Standard build.",
+          "details": ["Standard body construction", "Meets safety norms", "Could be stronger"]
+        },
+        "needsImprovement": {
+          "summary": "Below average structural safety. Consider alternatives.",
+          "details": ["Softer body structure", "Less crash protection", "Better options available"]
+        }
+      }
+    },
+    {
+      "key": "enginePowerFactor",
+      "label": "Engine Power",
+      "category": "performance",
+      "subCategory": "enginePowerFactor",
+      "minValue": 60,
+      "maxValue": 200,
+      "unit": "PS",
+      "isHigherBetter": true,
+      "icon": "📊",
+      "variantFieldPath": "factorScores.performanceScore.enginePower",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent power output. Thrilling performance.",
+          "details": ["High power for exciting drives", "Quick acceleration", "Great for highway driving"]
+        },
+        "good": {
+          "summary": "Good power output. Balanced performance.",
+          "details": ["Adequate power for most situations", "Good highway cruising", "Satisfying acceleration"]
+        },
+        "average": {
+          "summary": "Average power output. Functional performance.",
+          "details": ["Decent power for city use", "Adequate for daily commute", "Could use more power on highways"]
+        },
+        "needsImprovement": {
+          "summary": "Low power output. Consider more powerful engine.",
+          "details": ["Underpowered for highway", "Struggles with full load", "Better options available"]
+        }
+      }
+    },
+    {
+      "key": "torqueFactor",
+      "label": "Torque Output",
+      "category": "performance",
+      "subCategory": "torqueFactor",
+      "minValue": 100,
+      "maxValue": 400,
+      "unit": "Nm",
+      "isHigherBetter": true,
+      "icon": "📊",
+      "variantFieldPath": "factorScores.performanceScore.torque",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent torque. Strong pulling power.",
+          "details": ["Strong low-end torque", "Minimal downshifting", "Great for overtaking"]
+        },
+        "good": {
+          "summary": "Good torque. Solid pulling power.",
+          "details": ["Adequate torque for daily driving", "Good low-end pull", "Balanced performance"]
+        },
+        "average": {
+          "summary": "Average torque. Adequate but not exciting.",
+          "details": ["Average pulling power", "More gear changes required", "Fine for city driving"]
+        },
+        "needsImprovement": {
+          "summary": "Below average torque. Consider alternatives.",
+          "details": ["Weak low-end torque", "Frequent downshifts", "Better options available"]
+        }
+      }
+    },
+    {
+      "key": "acceleration",
+      "label": "Acceleration",
+      "category": "performance",
+      "subCategory": "acceleration",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "📊",
+      "variantFieldPath": "factorScores.performanceScore.acceleration",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent acceleration. Quick and responsive.",
+          "details": ["Quick 0-100 time", "Instant throttle response", "Exciting to drive"]
+        },
+        "good": {
+          "summary": "Good acceleration. Adequate for most needs.",
+          "details": ["Decent 0-100 time", "Responsive throttle", "Good for daily driving"]
+        },
+        "average": {
+          "summary": "Average acceleration. Gets the job done.",
+          "details": ["Average 0-100 time", "Acceptable throttle response", "Fine for city commutes"]
+        },
+        "needsImprovement": {
+          "summary": "Slow acceleration. Could be better.",
+          "details": ["Slower 0-100 time", "Delayed throttle response", "Consider faster alternative"]
+        }
+      }
+    },
+    {
+      "key": "highwayPerformance",
+      "label": "Highway Performance",
+      "category": "performance",
+      "subCategory": "highwayPerformance",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "📊",
+      "variantFieldPath": "factorScores.performanceScore.highwayPerformance",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent highway performance. Confident and refined.",
+          "details": ["Stable at high speeds", "Effortless overtaking", "Great highway cruiser"]
+        },
+        "good": {
+          "summary": "Good highway performance. Capable and comfortable.",
+          "details": ["Adequate high-speed stability", "Decent overtaking ability", "Good for long drives"]
+        },
+        "average": {
+          "summary": "Average highway performance. Gets you there.",
+          "details": ["Acceptable high-speed behavior", "Overtaking requires planning", "Fine for occasional highway use"]
+        },
+        "needsImprovement": {
+          "summary": "Below average highway performance. Not ideal for long drives.",
+          "details": ["Less stable at high speeds", "Struggles with overtaking", "Better for city use"]
+        }
+      }
+    },
+    {
+      "key": "gearboxResponse",
+      "label": "Gearbox Response",
+      "category": "performance",
+      "subCategory": "gearboxResponse",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "📊",
+      "variantFieldPath": "factorScores.performanceScore.gearboxResponse",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent gearbox. Smooth and responsive.",
+          "details": ["Quick shifts", "Smooth engagement", "Great for spirited driving"]
+        },
+        "good": {
+          "summary": "Good gearbox. Reliable and consistent.",
+          "details": ["Adequate shift quality", "Smooth gear changes", "Good for daily driving"]
+        },
+        "average": {
+          "summary": "Average gearbox. Functional but not exciting.",
+          "details": ["Acceptable shift quality", "Slightly notchy feel", "Fine for regular use"]
+        },
+        "needsImprovement": {
+          "summary": "Below average gearbox. Consider alternatives.",
+          "details": ["Notchy shifts", "Delayed responses", "Better gearboxes available"]
+        }
+      }
+    },
+    {
+      "key": "steeringFeedback",
+      "label": "Steering Feedback",
+      "category": "drivingExperience",
+      "subCategory": "steeringFeedback",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🚗",
+      "variantFieldPath": "factorScores.drivingExperienceScore.steeringFeedback",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent steering. Great feedback and precision.",
+          "details": ["Great steering feel", "Good weight and precision", "Confidence-inspiring"]
+        },
+        "good": {
+          "summary": "Good steering. Adequate feedback.",
+          "details": ["Decent steering feel", "Good weight", "Satisfying to drive"]
+        },
+        "average": {
+          "summary": "Average steering. Functional but not engaging.",
+          "details": ["Average steering feel", "Light weight", "Fine for daily use"]
+        },
+        "needsImprovement": {
+          "summary": "Below average steering. Lacks feedback.",
+          "details": ["Vague steering", "Too light", "Better steering available"]
+        }
+      }
+    },
+    {
+      "key": "handling",
+      "label": "Handling",
+      "category": "drivingExperience",
+      "subCategory": "handling",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🚗",
+      "variantFieldPath": "factorScores.drivingExperienceScore.handling",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent handling. Precise and stable.",
+          "details": ["Sharp turn-in", "Good grip levels", "Confidence in corners"]
+        },
+        "good": {
+          "summary": "Good handling. Stable and predictable.",
+          "details": ["Adequate cornering ability", "Good grip", "Predictable behavior"]
+        },
+        "average": {
+          "summary": "Average handling. Gets the job done.",
+          "details": ["Acceptable cornering", "Moderate grip", "Fine for normal driving"]
+        },
+        "needsImprovement": {
+          "summary": "Below average handling. Not confidence-inspiring.",
+          "details": ["Significant body roll", "Understeer tendency", "Better handling available"]
+        }
+      }
+    },
+    {
+      "key": "stability",
+      "label": "Stability",
+      "category": "drivingExperience",
+      "subCategory": "stability",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🚗",
+      "variantFieldPath": "factorScores.drivingExperienceScore.stability",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent stability. Rock solid at speed.",
+          "details": ["Very stable at high speed", "Great crosswind resistance", "Confidence-inspiring on highways"]
+        },
+        "good": {
+          "summary": "Good stability. Composed and planted.",
+          "details": ["Stable at high speed", "Good composure", "Satisfying highway ride"]
+        },
+        "average": {
+          "summary": "Average stability. Gets you there.",
+          "details": ["Acceptable high-speed stability", "Slight float at speed", "Fine for legal speeds"]
+        },
+        "needsImprovement": {
+          "summary": "Below average stability. Could be better.",
+          "details": ["Noticeable float at speed", "Crosswind sensitivity", "Better stability available"]
+        }
+      }
+    },
+    {
+      "key": "rideQuality",
+      "label": "Ride Quality",
+      "category": "drivingExperience",
+      "subCategory": "rideQuality",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🚗",
+      "variantFieldPath": "factorScores.drivingExperienceScore.rideQuality",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ride quality. Comfortable on all surfaces.",
+          "details": ["Great bump absorption", "Plush ride quality", "Excellent for long trips"]
+        },
+        "good": {
+          "summary": "Good ride quality. Comfortable for daily use.",
+          "details": ["Adequate bump absorption", "Smooth ride", "Good for most situations"]
+        },
+        "average": {
+          "summary": "Average ride quality. Acceptable but could improve.",
+          "details": ["Acceptable bump absorption", "Firm ride", "Fine for city driving"]
+        },
+        "needsImprovement": {
+          "summary": "Below average ride quality. Harsh on bumps.",
+          "details": ["Harsh ride over bumps", "Firm suspension", "Better ride quality available"]
+        }
+      }
+    },
+    {
+      "key": "driverConfidence",
+      "label": "Driver Confidence",
+      "category": "drivingExperience",
+      "subCategory": "driverConfidence",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🚗",
+      "variantFieldPath": "factorScores.drivingExperienceScore.driverConfidence",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent driver confidence. Controls are predictable.",
+          "details": ["Great overall control", "Confidence-inspiring", "Easy to drive in all situations"]
+        },
+        "good": {
+          "summary": "Good driver confidence. Easy to drive.",
+          "details": ["Adequate control", "Predictable behavior", "Good for most drivers"]
+        },
+        "average": {
+          "summary": "Average driver confidence. Fine for normal driving.",
+          "details": ["Acceptable control", "Slight hesitation", "Good for experienced drivers"]
+        },
+        "needsImprovement": {
+          "summary": "Below average confidence. May challenge new drivers.",
+          "details": ["Less predictable", "Takes getting used to", "Better options for new drivers"]
+        }
+      }
+    },
+    {
+      "key": "rideComfort",
+      "label": "Ride Comfort",
+      "category": "suspension",
+      "subCategory": "rideComfort",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.suspensionScore.rideComfort",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ride comfort. Smooth on all roads.",
+          "details": ["Great impact absorption", "Plush ride", "Excellent for long drives"]
+        },
+        "good": {
+          "summary": "Good ride comfort. Smooth daily driving.",
+          "details": ["Adequate impact absorption", "Smooth ride", "Good for most situations"]
+        },
+        "average": {
+          "summary": "Average ride comfort. Acceptable but firm.",
+          "details": ["Acceptable impact absorption", "Firm ride feel", "Fine for city drives"]
+        },
+        "needsImprovement": {
+          "summary": "Below average comfort. Harsh on rough roads.",
+          "details": ["Poor impact absorption", "Harsh ride", "Better comfort available"]
+        }
+      }
+    },
+    {
+      "key": "potholeAbsorption",
+      "label": "Pothole Absorption",
+      "category": "suspension",
+      "subCategory": "potholeAbsorption",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.suspensionScore.potholeAbsorption",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent pothole absorption. Handles bad roads with ease.",
+          "details": ["Great for Indian roads", "Absorbs large bumps well", "No jarring feeling"]
+        },
+        "good": {
+          "summary": "Good pothole absorption. Handles rough roads.",
+          "details": ["Adequate for rough roads", "Absorbs medium bumps", "Good daily comfort"]
+        },
+        "average": {
+          "summary": "Average pothole absorption. Could be better.",
+          "details": ["Acceptable bump handling", "Some jarring on large bumps", "Better on good roads"]
+        },
+        "needsImprovement": {
+          "summary": "Poor pothole absorption. Avoid rough roads.",
+          "details": ["Jarring over bumps", "Harsh ride", "Not for rough terrain"]
+        }
+      }
+    },
+    {
+      "key": "highwayStability",
+      "label": "Highway Stability",
+      "category": "suspension",
+      "subCategory": "highwayStability",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.suspensionScore.highwayStability",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent highway stability. Planted and confident.",
+          "details": ["Great at high speeds", "No float", "Very confident"]
+        },
+        "good": {
+          "summary": "Good highway stability. Smooth at speed.",
+          "details": ["Adequate at high speeds", "Minimal float", "Good for highways"]
+        },
+        "average": {
+          "summary": "Average highway stability. Acceptable.",
+          "details": ["Acceptable at legal speeds", "Some float at high speed", "Fine for most"]
+        },
+        "needsImprovement": {
+          "summary": "Below average highway stability. Could be better.",
+          "details": ["Noticeable float", "Less confidence", "Better at lower speeds"]
+        }
+      }
+    },
+    {
+      "key": "corneringSupport",
+      "label": "Cornering Support",
+      "category": "suspension",
+      "subCategory": "corneringSupport",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.suspensionScore.corneringSupport",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent cornering support. Minimal body roll.",
+          "details": ["Flat through corners", "Great grip", "Sporty handling"]
+        },
+        "good": {
+          "summary": "Good cornering support. Stable and controlled.",
+          "details": ["Adequate body control", "Good grip", "Composed cornering"]
+        },
+        "average": {
+          "summary": "Average cornering support. Acceptable for daily use.",
+          "details": ["Some body roll", "Decent grip", "Fine for normal driving"]
+        },
+        "needsImprovement": {
+          "summary": "Below average cornering. Significant body roll.",
+          "details": ["Noticeable body roll", "Less confidence in corners", "Better for straight roads"]
+        }
+      }
+    },
+    {
+      "key": "seatQuality",
+      "label": "Seat Quality",
+      "category": "comfort",
+      "subCategory": "seatQuality",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛋️",
+      "variantFieldPath": "factorScores.comfortScore.seatQuality",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent seat quality. Comfortable for long drives.",
+          "details": ["Great support", "Premium materials", "Good for long trips"]
+        },
+        "good": {
+          "summary": "Good seat quality. Comfortable for daily use.",
+          "details": ["Adequate support", "Good materials", "Comfortable for most drives"]
+        },
+        "average": {
+          "summary": "Average seat quality. Acceptable but could improve.",
+          "details": ["Decent support", "Standard materials", "Could be better for long trips"]
+        },
+        "needsImprovement": {
+          "summary": "Below average seat quality. Lacks comfort.",
+          "details": ["Less supportive", "Basic materials", "Consider higher variants for better seats"]
+        }
+      }
+    },
+    {
+      "key": "cabinInsulation",
+      "label": "Cabin Insulation",
+      "category": "comfort",
+      "subCategory": "cabinInsulation",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛋️",
+      "variantFieldPath": "factorScores.comfortScore.cabinInsulation",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent cabin insulation. Very quiet interior.",
+          "details": ["Minimal road noise", "Excellent wind noise control", "Great for highway drives"]
+        },
+        "good": {
+          "summary": "Good cabin insulation. Quiet interior.",
+          "details": ["Adequate sound deadening", "Low road noise", "Good highway comfort"]
+        },
+        "average": {
+          "summary": "Average cabin insulation. Some noise intrusion.",
+          "details": ["Acceptable sound levels", "Some road noise", "Fine for city driving"]
+        },
+        "needsImprovement": {
+          "summary": "Below average insulation. Cabin noise is noticeable.",
+          "details": ["Significant road noise", "Wind noise at speed", "Better insulation available"]
+        }
+      }
+    },
+    {
+      "key": "acEffectiveness",
+      "label": "AC Effectiveness",
+      "category": "comfort",
+      "subCategory": "acEffectiveness",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛋️",
+      "variantFieldPath": "factorScores.comfortScore.acEffectiveness",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent AC. Cools quickly even in extreme heat.",
+          "details": ["Quick cooling", "Effective even in 40°C", "Great for Indian summers"]
+        },
+        "good": {
+          "summary": "Good AC. Adequate cooling.",
+          "details": ["Decent cooling", "Works in most conditions", "Good for daily use"]
+        },
+        "average": {
+          "summary": "Average AC. Acceptable but slow to cool.",
+          "details": ["Average cooling time", "Works but could be faster", "Fine for moderate climate"]
+        },
+        "needsImprovement": {
+          "summary": "Below average AC. Struggles in extreme heat.",
+          "details": ["Slow to cool", "Struggles in hot weather", "Better AC available"]
+        }
+      }
+    },
+    {
+      "key": "rearSeatComfort",
+      "label": "Rear Seat Comfort",
+      "category": "comfort",
+      "subCategory": "rearSeatComfort",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛋️",
+      "variantFieldPath": "factorScores.comfortScore.rearSeatComfort",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent rear seat comfort. Great for passengers.",
+          "details": ["Spacious rear seats", "Good support", "Great for long trips"]
+        },
+        "good": {
+          "summary": "Good rear seat comfort. Adequate for passengers.",
+          "details": ["Decent space", "Good support", "Comfortable for most trips"]
+        },
+        "average": {
+          "summary": "Average rear seat comfort. Acceptable for short trips.",
+          "details": ["Limited space", "Basic support", "Fine for short distances"]
+        },
+        "needsImprovement": {
+          "summary": "Below average rear seat comfort. Not ideal for passengers.",
+          "details": ["Cramped seating", "Limited legroom", "Better options for passenger comfort"]
+        }
+      }
+    },
+    {
+      "key": "rideSmoothness",
+      "label": "Ride Smoothness",
+      "category": "comfort",
+      "subCategory": "rideSmoothness",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛋️",
+      "variantFieldPath": "factorScores.comfortScore.rideSmoothness",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ride smoothness. Glides over roads.",
+          "details": ["Buttery smooth ride", "Great impact absorption", "Luxurious feel"]
+        },
+        "good": {
+          "summary": "Good ride smoothness. Comfortable daily drive.",
+          "details": ["Smooth over most surfaces", "Good impact absorption", "Pleasant daily drive"]
+        },
+        "average": {
+          "summary": "Average ride smoothness. Acceptable but firm.",
+          "details": ["Decent ride quality", "Some harshness", "Fine for daily use"]
+        },
+        "needsImprovement": {
+          "summary": "Below average smoothness. Harsh on rough roads.",
+          "details": ["Noticeable harshness", "Less impact absorption", "Better ride available"]
+        }
+      }
+    },
+    {
+      "key": "infotainment",
+      "label": "Infotainment System",
+      "category": "features",
+      "subCategory": "infotainment",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🎯",
+      "variantFieldPath": "factorScores.featuresScore.infotainment",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent infotainment. Large responsive screen.",
+          "details": ["Large crisp display", "Quick response", "Great connectivity"]
+        },
+        "good": {
+          "summary": "Good infotainment. Satisfying user experience.",
+          "details": ["Decent screen size", "Good response", "Good connectivity"]
+        },
+        "average": {
+          "summary": "Average infotainment. Functional but dated.",
+          "details": ["Smaller screen", "Basic features", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Below average infotainment. Limited features.",
+          "details": ["Basic infotainment", "Limited features", "Consider upgrades"]
+        }
+      }
+    },
+    {
+      "key": "connectedCar",
+      "label": "Connected Car Features",
+      "category": "features",
+      "subCategory": "connectedCar",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🎯",
+      "variantFieldPath": "factorScores.featuresScore.connectedCar",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent connected features. Complete connectivity suite.",
+          "details": ["Full connected car suite", "Remote control features", "Great app integration"]
+        },
+        "good": {
+          "summary": "Good connected features. Useful connectivity.",
+          "details": ["Good connectivity", "Useful features", "Most essential functions"]
+        },
+        "average": {
+          "summary": "Average connected features. Basic connectivity.",
+          "details": ["Limited connected features", "Basic functions", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Below average connectivity. Limited features.",
+          "details": ["Minimal connected features", "Basic smartphone integration", "Better options available"]
+        }
+      }
+    },
+    {
+      "key": "sunroof",
+      "label": "Sunroof",
+      "category": "features",
+      "subCategory": "sunroof",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🎯",
+      "variantFieldPath": "factorScores.featuresScore.sunroof",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent sunroof. Large panoramic or dual pane.",
+          "details": ["Panoramic sunroof", "Great for passengers", "Premium feel"]
+        },
+        "good": {
+          "summary": "Good sunroof. Adds to experience.",
+          "details": ["Single pane sunroof", "Adequate opening", "Pleasant addition"]
+        },
+        "average": {
+          "summary": "Average sunroof. Functional but not special.",
+          "details": ["Basic sunroof", "Small opening", "Adds some enjoyment"]
+        },
+        "needsImprovement": {
+          "summary": "No sunroof. Consider higher variant.",
+          "details": ["No sunroof available", "Better on higher trims", "Lower variants lack this"]
+        }
+      }
+    },
+    {
+      "key": "ventilatedSeats",
+      "label": "Ventilated Seats",
+      "category": "features",
+      "subCategory": "ventilatedSeats",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🎯",
+      "variantFieldPath": "factorScores.featuresScore.ventilatedSeats",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ventilated seats. Great for hot climates.",
+          "details": ["Effective ventilation", "Great for Indian summers", "Premium luxury feel"]
+        },
+        "good": {
+          "summary": "Good ventilated seats. Useful feature.",
+          "details": ["Adequate ventilation", "Helpful in heat", "Nice addition"]
+        },
+        "average": {
+          "summary": "Average ventilated seats. Could be more effective.",
+          "details": ["Basic ventilation", "Works but limited", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "No ventilated seats. Consider higher variant.",
+          "details": ["Not available on this variant", "Feature on higher trims", "Aftermarket options available"]
+        }
+      }
+    },
+    {
+      "key": "ambientLighting",
+      "label": "Ambient Lighting",
+      "category": "features",
+      "subCategory": "ambientLighting",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🎯",
+      "variantFieldPath": "factorScores.featuresScore.ambientLighting",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ambient lighting. Premium cabin feel.",
+          "details": ["Full ambient lighting", "Multiple colors", "Premium ambiance"]
+        },
+        "good": {
+          "summary": "Good ambient lighting. Pleasant atmosphere.",
+          "details": ["Good ambient lighting", "Adds to cabin feel", "Nice for night driving"]
+        },
+        "average": {
+          "summary": "Average ambient lighting. Basic lighting.",
+          "details": ["Limited ambient lighting", "Basic design", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "No ambient lighting. Basic cabin lighting.",
+          "details": ["No ambient lighting", "Basic interior lighting", "Available in higher trims"]
+        }
+      }
+    },
+    {
+      "key": "priceVsFeatures",
+      "label": "Price vs Features",
+      "category": "valueForMoney",
+      "subCategory": "priceVsFeatures",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "💰",
+      "variantFieldPath": "factorScores.valueForMoneyScore.priceVsFeatures",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent value. Great features for the price.",
+          "details": ["Feature-rich for the price", "Excellent value proposition", "Best in segment"]
+        },
+        "good": {
+          "summary": "Good value. Decent features for price.",
+          "details": ["Good feature set", "Competitive pricing", "Satisfying value"]
+        },
+        "average": {
+          "summary": "Average value. Typical for segment.",
+          "details": ["Expected features for price", "Competitive", "Nothing special"]
+        },
+        "needsImprovement": {
+          "summary": "Poor value. Limited features for price.",
+          "details": ["Overpriced for features", "Better options available", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "safetyPackage",
+      "label": "Safety Package Value",
+      "category": "valueForMoney",
+      "subCategory": "safetyPackage",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "💰",
+      "variantFieldPath": "factorScores.valueForMoneyScore.safetyPackage",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent safety package. Great value for safety.",
+          "details": ["Great safety for the price", "Best-in-class safety", "Peace of mind"]
+        },
+        "good": {
+          "summary": "Good safety package. Good safety value.",
+          "details": ["Adequate safety features", "Good value", "Recommended"]
+        },
+        "average": {
+          "summary": "Average safety package. Basic safety value.",
+          "details": ["Expected safety features", "Nothing special", "Adequate"]
+        },
+        "needsImprovement": {
+          "summary": "Below average safety package. Consider alternatives.",
+          "details": ["Limited safety for price", "Better safety available", "Consider higher variant"]
+        }
+      }
+    },
+    {
+      "key": "performanceValue",
+      "label": "Performance Value",
+      "category": "valueForMoney",
+      "subCategory": "performanceValue",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "💰",
+      "variantFieldPath": "factorScores.valueForMoneyScore.performanceValue",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent performance value. Great engine for price.",
+          "details": ["Best performance for price", "Great engine", "Satisfying drive"]
+        },
+        "good": {
+          "summary": "Good performance value. Adequate engine.",
+          "details": ["Good engine for price", "Decent performance", "Good value"]
+        },
+        "average": {
+          "summary": "Average performance value. Expected for segment.",
+          "details": ["Typical performance", "Adequate for price", "Nothing special"]
+        },
+        "needsImprovement": {
+          "summary": "Poor performance value. Better options available.",
+          "details": ["Underwhelming performance", "Better value elsewhere", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "resaleValue",
+      "label": "Resale Value",
+      "category": "valueForMoney",
+      "subCategory": "resaleValue",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "💰",
+      "variantFieldPath": "factorScores.valueForMoneyScore.resaleValue",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent resale value. Holds value well.",
+          "details": ["Great resale value", "High demand", "Smart investment"]
+        },
+        "good": {
+          "summary": "Good resale value. Decent value retention.",
+          "details": ["Good resale value", "Adequate demand", "Reasonable investment"]
+        },
+        "average": {
+          "summary": "Average resale value. Typical depreciation.",
+          "details": ["Expected resale value", "Normal depreciation", "Acceptable"]
+        },
+        "needsImprovement": {
+          "summary": "Poor resale value. Depreciates quickly.",
+          "details": ["Low resale value", "Fast depreciation", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "overallPackage",
+      "label": "Overall Package Value",
+      "category": "valueForMoney",
+      "subCategory": "overallPackage",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "💰",
+      "variantFieldPath": "factorScores.valueForMoneyScore.overallPackage",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent overall package. Best in segment.",
+          "details": ["Best overall value", "Complete package", "Highly recommended"]
+        },
+        "good": {
+          "summary": "Good overall package. Strong contender.",
+          "details": ["Good overall value", "Competitive package", "Recommended"]
+        },
+        "average": {
+          "summary": "Average overall package. Decent option.",
+          "details": ["Acceptable overall value", "Typical package", "Consider alternatives"]
+        },
+        "needsImprovement": {
+          "summary": "Poor overall package. Better options available.",
+          "details": ["Underwhelming package", "Better value elsewhere", "Look at competitors"]
+        }
+      }
+    },
+    {
+      "key": "steeringResponsiveness",
+      "label": "Steering Responsiveness",
+      "category": "cityDriving",
+      "subCategory": "steeringResponsiveness",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🏙️",
+      "variantFieldPath": "factorScores.cityDrivingScore.steeringResponsiveness",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent steering response. Quick and accurate.",
+          "details": ["Quick response", "Great for city traffic", "Easy to maneuver"]
+        },
+        "good": {
+          "summary": "Good steering response. Adequate for city.",
+          "details": ["Decent response", "Good for city driving", "Satisfying control"]
+        },
+        "average": {
+          "summary": "Average steering response. Acceptable.",
+          "details": ["Acceptable response", "Fine for most", "Could be quicker"]
+        },
+        "needsImprovement": {
+          "summary": "Below average response. Could be better.",
+          "details": ["Slow response", "Less agile", "Better steering available"]
+        }
+      }
+    },
+    {
+      "key": "turningRadiusFactor",
+      "label": "Turning Radius",
+      "category": "cityDriving",
+      "subCategory": "turningRadiusFactor",
+      "minValue": 4.5,
+      "maxValue": 6.0,
+      "unit": "m",
+      "isHigherBetter": false,
+      "icon": "🏙️",
+      "variantFieldPath": "factorScores.cityDrivingScore.turningRadius",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent turning radius. Great for U-turns.",
+          "details": ["Tight turning circle", "Easy U-turns", "Perfect for city"]
+        },
+        "good": {
+          "summary": "Good turning radius. Adequate for city.",
+          "details": ["Good turning circle", "Decent U-turns", "City-friendly"]
+        },
+        "average": {
+          "summary": "Average turning radius. Expected for segment.",
+          "details": ["Typical turning circle", "Fine for most", "Could be tighter"]
+        },
+        "needsImprovement": {
+          "summary": "Wide turning radius. Challenging in city.",
+          "details": ["Wide turning circle", "Difficult U-turns", "Better for highways"]
+        }
+      }
+    },
+    {
+      "key": "visibility",
+      "label": "Visibility",
+      "category": "cityDriving",
+      "subCategory": "visibility",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🏙️",
+      "variantFieldPath": "factorScores.cityDrivingScore.visibility",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent visibility. Great all-round view.",
+          "details": ["Great visibility", "Good for traffic", "Confidence in city"]
+        },
+        "good": {
+          "summary": "Good visibility. Adequate view.",
+          "details": ["Decent visibility", "Good for most", "Satisfying"]
+        },
+        "average": {
+          "summary": "Average visibility. Acceptable.",
+          "details": ["Acceptable visibility", "Some blind spots", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Poor visibility. Has blind spots.",
+          "details": ["Limited visibility", "Significant blind spots", "Use caution"]
+        }
+      }
+    },
+    {
+      "key": "easeOfParking",
+      "label": "Ease of Parking",
+      "category": "cityDriving",
+      "subCategory": "easeOfParking",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🏙️",
+      "variantFieldPath": "factorScores.cityDrivingScore.easeOfParking",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent parking ease. Perfect for tight spots.",
+          "details": ["Easy to park", "Great sensors/camera", "Best for city"]
+        },
+        "good": {
+          "summary": "Good parking ease. Fine for most.",
+          "details": ["Adequate parking", "Good sensors", "City-friendly"]
+        },
+        "average": {
+          "summary": "Average parking ease. Acceptable.",
+          "details": ["Acceptable parking", "Basic sensors", "Could be easier"]
+        },
+        "needsImprovement": {
+          "summary": "Difficult to park. Has challenges.",
+          "details": ["Challenging to park", "Limited sensors", "Better options available"]
+        }
+      }
+    },
+    {
+      "key": "trafficManeuverability",
+      "label": "Traffic Maneuverability",
+      "category": "cityDriving",
+      "subCategory": "trafficManeuverability",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🏙️",
+      "variantFieldPath": "factorScores.cityDrivingScore.trafficManeuverability",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent traffic maneuverability. City car champion.",
+          "details": ["Great in traffic", "Easy lane changes", "City driving champion"]
+        },
+        "good": {
+          "summary": "Good traffic maneuverability. City-friendly.",
+          "details": ["Good in traffic", "Adequate lane changes", "City capable"]
+        },
+        "average": {
+          "summary": "Average maneuverability. Fine for city.",
+          "details": ["Acceptable in traffic", "Decent lane changes", "City acceptable"]
+        },
+        "needsImprovement": {
+          "summary": "Poor maneuverability. Challenging in traffic.",
+          "details": ["Less agile in traffic", "Challenging lane changes", "Better for open roads"]
+        }
+      }
+    },
+    {
+      "key": "highSpeedStability",
+      "label": "High Speed Stability",
+      "category": "highwayDriving",
+      "subCategory": "highSpeedStability",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛣️",
+      "variantFieldPath": "factorScores.highwayDrivingScore.highSpeedStability",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent high-speed stability. Rock solid.",
+          "details": ["Very stable at high speeds", "Great for highways", "Confidence-inspiring"]
+        },
+        "good": {
+          "summary": "Good high-speed stability. Smooth cruiser.",
+          "details": ["Stable at high speeds", "Good highway car", "Satisfying drive"]
+        },
+        "average": {
+          "summary": "Average stability. Acceptable for highways.",
+          "details": ["Acceptable at high speeds", "Some float", "Fine for highways"]
+        },
+        "needsImprovement": {
+          "summary": "Poor high-speed stability. Can feel nervous.",
+          "details": ["Less stable at speed", "Float at high speed", "Better on slower roads"]
+        }
+      }
+    },
+    {
+      "key": "cruiseControl",
+      "label": "Cruise Control",
+      "category": "highwayDriving",
+      "subCategory": "cruiseControl",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛣️",
+      "variantFieldPath": "factorScores.highwayDrivingScore.cruiseControl",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent cruise control. Great for long drives.",
+          "details": ["Full adaptive cruise", "Great for highways", "Reduces fatigue"]
+        },
+        "good": {
+          "summary": "Good cruise control. Helpful feature.",
+          "details": ["Standard cruise control", "Helpful on highways", "Satisfying"]
+        },
+        "average": {
+          "summary": "Average cruise control. Basic functionality.",
+          "details": ["Basic cruise control", "Works as expected", "Could be more advanced"]
+        },
+        "needsImprovement": {
+          "summary": "No cruise control. Misses highway feature.",
+          "details": ["No cruise control", "Consider higher variant", "Not ideal for highways"]
+        }
+      }
+    },
+    {
+      "key": "overtakingAbility",
+      "label": "Overtaking Ability",
+      "category": "highwayDriving",
+      "subCategory": "overtakingAbility",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛣️",
+      "variantFieldPath": "factorScores.highwayDrivingScore.overtakingAbility",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent overtaking ability. Confident highway passing.",
+          "details": ["Great overtaking power", "Quick response", "Confident passing"]
+        },
+        "good": {
+          "summary": "Good overtaking ability. Adequate passing power.",
+          "details": ["Decent overtaking", "Adequate power", "Good highway capability"]
+        },
+        "average": {
+          "summary": "Average overtaking. Requires planning.",
+          "details": ["Acceptable overtaking", "Plan ahead", "Fine for most"]
+        },
+        "needsImprovement": {
+          "summary": "Poor overtaking. Struggles to pass.",
+          "details": ["Limited overtaking power", "Requires careful planning", "Better for slower driving"]
+        }
+      }
+    },
+    {
+      "key": "fuelEfficiencyHighway",
+      "label": "Highway Fuel Efficiency",
+      "category": "highwayDriving",
+      "subCategory": "fuelEfficiencyHighway",
+      "minValue": 10,
+      "maxValue": 30,
+      "unit": "km/l",
+      "isHigherBetter": true,
+      "icon": "🛣️",
+      "variantFieldPath": "factorScores.highwayDrivingScore.fuelEfficiency",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent highway fuel economy. Great for long trips.",
+          "details": ["Great highway economy", "Fuel-efficient cruising", "Great for touring"]
+        },
+        "good": {
+          "summary": "Good highway fuel economy. Efficient.",
+          "details": ["Good highway economy", "Fuel-efficient", "Good for long drives"]
+        },
+        "average": {
+          "summary": "Average highway fuel economy. Acceptable.",
+          "details": ["Acceptable economy", "Decent highway mileage", "Fine for most"]
+        },
+        "needsImprovement": {
+          "summary": "Below average highway economy. Higher costs.",
+          "details": ["Less efficient", "Higher fuel costs", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "cabinNoise",
+      "label": "Cabin Noise",
+      "category": "highwayDriving",
+      "subCategory": "cabinNoise",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🛣️",
+      "variantFieldPath": "factorScores.highwayDrivingScore.cabinNoise",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent cabin noise control. Very quiet.",
+          "details": ["Very quiet inside", "Great insulation", "Luxurious highway driving"]
+        },
+        "good": {
+          "summary": "Good cabin noise control. Quiet interior.",
+          "details": ["Quiet cabin", "Good insulation", "Highway comfortable"]
+        },
+        "average": {
+          "summary": "Average cabin noise. Acceptable.",
+          "details": ["Acceptable noise levels", "Some road noise", "Fine for most"]
+        },
+        "needsImprovement": {
+          "summary": "Noisy cabin. Can be tiring.",
+          "details": ["Noticeable road noise", "Can be tiring", "Better insulation available"]
+        }
+      }
+    },
+    {
+      "key": "rearSeatSpace",
+      "label": "Rear Seat Space",
+      "category": "family",
+      "subCategory": "rearSeatSpace",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "👨‍👩‍👧‍👦",
+      "variantFieldPath": "factorScores.familyScore.rearSeatSpace",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent rear space. Great for families.",
+          "details": ["Spacious rear seats", "Good legroom", "Great for families"]
+        },
+        "good": {
+          "summary": "Good rear space. Adequate for families.",
+          "details": ["Decent rear space", "Good legroom", "Family-friendly"]
+        },
+        "average": {
+          "summary": "Average rear space. Fine for small families.",
+          "details": ["Acceptable space", "Limited legroom", "Better for smaller families"]
+        },
+        "needsImprovement": {
+          "summary": "Limited rear space. Not great for families.",
+          "details": ["Cramped rear seats", "Limited legroom", "Better for couples"]
+        }
+      }
+    },
+    {
+      "key": "bootCapacity",
+      "label": "Boot Capacity",
+      "category": "family",
+      "subCategory": "bootCapacity",
+      "minValue": 200,
+      "maxValue": 600,
+      "unit": "L",
+      "isHigherBetter": true,
+      "icon": "👨‍👩‍👧‍👦",
+      "variantFieldPath": "factorScores.familyScore.bootCapacity",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent boot capacity. Great for luggage.",
+          "details": ["Spacious boot", "Great for luggage", "Perfect for trips"]
+        },
+        "good": {
+          "summary": "Good boot capacity. Adequate for luggage.",
+          "details": ["Good boot space", "Decent luggage capacity", "Great for trips"]
+        },
+        "average": {
+          "summary": "Average boot capacity. Fine for daily use.",
+          "details": ["Acceptable boot space", "Limited luggage", "Better for daily use"]
+        },
+        "needsImprovement": {
+          "summary": "Small boot. Limited luggage capacity.",
+          "details": ["Small boot", "Limited luggage", "Consider folding seats"]
+        }
+      }
+    },
+    {
+      "key": "childSafety",
+      "label": "Child Safety",
+      "category": "family",
+      "subCategory": "childSafety",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "👨‍👩‍👧‍👦",
+      "variantFieldPath": "factorScores.familyScore.childSafety",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent child safety. ISOFIX and other features.",
+          "details": ["ISOFIX mounts", "Child locks", "Peace of mind"]
+        },
+        "good": {
+          "summary": "Good child safety. Important features.",
+          "details": ["ISOFIX available", "Good child locks", "Safe for kids"]
+        },
+        "average": {
+          "summary": "Average child safety. Basic features.",
+          "details": ["Basic child safety", "Some features", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Limited child safety features.",
+          "details": ["Limited child features", "Consider higher variants", "Not ideal for young children"]
+        }
+      }
+    },
+    {
+      "key": "easeOfEntry",
+      "label": "Ease of Entry",
+      "category": "family",
+      "subCategory": "easeOfEntry",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "👨‍👩‍👧‍👦",
+      "variantFieldPath": "factorScores.familyScore.easeOfEntry",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent ease of entry. Great for all ages.",
+          "details": ["Easy ingress/egress", "Great for elderly", "Family-friendly"]
+        },
+        "good": {
+          "summary": "Good ease of entry. Adequate for most.",
+          "details": ["Decent entry/exit", "Good for most", "Family suitable"]
+        },
+        "average": {
+          "summary": "Average ease of entry. Could be better.",
+          "details": ["Acceptable entry/exit", "Some difficulty", "Fine for most"]
+        },
+        "needsImprovement": {
+          "summary": "Difficult entry. Challenging for some.",
+          "details": ["Difficult to enter", "Challenging for elderly", "Consider SUV/crossover"]
+        }
+      }
+    },
+    {
+      "key": "familyFeatures",
+      "label": "Family Features",
+      "category": "family",
+      "subCategory": "familyFeatures",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "👨‍👩‍👧‍👦",
+      "variantFieldPath": "factorScores.familyScore.familyFeatures",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent family features. Complete package.",
+          "details": ["Great for families", "All needs covered", "Highly recommended"]
+        },
+        "good": {
+          "summary": "Good family features. Most needs covered.",
+          "details": ["Good family features", "Most needs covered", "Great for families"]
+        },
+        "average": {
+          "summary": "Average family features. Basic needs covered.",
+          "details": ["Basic family features", "Daily needs covered", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Limited family features. Not ideal.",
+          "details": ["Limited features", "Not family-focused", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "serviceCost",
+      "label": "Service Cost",
+      "category": "maintenance",
+      "subCategory": "serviceCost",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": false,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.maintenanceScore.serviceCost",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Low service cost. Affordable maintenance.",
+          "details": ["Cheap to service", "Affordable maintenance", "Wallet-friendly"]
+        },
+        "good": {
+          "summary": "Good service cost. Reasonable maintenance.",
+          "details": ["Reasonable service costs", "Affordable", "Good for long-term"]
+        },
+        "average": {
+          "summary": "Average service cost. Typical for segment.",
+          "details": ["Acceptable service costs", "Typical", "Nothing special"]
+        },
+        "needsImprovement": {
+          "summary": "High service cost. Expensive maintenance.",
+          "details": ["Expensive to service", "Costly maintenance", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "spareParts",
+      "label": "Spare Parts Availability",
+      "category": "maintenance",
+      "subCategory": "spareParts",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.maintenanceScore.spareParts",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent spare parts availability. Easy to maintain.",
+          "details": ["Parts readily available", "Easy to maintain", "No waiting"]
+        },
+        "good": {
+          "summary": "Good spare parts availability. Adequate.",
+          "details": ["Good parts availability", "Easy to find", "Satisfactory"]
+        },
+        "average": {
+          "summary": "Average spare parts availability. Can be better.",
+          "details": ["Acceptable parts availability", "Sometimes waiting", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Poor spare parts availability. Challenging.",
+          "details": ["Parts hard to find", "Long waiting times", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "serviceNetwork",
+      "label": "Service Network Coverage",
+      "category": "maintenance",
+      "subCategory": "serviceNetwork",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.maintenanceScore.serviceNetwork",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent service network. Wide coverage.",
+          "details": ["Great service network", "Wide coverage", "Easy access"]
+        },
+        "good": {
+          "summary": "Good service network. Decent coverage.",
+          "details": ["Good service coverage", "Most areas covered", "Satisfactory"]
+        },
+        "average": {
+          "summary": "Average service network. Some coverage gaps.",
+          "details": ["Decent network", "Some gaps", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Limited service network. Hard to find service.",
+          "details": ["Limited coverage", "May need to travel", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "reliability",
+      "label": "Reliability",
+      "category": "maintenance",
+      "subCategory": "reliability",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.maintenanceScore.reliability",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent reliability. Highly dependable.",
+          "details": ["Very reliable", "Rarely breaks down", "Peace of mind"]
+        },
+        "good": {
+          "summary": "Good reliability. Dependable vehicle.",
+          "details": ["Reliable", "Few issues", "Good long-term"]
+        },
+        "average": {
+          "summary": "Average reliability. Expect some issues.",
+          "details": ["Acceptable reliability", "Some issues", "Could be better"]
+        },
+        "needsImprovement": {
+          "summary": "Poor reliability. Frequent issues.",
+          "details": ["Unreliable", "Frequent issues", "Consider alternatives"]
+        }
+      }
+    },
+    {
+      "key": "warranty",
+      "label": "Warranty",
+      "category": "maintenance",
+      "subCategory": "warranty",
+      "minValue": 0,
+      "maxValue": 10,
+      "unit": "Score",
+      "isHigherBetter": true,
+      "icon": "🔧",
+      "variantFieldPath": "factorScores.maintenanceScore.warranty",
+      "isEV": false,
+      "explanations": {
+        "excellent": {
+          "summary": "Excellent warranty. Great coverage.",
+          "details": ["Long warranty", "Great coverage", "Peace of mind"]
+        },
+        "good": {
+          "summary": "Good warranty. Adequate coverage.",
+          "details": ["Good warranty", "Decent coverage", "Satisfactory"]
+        },
+        "average": {
+          "summary": "Average warranty. Basic coverage.",
+          "details": ["Standard warranty", "Basic coverage", "Typical for segment"]
+        },
+        "needsImprovement": {
+          "summary": "Limited warranty. Short coverage.",
+          "details": ["Short warranty", "Limited coverage", "Consider extended warranty"]
+        }
+      }
+    }
+  ]
+}

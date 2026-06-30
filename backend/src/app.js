@@ -8,7 +8,12 @@ const articleRoutes = require('./routes/articleRoutes');
 const compareRoutes = require('./routes/compareRoutes');
 
 const carRoutes = require('./routes/carRoutes');
+const travelogueRoutes = require('./routes/travelogueRoutes');
+const contactRoutes = require('./routes/contactRoutes');
+
+
 const connectDB = require('./config/database');
+
 
 // Connect to MongoDB
 connectDB();
@@ -59,6 +64,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/compare', compareRoutes);
+app.use('/api/travelogues', travelogueRoutes);
+app.use('/api/contact', contactRoutes);
+
 
 
 

@@ -16,12 +16,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from './ThemeToggle'
 import AuthModal from './AuthModal'
 import { useTheme } from '../context/ThemeContext'
-import { api } from '../services/api' // ADDED
+import { api } from '../services/api'
 
 // Static category data
 const DESKTOP_CATEGORIES = [
   {
     name: "Feature Reviews",
+    baseRoute: "/article",
     articles: [
       { title: "AWD vs FWD: The ₹2 Lakh Question", slug: "awd-vs-fwd" },
       { title: "ADAS Lane Keep Assist Review", slug: "adas-lane-keep-assist" },
@@ -31,6 +32,7 @@ const DESKTOP_CATEGORIES = [
   },
   {
     name: "New Launches",
+    baseRoute: "/article",
     articles: [
       { title: "2026 Hyundai Creta Launch", slug: "hyundai-creta-2026-launch" },
       { title: "New Kia Seltos 2026", slug: "kia-seltos-2026" }
@@ -38,11 +40,22 @@ const DESKTOP_CATEGORIES = [
   },
   {
     name: "Tech Insights",
+    baseRoute: "/article",
     articles: [
       { title: "What is ADAS? Complete Guide", slug: "what-is-adas" },
       { title: "What is ABS? How It Works", slug: "what-is-abs" },
       { title: "What is EBD? Explained", slug: "what-is-ebd" },
       { title: "What is ESC? Stability Control", slug: "what-is-esc" }
+    ]
+  },
+  {
+    name: "Travelogues",
+    baseRoute: "/travelogue",
+    articles: [
+      { title: "First Job: Bike vs Car?", slug: "first-job-bike-vs-car" },
+      { title: "Sedan vs SUV vs Hatchback", slug: "first-car-sedan-vs-suv-vs-hatchback" },
+      { title: "Renting vs Buying a Car", slug: "renting-vs-buying-car-true-cost" },
+      { title: "First Long Drive Tips", slug: "first-long-drive-beginner-tips" }
     ]
   }
 ]
@@ -67,7 +80,10 @@ const CommonHeader = () => {
   const location = useLocation()
   const { isDark } = useTheme()
 
-  // ADDED: User authentication state
+  // ✅ NEW: State for hiding header when sticky comparison appears
+  const [hideHeader, setHideHeader] = useState(false)
+
+  // User authentication state
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -77,13 +93,38 @@ const CommonHeader = () => {
   const mobileLoginRef = useRef(null)
   const [activeTriggerRef, setActiveTriggerRef] = useState(null)
 
-  // ADDED: Dropdown ref for click outside
+  // Dropdown ref for click outside
   const dropdownRef = useRef(null)
 
   // Memoized values
   const brandColor = useMemo(() => isDark ? '#0f172a' : '#CFB32B', [isDark])
 
-  // ADDED: Check if user is logged in
+  // ✅ NEW: Listen for sticky header visibility events
+  useEffect(() => {
+    const handleStickyVisibility = (event) => {
+      setHideHeader(event.detail.visible)
+    }
+
+    window.addEventListener('stickyHeaderVisibility', handleStickyVisibility)
+    return () => window.removeEventListener('stickyHeaderVisibility', handleStickyVisibility)
+  }, [])
+
+  // ✅ NEW: Also check scroll directly as fallback
+  useEffect(() => {
+    const checkStickyHeader = () => {
+      const stickyHeader = document.getElementById('sticky-comparison-header')
+      if (stickyHeader) {
+        const rect = stickyHeader.getBoundingClientRect()
+        const shouldHide = rect.top <= 0 && rect.bottom > 0
+        setHideHeader(shouldHide)
+      }
+    }
+
+    window.addEventListener('scroll', checkStickyHeader, { passive: true })
+    return () => window.removeEventListener('scroll', checkStickyHeader)
+  }, [])
+
+  // Check if user is logged in
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token')
@@ -104,7 +145,7 @@ const CommonHeader = () => {
     checkAuth()
   }, [])
 
-  // ADDED: Close dropdown when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -167,14 +208,13 @@ const CommonHeader = () => {
     closeMenu()
   }, [closeMenu])
 
-  // ADDED: Close auth modal and refresh user
+  // Close auth modal and refresh user
   const closeAuthModal = useCallback(async () => {
     setIsAuthModalOpen(false)
     setTimeout(() => {
       setActiveTriggerRef(null)
     }, 500)
 
-    // Refresh user data after modal closes
     const token = localStorage.getItem('token')
     if (token) {
       try {
@@ -188,14 +228,14 @@ const CommonHeader = () => {
     }
   }, [])
 
-  // ADDED: Handle logout
+  // Handle logout
   const handleLogout = useCallback(() => {
     localStorage.removeItem('token')
     setUser(null)
     setIsDropdownOpen(false)
   }, [])
 
-  // ADDED: Toggle dropdown
+  // Toggle dropdown
   const toggleDropdown = useCallback(() => {
     setIsDropdownOpen(prev => !prev)
   }, [])
@@ -252,7 +292,6 @@ const CommonHeader = () => {
       }
     }, [])
 
-    // Use direct theme-based classes for consistent transitions
     const catTextColor = isDark ? 'text-white' : 'text-gray-900'
     const catSubTextColor = isDark ? 'text-gray-400' : 'text-gray-500'
     const catHoverBg = isDark ? 'hover:bg-dark-700' : 'hover:bg-gray-100'
@@ -324,7 +363,7 @@ const CommonHeader = () => {
                       {category.articles.map((article, articleIdx) => (
                         <Link
                           key={articleIdx}
-                          to={`/article/${article.slug}`}
+                          to={`${category.baseRoute || '/article'}/${article.slug}`}
                           className={`block px-3 sm:px-4 py-1.5 sm:py-2 ${catHoverBg} transition-colors duration-200`}
                           onClick={() => setIsCatOpen(false)}
                         >
@@ -344,7 +383,7 @@ const CommonHeader = () => {
     )
   }, [isDark])
 
-  // Consistent text classes with proper transitions - ALL NAV ITEMS USE THE SAME CLASSES
+  // Consistent text classes
   const navLinkClasses = `font-semibold text-sm xl:text-[16px] tracking-wide transition-colors duration-300`
   const navLinkActiveClasses = isDark
     ? 'text-yellow-400 border-b-2 border-yellow-400 pb-1'
@@ -355,7 +394,6 @@ const CommonHeader = () => {
   const mobileNavLinkActiveClasses = isDark ? 'text-yellow-400' : 'text-gray-900 font-bold'
   const mobileNavLinkInactiveClasses = isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'
 
-  // ADDED: Get user initials for avatar
   const getUserInitials = () => {
     if (!user) return '?'
     if (user.firstName && user.lastName) {
@@ -370,7 +408,6 @@ const CommonHeader = () => {
     return '?'
   }
 
-  // ADDED: Get user display name
   const getUserName = () => {
     if (!user) return 'User'
     if (user.firstName && user.lastName) {
@@ -388,7 +425,9 @@ const CommonHeader = () => {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300`}
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+          hideHeader ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'
+        }`}
         style={{
           backgroundColor: brandColor,
           borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
@@ -424,32 +463,25 @@ const CommonHeader = () => {
 
               <CategoriesDropdown />
 
-              {/* REPLACED: Login/Register with User Avatar or Login Button */}
               {!isLoading && (
                 user ? (
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={toggleDropdown}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-300
-                        }`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-300`}
                     >
-                      {/* Avatar - Light mode: black bg with white text, Dark mode: yellow bg with dark text */}
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-300 ${isDark
                         ? 'bg-yellow-500 text-gray-900'
                         : 'bg-gray-900 text-white'
                         }`}>
                         {getUserInitials()}
                       </div>
-                      {/* <span className={`${navLinkClasses} ${navLinkInactiveClasses}`}>
-                        {getUserName()}
-                      </span> */}
                       <svg className={`w-4 h-4 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''} ${isDark ? 'text-gray-400' : 'text-gray-600'
                         }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
 
-                    {/* Dropdown Menu */}
                     {isDropdownOpen && (
                       <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border py-2 ${isDark
                         ? 'bg-dark-800 border-dark-700'
@@ -563,7 +595,6 @@ const CommonHeader = () => {
                     </NavLink>
                   ))}
 
-                  {/* REPLACED: Mobile Login/Register with User Info or Login Button */}
                   {!isLoading && (
                     user ? (
                       <>
@@ -575,7 +606,6 @@ const CommonHeader = () => {
                               }`}>
                               {getUserInitials()}
                             </div>
-                            {/* <span>{getUserName()}</span> */}
                           </div>
                         </div>
                         <Link
@@ -616,7 +646,6 @@ const CommonHeader = () => {
                     )
                   )}
 
-                  {/* Categories Mobile */}
                   <div className="py-1">
                     <button
                       onClick={toggleCategories}
@@ -690,7 +719,7 @@ const CommonHeader = () => {
                                           {item.articles.map((article, articleIdx) => (
                                             <Link
                                               key={articleIdx}
-                                              to={`/article/${article.slug}`}
+                                              to={`${item.baseRoute || '/article'}/${article.slug}`}
                                               className={`block py-1.5 text-xs sm:text-sm transition-colors duration-300 pl-2 border-l-2 border-transparent hover:border-gray-400 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
                                               onClick={closeMenu}
                                             >
@@ -710,12 +739,10 @@ const CommonHeader = () => {
                     </AnimatePresence>
                   </div>
 
-                  {/* Theme Toggle - Mobile */}
                   <div className="flex items-center justify-between pt-2 mt-1 border-t border-gray-200 dark:border-dark-700">
                     <ThemeToggle />
                   </div>
 
-                  {/* Get Started Button */}
                   <Link
                     to="/contact"
                     className="

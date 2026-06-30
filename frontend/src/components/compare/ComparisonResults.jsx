@@ -3,7 +3,13 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 
-const ComparisonResults = ({ comparisonData, onClear }) => {
+const ComparisonResults = ({ 
+  comparisonData, 
+  onClear, 
+  onEdit,
+  carCardRef1,
+  carCardRef2 
+}) => {
   const [expandedRow, setExpandedRow] = useState(null)
   
   const { car1, car2, summary } = comparisonData
@@ -73,14 +79,13 @@ const ComparisonResults = ({ comparisonData, onClear }) => {
     setExpandedRow(expandedRow === key ? null : key)
   }
 
-  // 🔧 FIX: Longer progress bar (w-40 instead of w-28)
   const renderRatingBar = (rating) => {
     const colors = getColorClasses(rating)
     const percentage = rating !== null ? (rating / 10) * 100 : 0
 
     return (
-      <div className="flex items-center gap-3">
-        <div className="w-40 h-2.5 bg-gray-200 dark:bg-dark-700 rounded-full overflow-hidden">
+      <div className="flex items-center justify-center gap-3 w-full">
+        <div className="w-44 h-2.5 bg-gray-200 dark:bg-dark-700 rounded-full overflow-hidden theme-transition">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
@@ -88,7 +93,7 @@ const ComparisonResults = ({ comparisonData, onClear }) => {
             className={`h-full ${colors.bar} rounded-full`}
           />
         </div>
-        <span className={`text-sm font-bold ${colors.text} min-w-[50px] text-right`}>
+        <span className={`text-sm font-bold ${colors.text} min-w-[50px] text-right theme-transition`}>
           {rating !== null ? `${rating.toFixed(1)} / 10` : 'N/A'}
         </span>
       </div>
@@ -108,112 +113,125 @@ const ComparisonResults = ({ comparisonData, onClear }) => {
   }
 
   const visibleCategories = getVisibleCategories()
-  const car1Name = `${car1.brand} ${car1.model}`
-  const car2Name = `${car2.brand} ${car2.model}`
+  
+  const car1Full = `${car1.brand} ${car1.model}`
+  const car2Full = `${car2.brand} ${car2.model}`
+  const car1Variant = car1.name || car1.variant || ''
+  const car2Variant = car2.name || car2.variant || ''
+
+  const handleEditClick = (position) => {
+    if (onEdit) {
+      onEdit(position)
+    }
+  }
 
   return (
-    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-lg overflow-hidden">
-      {/* Header */}
-      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-dark-700">
+    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-lg overflow-hidden theme-transition">
+      
+      {/* Header - Only title + close */}
+      <div className="px-6 md:px-8 py-4 md:py-6 border-b border-gray-200 dark:border-dark-700 theme-transition">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onClear}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 flex items-center gap-1 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              New Comparison
-            </button>
-            <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white">
-              {car1Name} vs {car2Name}
-            </h2>
-          </div>
-          <button onClick={onClear} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-            ✕
+          <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white theme-transition">
+            {/* Title space kept if needed in future */}
+          </h2>
+          <button 
+            onClick={onClear} 
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 bg-gray-50 hover:bg-gray-100 dark:bg-dark-700 dark:hover:bg-dark-600 rounded-full"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
       </div>
 
-      {/* 🔧 FIX: Car Headers - Car names at top, NO trophy badges */}
-      <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-dark-700/50 dark:to-dark-700/30 border-b border-gray-200 dark:border-dark-700">
+      {/* ✅ Car Cards with ID for scroll tracking */}
+      <div 
+        id="comparison-car-cards"
+        className="px-6 md:px-8 py-6 md:py-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-gradient-to-b from-gray-50 to-white dark:from-dark-800/80 dark:to-dark-800 border-b border-gray-200 dark:border-dark-700 theme-transition"
+      >
+        {/* Parameter Label */}
+        <div className="hidden md:flex flex-col items-center justify-center text-center">
+          <span className="text-gray-400 dark:text-gray-500 font-bold tracking-widest uppercase text-sm theme-transition">Parameter</span>
+        </div>
+
         {/* Car 1 */}
-        <div className="text-center">
-          <div className="flex justify-center mb-3">
+        <div 
+          ref={carCardRef1}
+          className="text-center flex flex-col items-center justify-end relative"
+        >
+          <div className="flex justify-center mb-4 w-full h-36 md:h-44 lg:h-48 relative">
             <img 
               src={car1.image} 
               alt={car1.model} 
-              className="w-48 h-36 md:w-56 md:h-44 lg:w-64 lg:h-48 object-contain rounded-xl bg-white dark:bg-dark-800 shadow-md p-3 border border-gray-200 dark:border-dark-600" 
+              className="max-w-full max-h-full object-contain drop-shadow-xl theme-transition" 
             />
           </div>
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <span className="text-xs font-medium px-2.5 py-0.5 bg-yellow-500 text-gray-900 rounded-full">
+          
+          {/* ✅ UPDATED ROW: Brand name centered, Edit button aligned right */}
+          <div className="flex items-center justify-center w-full relative mb-1.5 px-2">
+            <span className="text-xs font-bold px-3 py-0.5 bg-yellow-500 text-gray-900 rounded-full shadow-sm">
               {car1.brand}
             </span>
+            <button
+              onClick={() => handleEditClick(1)}
+              className="absolute right-2 text-[11px] font-medium text-gray-500 hover:text-yellow-600 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors duration-200 flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-dark-700 px-2 py-1 rounded-md"
+            >
+              ✏️ Edit
+            </button>
           </div>
-          <div className="text-lg md:text-xl font-bold text-gray-800 dark:text-white">{car1.model}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{car1.name}</div>
-          <div className="text-sm font-semibold text-yellow-600 dark:text-yellow-400 mt-1">{car1.price}</div>
+
+          <div className="text-lg md:text-xl font-bold text-gray-800 dark:text-white leading-tight theme-transition">{car1.model}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wider font-semibold theme-transition">{car1Variant}</div>
+          <div className="text-sm font-bold text-yellow-600 dark:text-yellow-400 mt-2 theme-transition">{car1.price}</div>
           {car1.overallScore && (
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full">
-              <span className="text-xs text-gray-600 dark:text-gray-400">★</span>
-              <span className="text-sm font-bold text-yellow-500">{car1.overallScore.toFixed(1)}</span>
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
+              <span className="text-xs text-yellow-600 dark:text-yellow-400">★</span>
+              <span className="text-sm font-bold text-yellow-600 dark:text-yellow-400">{car1.overallScore.toFixed(1)}</span>
             </div>
           )}
         </div>
 
         {/* Car 2 */}
-        <div className="text-center">
-          <div className="flex justify-center mb-3">
+        <div 
+          ref={carCardRef2}
+          className="text-center flex flex-col items-center justify-end relative"
+        >
+          <div className="flex justify-center mb-4 w-full h-36 md:h-44 lg:h-48 relative">
             <img 
               src={car2.image} 
               alt={car2.model} 
-              className="w-48 h-36 md:w-56 md:h-44 lg:w-64 lg:h-48 object-contain rounded-xl bg-white dark:bg-dark-800 shadow-md p-3 border border-gray-200 dark:border-dark-600" 
+              className="max-w-full max-h-full object-contain drop-shadow-xl theme-transition" 
             />
           </div>
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <span className="text-xs font-medium px-2.5 py-0.5 bg-yellow-500 text-gray-900 rounded-full">
+          
+          {/* ✅ UPDATED ROW: Brand name centered, Edit button aligned right */}
+          <div className="flex items-center justify-center w-full relative mb-1.5 px-2">
+            <span className="text-xs font-bold px-3 py-0.5 bg-yellow-500 text-gray-900 rounded-full shadow-sm">
               {car2.brand}
             </span>
+            <button
+              onClick={() => handleEditClick(2)}
+              className="absolute right-2 text-[11px] font-medium text-gray-500 hover:text-yellow-600 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors duration-200 flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-dark-700 px-2 py-1 rounded-md"
+            >
+              ✏️ Edit
+            </button>
           </div>
-          <div className="text-lg md:text-xl font-bold text-gray-800 dark:text-white">{car2.model}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{car2.name}</div>
-          <div className="text-sm font-semibold text-yellow-600 dark:text-yellow-400 mt-1">{car2.price}</div>
+
+          <div className="text-lg md:text-xl font-bold text-gray-800 dark:text-white leading-tight theme-transition">{car2.model}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wider font-semibold theme-transition">{car2Variant}</div>
+          <div className="text-sm font-bold text-yellow-600 dark:text-yellow-400 mt-2 theme-transition">{car2.price}</div>
           {car2.overallScore && (
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full">
-              <span className="text-xs text-gray-600 dark:text-gray-400">★</span>
-              <span className="text-sm font-bold text-yellow-500">{car2.overallScore.toFixed(1)}</span>
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
+              <span className="text-xs text-yellow-600 dark:text-yellow-400">★</span>
+              <span className="text-sm font-bold text-yellow-600 dark:text-yellow-400">{car2.overallScore.toFixed(1)}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="px-4 md:px-6 py-3 bg-gray-50 dark:bg-dark-700/30 border-b border-gray-200 dark:border-dark-700">
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 dark:text-gray-400">🏆</span>
-            <span className="font-semibold text-gray-700 dark:text-gray-300">{car1Name}</span>
-            <span className="font-bold text-green-600 dark:text-green-400">{summary.car1Wins}</span>
-          </div>
-          <span className="text-gray-400">|</span>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 dark:text-gray-400">🏆</span>
-            <span className="font-semibold text-gray-700 dark:text-gray-300">{car2Name}</span>
-            <span className="font-bold text-green-600 dark:text-green-400">{summary.car2Wins}</span>
-          </div>
-          <span className="text-gray-400">|</span>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 dark:text-gray-400">⚖️</span>
-            <span className="font-semibold text-gray-700 dark:text-gray-300">Ties</span>
-            <span className="font-bold text-gray-600 dark:text-gray-300">{summary.ties}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 🔧 FIX: Comparison Rows - NO trophy badges, bolder parameter names, longer bars */}
-      <div className="p-4 md:p-6">
+      {/* Comparison Rows */}
+      <div className="p-4 md:p-6 bg-gray-50/50 dark:bg-dark-900/20 theme-transition">
         <div className="space-y-2">
           {visibleCategories.map((category, index) => {
             const { key, label, icon, data } = category
@@ -223,58 +241,57 @@ const ComparisonResults = ({ comparisonData, onClear }) => {
             return (
               <div 
                 key={key} 
-                className={`border border-gray-200 dark:border-dark-700 rounded-xl overflow-hidden transition-shadow hover:shadow-md ${
-                  isExpanded ? 'shadow-md' : ''
+                className={`bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-xl overflow-hidden transition-all duration-300 theme-transition ${
+                  isExpanded ? 'shadow-md border-yellow-400/50 dark:border-yellow-500/30 ring-1 ring-yellow-400/20' : 'hover:border-gray-300 dark:hover:border-dark-600 hover:shadow-sm'
                 }`}
               >
-                {/* 🔧 FIX: Bold parameter names */}
-                <div 
-                  className={`grid grid-cols-1 md:grid-cols-3 gap-3 p-4 ${
-                    index % 2 === 0 ? 'bg-white dark:bg-dark-800' : 'bg-gray-50/50 dark:bg-dark-700/30'
-                  }`}
-                >
-                  {/* 🔧 FIX: Uppercase, bolder parameter name */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{icon}</span>
-                    <span className="font-bold text-sm text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                <div className="px-6 md:px-8 py-4 md:py-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                  
+                  <div className="flex items-center gap-4 col-span-1">
+                    <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-xl bg-gray-50 dark:bg-dark-700 border border-gray-100 dark:border-dark-600 shadow-sm text-2xl theme-transition">
+                      {icon}
+                    </div>
+                    <span className="font-bold text-sm text-gray-800 dark:text-gray-200 uppercase tracking-wide theme-transition">
                       {label}
                     </span>
                   </div>
 
-                  {/* Car 1 */}
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="flex flex-col items-center justify-center col-span-1">
+                    <span className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center theme-transition">
                       {data.car1.value}
                     </span>
                     {renderRatingBar(data.car1.rating)}
                   </div>
 
-                  {/* Car 2 */}
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="flex flex-col items-center justify-center col-span-1">
+                    <span className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center theme-transition">
                       {data.car2.value}
                     </span>
                     {renderRatingBar(data.car2.rating)}
                   </div>
                 </div>
 
-                {/* 🔧 FIX: Clean expand/collapse - only "▶" */}
                 {hasExplanation && (
                   <button
-                    className={`w-full px-4 py-2 border-t border-gray-200 dark:border-dark-700 hover:bg-gray-50 dark:hover:bg-dark-700/30 transition-colors flex items-center gap-2 ${
-                      index % 2 === 0 ? 'bg-white dark:bg-dark-800' : 'bg-gray-50/50 dark:bg-dark-700/30'
-                    }`}
+                    className="w-full px-6 py-2.5 border-t border-gray-100 dark:border-dark-700 bg-gray-50/50 hover:bg-gray-100/80 dark:bg-dark-800 dark:hover:bg-dark-700/80 transition-colors duration-200 flex items-center justify-center gap-2 group theme-transition"
                     onClick={() => toggleExpand(key)}
                   >
-                    <span className={`text-sm text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
-                      isExpanded ? 'rotate-90' : ''
-                    }`}>
-                      ▶
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200 theme-transition">
+                      {isExpanded }
                     </span>
+                    <svg 
+                      className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300 transition-transform duration-300 ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
                 )}
 
-                {/* Explanation Content */}
                 <AnimatePresence>
                   {isExpanded && (
                     <motion.div
@@ -284,28 +301,29 @@ const ComparisonResults = ({ comparisonData, onClear }) => {
                       transition={{ duration: 0.3, ease: 'easeInOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="p-4 space-y-3 bg-gray-50/80 dark:bg-dark-700/30 border-t border-gray-200 dark:border-dark-700">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Car 1 Explanation */}
+                      <div className="px-6 md:px-8 py-4 md:py-6 bg-yellow-50/30 dark:bg-yellow-900/5 border-t border-yellow-100 dark:border-yellow-900/20 theme-transition">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="hidden md:block"></div>
+
                           {data.car1.explanation && (
-                            <div className="p-3 rounded-lg border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                  {car1Name}
+                            <div className="p-4 rounded-xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 shadow-sm theme-transition">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-bold text-gray-800 dark:text-gray-200 theme-transition">
+                                  {car1Full} ({car1Variant})
                                 </span>
                                 {data.car1.rating !== null && data.car1.rating >= 7 && (
-                                  <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full flex-shrink-0 theme-transition">
                                     ★ Good
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed theme-transition">
                                 {data.car1.explanation.summary}
                               </p>
-                              <ul className="mt-1.5 space-y-0.5">
+                              <ul className="space-y-1.5">
                                 {data.car1.explanation.details?.map((detail, idx) => (
-                                  <li key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1.5">
-                                    <span className="text-green-500">•</span>
+                                  <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2 theme-transition">
+                                    <span className="text-yellow-500 mt-0.5 text-xs">◆</span>
                                     {detail}
                                   </li>
                                 ))}
@@ -313,26 +331,25 @@ const ComparisonResults = ({ comparisonData, onClear }) => {
                             </div>
                           )}
 
-                          {/* Car 2 Explanation */}
                           {data.car2.explanation && (
-                            <div className="p-3 rounded-lg border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                  {car2Name}
+                            <div className="p-4 rounded-xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 shadow-sm theme-transition">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-bold text-gray-800 dark:text-gray-200 theme-transition">
+                                  {car2Full} ({car2Variant})
                                 </span>
                                 {data.car2.rating !== null && data.car2.rating >= 7 && (
-                                  <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full flex-shrink-0 theme-transition">
                                     ★ Good
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed theme-transition">
                                 {data.car2.explanation.summary}
                               </p>
-                              <ul className="mt-1.5 space-y-0.5">
+                              <ul className="space-y-1.5">
                                 {data.car2.explanation.details?.map((detail, idx) => (
-                                  <li key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1.5">
-                                    <span className="text-green-500">•</span>
+                                  <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2 theme-transition">
+                                    <span className="text-yellow-500 mt-0.5 text-xs">◆</span>
                                     {detail}
                                   </li>
                                 ))}
@@ -350,38 +367,11 @@ const ComparisonResults = ({ comparisonData, onClear }) => {
         </div>
       </div>
 
-      {/* Rating Guide */}
-      <div className="px-4 md:px-6 pb-4">
-        <div className="p-3 bg-gray-50 dark:bg-dark-700/50 rounded-lg border border-gray-200 dark:border-dark-700">
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <span className="font-semibold text-gray-600 dark:text-gray-400">Rating Guide:</span>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-600 dark:text-gray-400">8-10: Excellent</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span className="text-gray-600 dark:text-gray-400">5-7.9: Good</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-gray-600 dark:text-gray-400">Below 5: Needs Improvement</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Actions */}
-      <div className="px-4 md:px-6 pb-4 flex flex-wrap gap-3 justify-center">
-        <button 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
-          className="px-6 py-2.5 bg-yellow-500 text-gray-900 font-semibold rounded-lg hover:bg-yellow-600 transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg"
-        >
-          🔄 Refresh
-        </button>
+      <div className="px-4 md:px-6 py-6 bg-white dark:bg-dark-800 border-t border-gray-200 dark:border-dark-700 flex flex-wrap gap-4 justify-center theme-transition">
         <button 
           onClick={onClear} 
-          className="px-6 py-2.5 border border-gray-300 dark:border-dark-600 text-gray-600 dark:text-gray-400 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 transition-all duration-300"
+          className="px-8 py-3 border border-gray-300 dark:border-dark-600 text-gray-600 dark:text-gray-300 font-bold rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 transition-all duration-200"
         >
           New Comparison
         </button>

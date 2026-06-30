@@ -484,6 +484,28 @@ export const api = {
       };
     }
   },
+
+  
+  // ========================================
+  // Send Contact Form
+  // ========================================
+  sendContactForm: async (formData) => {
+    try {
+      const response = await fetch(`${API_URL}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('❌ Contact form error:', error)
+      return { success: false, message: 'Network error. Please try again.' }
+    }
+  },
+
 };
 
 export default api;
