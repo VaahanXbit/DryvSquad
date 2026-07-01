@@ -76,7 +76,7 @@ exports.sendContactForm = async (req, res) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🚗 Vaahan International</h1>
+            <h1>🚗 DryvSquad</h1>
             <p>📬 New Contact Form Submission</p>
           </div>
           <div class="content">
@@ -118,7 +118,7 @@ exports.sendContactForm = async (req, res) => {
               <span class="badge">📬 New Inquiry</span>
             </p>
             <p style="margin-top: 8px;">
-              &copy; ${new Date().getFullYear()} Vaahan International. All rights reserved.
+              &copy; ${new Date().getFullYear()} DryvSquad. All rights reserved.
             </p>
           </div>
         </div>
@@ -152,13 +152,13 @@ exports.sendContactForm = async (req, res) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🚗 Vaahan International</h1>
+            <h1>🚗 DryvSquad</h1>
             <p>✅ We've received your message</p>
           </div>
           <div class="content">
             <p class="greeting">Dear ${fullName},</p>
             <p class="message-text">
-              Thank you for reaching out to <strong>Vaahan International</strong>.
+              Thank you for reaching out to <strong>DryvSquad</strong>.
             </p>
             <p class="message-text">
               We have received your inquiry and our team will get back to you within <strong>24-48 hours</strong>.
@@ -180,7 +180,7 @@ exports.sendContactForm = async (req, res) => {
           </div>
           <div class="footer">
             <p>
-              &copy; ${new Date().getFullYear()} Vaahan International. All rights reserved.
+              &copy; ${new Date().getFullYear()} DryvSquad. All rights reserved.
             </p>
             <p style="font-size: 12px; margin-top: 4px;">
               This is an automated reply, please do not reply directly.
@@ -195,7 +195,7 @@ exports.sendContactForm = async (req, res) => {
         // EMAIL CONFIGURATION - FINAL
         // ========================================
 
-        const senderName = process.env.SENDER_NAME || 'Vaahan International';
+        const senderName = process.env.SENDER_NAME || 'DryvSquad';
         const fromEmail = process.env.EMAIL_FROM || 'taushifraza2015@gmail.com';
         const adminEmail = process.env.ADMIN_EMAIL || 'taushifraza2015@gmail.com';
 
@@ -219,8 +219,8 @@ exports.sendContactForm = async (req, res) => {
         const userMailOptions = {
             from: fromAddress,
             to: email,
-            subject: '✅ We\'ve received your message - Vaahan International',
-            html: userReplyHtml,
+            subject: '✅ We\'ve received your message - DryvSquad',
+            html: userReplyHtml,DryvSquad
         };
 
         // ========================================

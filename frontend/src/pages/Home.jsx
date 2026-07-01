@@ -24,30 +24,15 @@ import { getFeaturedTravelogues } from '../data/traveloguesData'
 const BANNERS = [
   {
     id: 1,
-    title: "Compare Cars with Confidence",
-    subtitle:
-      "Compare specifications, safety, performance, mileage and pricing side-by-side to find the right car for your needs.",
-    image: "/Hero12.png",
-    cta: "Compare Cars",
-    link: "/compare-cars"
+    image: "/Hero1.png"
   },
   {
     id: 2,
-    title: "Engineering-Backed Automotive Insights",
-    subtitle:
-      "Understand ADAS, EVs, engines, safety systems and vehicle technologies through practical, real-world guides.",
-    image: "/Hero22.png",
-    cta: "Explore Technology",
-    link: "/articles"
+    image: "/Hero2.png"
   },
   {
     id: 3,
-    title: "Real Driving Stories for Indian Roads",
-    subtitle:
-      "Explore travelogue, buying experiences and practical advice designed for everyday Indian driving conditions.",
-    image: "/Hero33.png",
-    cta: "Explore Travel Stories",
-    link: "/travelogues"
+    image: "/Hero3.png"
   }
 ];
 
@@ -104,20 +89,6 @@ const TESTIMONIALS = [
 ]
 
 // ========================================
-// Fallback images for travelogues
-// ========================================
-// const TRAVELOGUE_IMAGES = {
-//   'first-highway-lesson': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=400&fit=crop',
-//   'first-long-drive-beginner-tips': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&h=400&fit=crop',
-//   'renting-vs-buying-car-true-cost': 'https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=600&h=400&fit=crop',
-//   'first-car-sedan-vs-suv-vs-hatchback': 'https://images.unsplash.com/photo-1550355291-bbee04a44e7e?w=600&h=400&fit=crop',
-// }
-
-// const getTravelogueImage = (slug) => {
-//   return TRAVELOGUE_IMAGES[slug] || 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=400&fit=crop'
-// }
-
-// ========================================
 // HOME COMPONENT - Functional with Hooks
 // ========================================
 
@@ -148,8 +119,6 @@ const Home = () => {
     fetchTravelogues()
   }, [])
 
-
-
   // ========================================
   // Animation variants
   // ========================================
@@ -164,7 +133,7 @@ const Home = () => {
   }
 
   // ========================================
-  // Hero Section with Banner Slider
+  // Hero Section with Banner Slider - FIXED FULL WIDTH
   // ========================================
   const renderHero = () => {
     const [currentSlide, setCurrentSlide] = useState(0)
@@ -181,20 +150,20 @@ const Home = () => {
     }
 
     return (
-      <section className="relative h-[100vh] min-h-[600px] flex items-center overflow-hidden pt-0 mt-0">
+      <section className="relative h-[80vh] min-h-[600px] w-full flex items-center overflow-hidden pt-0 mt-0 bg-black">
         <div className="absolute inset-0 w-full h-full z-0">
           {BANNERS.map((banner, index) => (
             <div
               key={banner.id}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${index === currentSlide ? 'opacity-100' : 'opacity-0'
+              className={`absolute inset-0 w-full h-full transition-opacity duration-700 flex items-center justify-center ${index === currentSlide ? 'opacity-100' : 'opacity-0'
                 }`}
             >
               <img
                 src={banner.image}
-                alt={banner.title}
+                alt={`Hero Banner ${banner.id}`}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 pointer-events-none"></div>
             </div>
           ))}
         </div>
@@ -218,36 +187,6 @@ const Home = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
-
-        <div className="container-custom relative z-10">
-          <div className="max-w-2xl">
-            {BANNERS.map((banner, index) => (
-              <div
-                key={banner.id}
-                className={`transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'
-                  }`}
-              >
-                <div className={index === currentSlide ? 'block' : 'hidden'}>
-                  <div className="inline-block px-4 py-1.5 bg-yellow-500 rounded-full text-gray-900 text-sm font-semibold mb-6">
-                    🚗 Trusted by 10,000+ Indian Car Buyers
-                  </div>
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 text-white">
-                    {banner.title}
-                  </h1>
-                  <p className="text-xl text-gray-200 mb-6">
-                    {banner.subtitle}
-                  </p>
-                  <Link
-                    to={banner.link}
-                    className="inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-3 px-8 rounded-lg transition-all duration-150 transform hover:scale-105 shadow-lg"
-                  >
-                    {banner.cta} →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
           {BANNERS.map((_, index) => (
@@ -366,9 +305,6 @@ const Home = () => {
   // DYNAMIC TRAVELOGUES SECTION
   // ========================================
   const renderTravelogues = () => {
-    console.log('📊 Travelogues in state:', travelogues)
-    console.log('📊 Loading state:', loading)
-
     if (loading) {
       return (
         <section className={`py-20 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
@@ -383,7 +319,6 @@ const Home = () => {
     }
 
     if (!travelogues || travelogues.length === 0) {
-      console.log('⚠️ No travelogues data available')
       return null
     }
 
@@ -416,9 +351,6 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {travelogues.map((log, idx) => {
-              // Get image based on slug or use fallback
-              // const imageUrl = getTravelogueImage(log.slug)
-
               return (
                 <motion.div
                   key={log._id || idx}

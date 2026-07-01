@@ -4,7 +4,7 @@
 File Name : CommonHeader.jsx
 Author : Tahseen Raza
 Created Date : 2025-01-15
-Description : Optimized header component with AuthModal integration
+Description : Optimized header component with AuthModal integration and dynamic logo
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -80,7 +80,7 @@ const CommonHeader = () => {
   const location = useLocation()
   const { isDark } = useTheme()
 
-  // ✅ NEW: State for hiding header when sticky comparison appears
+  // State for hiding header when sticky comparison appears
   const [hideHeader, setHideHeader] = useState(false)
 
   // User authentication state
@@ -97,9 +97,9 @@ const CommonHeader = () => {
   const dropdownRef = useRef(null)
 
   // Memoized values
-  const brandColor = useMemo(() => isDark ? '#0f172a' : '#CFB32B', [isDark])
+  const brandColor = useMemo(() => isDark ? '#0f172a' : '#ffffff', [isDark])
 
-  // ✅ NEW: Listen for sticky header visibility events
+  // Listen for sticky header visibility events
   useEffect(() => {
     const handleStickyVisibility = (event) => {
       setHideHeader(event.detail.visible)
@@ -109,7 +109,7 @@ const CommonHeader = () => {
     return () => window.removeEventListener('stickyHeaderVisibility', handleStickyVisibility)
   }, [])
 
-  // ✅ NEW: Also check scroll directly as fallback
+  // Also check scroll directly as fallback
   useEffect(() => {
     const checkStickyHeader = () => {
       const stickyHeader = document.getElementById('sticky-comparison-header')
@@ -438,12 +438,13 @@ const CommonHeader = () => {
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            {/* Logo */}
+            {/* Logo - Dynamic with Dark/Light version */}
             <Link to="/" className="flex items-center group flex-shrink-0">
               <img
-                src="/Vaahan_International_Logo1.jpg"
+                src={isDark ? "/DSLogo-Dark1.png" : "/DSLogo.png"}
                 alt="Vaahan International"
-                className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain transition-transform duration-150 group-hover:scale-105"
+                className="h-12 sm:h-14 md:h-16 lg:h-18 w-auto object-contain transition-transform duration-150 group-hover:scale-105"
+                style={{ maxWidth: '200px' }}
               />
             </Link>
 
@@ -551,7 +552,7 @@ const CommonHeader = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMenu}
-              className="lg:hidden focus:outline-none flex-shrink-0 p-1 ml-2"
+              className={`lg:hidden focus:outline-none flex-shrink-0 p-1 ml-2 ${isDark ? 'text-white' : 'text-gray-900'}`}
               aria-label="Toggle Menu"
             >
               <div className="w-5 sm:w-6 h-4 sm:h-5 flex flex-col justify-between">

@@ -1,3 +1,5 @@
+// src/pages/Contact.jsx - Updated with Bangalore Location & Google Map
+
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTheme } from '../context/ThemeContext'
@@ -29,13 +31,11 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Validate
     if (!formData.fullName.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
       setError('Please fill in all required fields')
       return
     }
 
-    // Validate email
     const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
     if (!emailRegex.test(formData.email.trim())) {
       setError('Please enter a valid email address')
@@ -46,7 +46,6 @@ const Contact = () => {
     setError('')
 
     try {
-      // Send contact form to backend
       const result = await api.sendContactForm(formData)
       
       if (result.success) {
@@ -65,10 +64,13 @@ const Contact = () => {
   }
 
   const contactInfo = [
-    { icon: '✉️', title: 'Email', value: 'contact@vaahan-international.com', link: 'mailto:contact@vaahan-international.com' },
-    { icon: '📞', title: 'Phone', value: '+91 98765 43210', link: 'tel:+919876543210' },
-    { icon: '📍', title: 'Location', value: 'New Delhi, India', link: null }
+    { icon: '✉️', title: 'Email', value: 'contact@dryvsquad.com', link: 'mailto:contact@vaahan-international.com' },
+    { icon: '📞', title: 'Phone', value: '+91 82173 16343', link: 'tel:+918217316343' },
+    { icon: '📍', title: 'Location', value: 'Bangalore, Karnataka, India', link: null }
   ]
+
+  // Bangalore Coordinates
+  const mapSrc = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d248849.8996332334!2d77.46617289999999!3d12.9544616!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sBengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
 
   return (
     <>
@@ -270,11 +272,53 @@ const Contact = () => {
                 </div>
               </div>
 
-              {/* Map Placeholder */}
-              <div className={`mt-6 rounded-xl h-64 flex items-center justify-center transition-colors duration-300 border ${
-                isDark ? 'bg-dark-800 border-dark-700' : 'bg-gray-100 border-gray-200'
+              {/* Google Map - Bangalore */}
+              <div className={`mt-6 rounded-xl overflow-hidden transition-colors duration-300 border ${
+                isDark ? 'border-dark-700' : 'border-gray-200'
               }`}>
-                <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>📍 Location Map - New Delhi, India</span>
+                <div className="relative w-full h-64">
+                  <iframe
+                    src={mapSrc}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Vaahan International Location - Bangalore"
+                    className="w-full h-full"
+                  ></iframe>
+                  {/* Overlay with location name */}
+                  <div className={`absolute bottom-4 left-4 right-4 px-4 py-2 rounded-lg backdrop-blur-sm ${
+                    isDark ? 'bg-black/70 text-white' : 'bg-white/90 text-gray-900'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📍</span>
+                      <div>
+                        <p className="font-semibold text-sm">DryvSquad</p>
+                        <p className="text-xs opacity-75">Bangalore, Karnataka, India</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map Link */}
+              <div className="mt-3 text-center">
+                <a 
+                  href="https://www.google.com/maps/place/Bengaluru,+Karnataka/@12.9544616,77.4661729,11z/data=!3m1!4b1!4m6!3m5!1s0x3bae1670c9b44e6d:0xf8dfc3e8517e4fe0!8m2!3d12.9715987!4d77.5945627!16zL20vMDljY3c?entry=ttu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 text-sm font-semibold transition-colors ${
+                    isDark ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-700'
+                  }`}
+                >
+                  <span>🗺️</span>
+                  Open in Google Maps
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
               </div>
             </motion.div>
           </div>
