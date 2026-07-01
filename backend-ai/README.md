@@ -1,3 +1,12 @@
+---
+title: DryvSquad AI Backend
+emoji: 🚗
+colorFrom: yellow
+colorTo: blue
+sdk: docker
+app_port: 7860
+---
+
 # AI Backend
 
 ## Setup & Configuration
