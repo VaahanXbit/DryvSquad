@@ -3,7 +3,6 @@ from app.rag.embedder import embed_query
 
 import numpy as np
 import os
-from sentence_transformers import CrossEncoder
 
 # build text index for keyword search
 try:
@@ -12,13 +11,15 @@ except Exception as e:
     print(f"[WARNING] Could not create text index: {e}")
 
 # Load CrossEncoder re-ranker model once at module level
-try:
-    print("[INFO] Loading CrossEncoder re-ranker model...")
-    reranker_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-    print("[SUCCESS] CrossEncoder re-ranker model loaded successfully.")
-except Exception as e:
-    print(f"[WARNING] Could not load CrossEncoder model: {e}. Re-ranking fallback will be used.")
-    reranker_model = None
+reranker_model = None
+if os.getenv("DISABLE_RERANKER", "false").lower() != "true":
+    try:
+        print("[INFO] Loading CrossEncoder re-ranker model...")
+        from sentence_transformers import CrossEncoder
+        reranker_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+        print("[SUCCESS] CrossEncoder re-ranker model loaded successfully.")
+    except Exception as e:
+        print(f"[WARNING] Could not load CrossEncoder model: {e}. Re-ranking fallback will be used.")
 
 def cosine_similarity(a, b):
     return np.dot(a, b) / (
