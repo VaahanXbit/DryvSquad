@@ -31,7 +31,7 @@ const BANNERS = [
   {
     id: 2,
     image: "/Hero2.png",
-    link: "/travelogue",
+    link: "/travelogues",
     buttonText: "Read Travel Stories →"
   },
   {
