@@ -49,7 +49,7 @@ const CommonFooter = () => {
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center space-x-2 mb-4 group">
               <img
-                src="/Vaahan_International_Logo1.jpg"
+                src="/DSLogo.png"
                 alt="Vaahan International"
                 className="h-14 md:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
