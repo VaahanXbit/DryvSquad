@@ -32,11 +32,20 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:5000',
-  'https://vaahan-international-obbc.vercel.app',
-  'https://vaahan-international-jnrgeygvv-tahseen-razas-projects.vercel.app'
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:5000",
+
+  // Production
+  "https://www.dryvsquad.com",
+  "https://dryvsquad.com",
+
+  // Optional: Your backend frontend URLs
+  "https://vaahan-international-obbc.vercel.app",
+  "https://vaahan-international-jnrgeygvv-tahseen-razas-projects.vercel.app",
+
+  // Environment variable
+  process.env.FRONTEND_URL,
 ];
 
 app.use(cors({
