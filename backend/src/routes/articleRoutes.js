@@ -19,6 +19,7 @@ const {
   searchArticles,
   getFeaturedArticles,
   getRecentArticles,
+  createArticle,
 } = require('../controllers/articleController');
 
 // ========================================
@@ -27,6 +28,9 @@ const {
 
 // Get all published articles
 router.get('/', getAllArticles);
+
+// Create a new article (unprotected for Phase 1)
+router.post('/', createArticle);
 
 // Get article by slug
 router.get('/:slug', getArticleBySlug);

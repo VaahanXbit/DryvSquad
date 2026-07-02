@@ -431,6 +431,31 @@ export const api = {
     }
   },
 
+  // Create a new article
+  createArticle: async (articleData, token = null) => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${API_URL}/articles`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(articleData),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('❌ Create article error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
   // Get article by slug
   getArticleBySlug: async (slug) => {
     try {

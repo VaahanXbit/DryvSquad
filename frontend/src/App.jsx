@@ -27,6 +27,7 @@ import Profile from './pages/Profile'
 import Travelogues from './pages/Travelogues';
 import TravelogueDetail from './pages/TravelogueDetail';
 import AiModePage from './pages/AiModePage'
+import AdminPage from './pages/AdminPage'
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -62,6 +63,7 @@ function App() {
             <Route path="/travelogues" element={<Travelogues />} />
             <Route path="/travelogue/:slug" element={<TravelogueDetail />} />
             <Route path="/ai-mode" element={<AiModePage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </main>
         {!isAiModePage && <CommonFooter />}

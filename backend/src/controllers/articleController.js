@@ -191,3 +191,98 @@ exports.getRecentArticles = async (req, res) => {
     });
   }
 };
+
+// ========================================
+// POST /api/articles - Create a new article
+// ========================================
+exports.createArticle = async (req, res) => {
+  try {
+    const {
+      title,
+      category,
+      subCategory,
+      excerpt,
+      content,
+      image,
+      author,
+      date,
+      readTime,
+      tags,
+      status,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !category || !excerpt || !content || !image || !author || !date || !readTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields (title, category, excerpt, content, image, author, date, readTime)',
+      });
+    }
+
+    // Auto-generate slug from title
+    const slug = title
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+
+    // Check if slug already exists to prevent duplicate key error
+    const existingArticle = await Article.findOne({ slug });
+    if (existingArticle) {
+      return res.status(400).json({
+        success: false,
+        message: `An article with this title/slug already exists: "${slug}"`,
+      });
+    }
+
+    // Clean comma separated tags or keywords if they come in as string
+    const processedTags = Array.isArray(tags) 
+      ? tags 
+      : (tags ? tags.split(',').map(t => t.trim()) : []);
+      
+    const processedKeywords = Array.isArray(seoKeywords)
+      ? seoKeywords
+      : (seoKeywords ? seoKeywords.split(',').map(k => k.trim()) : []);
+
+    const newArticle = new Article({
+      title,
+      slug,
+      category,
+      subCategory: subCategory || '',
+      excerpt,
+      content,
+      image,
+      author,
+      date,
+      readTime,
+      tags: processedTags,
+      status: status || 'published',
+      seoTitle: seoTitle || title,
+      seoDescription: seoDescription || excerpt,
+      seoKeywords: processedKeywords,
+      publishedAt: new Date(),
+    });
+
+    await newArticle.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Article created successfully!',
+      article: newArticle,
+    });
+  } catch (error) {
+    console.error('❌ Create article error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create article',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
