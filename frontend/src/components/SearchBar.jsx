@@ -108,7 +108,7 @@ const SearchBar = () => {
             <button
               type="button"
               onClick={handleAiModeToggle}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-gray-100 text-gray-600 hover:bg-yellow-100 hover:text-yellow-700"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-slate-800 hover:text-yellow-600 animate-rgb-border"
             >
               <span>✨</span>
               <span>AI Mode</span>

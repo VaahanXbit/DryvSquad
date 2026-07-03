@@ -17,7 +17,8 @@ const { sendSMSOTP } = require('../services/smsService'); // FIXED: Use sendSMSO
 const jwt = require('jsonwebtoken');
 
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  const jwtSecret = process.env.JWT_SECRET || 'vaahan_jwt_secret_fallback_key';
+  return jwt.sign({ userId }, jwtSecret, {
     expiresIn: process.env.JWT_EXPIRE || '7d',
   });
 };
@@ -648,6 +649,51 @@ exports.resendOTP = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Resend OTP error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.',
+    });
+  }
+};
+
+// ========================================
+// POST /api/auth/admin-login - Admin authentication
+// ========================================
+exports.adminLogin = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password is required',
+      });
+    }
+
+    const adminPassword = process.env.ADMIN_PASSWORD || 'DryvSquadAdmin2026';
+
+    if (password !== adminPassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin password',
+      });
+    }
+
+    // Sign JWT token containing role: 'admin'
+    const jwtSecret = process.env.JWT_SECRET || 'vaahan_jwt_secret_fallback_key';
+    const token = jwt.sign(
+      { userId: 'admin_user', role: 'admin' },
+      jwtSecret,
+      { expiresIn: '1d' }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Admin authentication successful',
+      token,
+    });
+  } catch (error) {
+    console.error('❌ Admin login error:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error. Please try again.',

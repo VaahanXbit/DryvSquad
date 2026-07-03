@@ -618,3 +618,34 @@ footer .text-white { color: #ffffff !important; }
 .animate-slide-in {
   animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ========================================
+   RGB Border Animation for AI Elements
+   ======================================== */
+@keyframes rgb-border {
+  0% { border-color: #ff007f; box-shadow: 0 0 8px rgba(255, 0, 127, 0.5); }
+  15% { border-color: #7f00ff; box-shadow: 0 0 8px rgba(127, 0, 255, 0.5); }
+  30% { border-color: #00f0ff; box-shadow: 0 0 8px rgba(0, 240, 255, 0.5); }
+  45% { border-color: #00ff7f; box-shadow: 0 0 8px rgba(0, 255, 127, 0.5); }
+  60% { border-color: #ffea00; box-shadow: 0 0 8px rgba(255, 234, 0, 0.5); }
+  75% { border-color: #ff6a00; box-shadow: 0 0 8px rgba(255, 106, 0, 0.5); }
+  90% { border-color: #ff007f; box-shadow: 0 0 8px rgba(255, 0, 127, 0.5); }
+  100% { border-color: #ff007f; box-shadow: 0 0 8px rgba(255, 0, 127, 0.5); }
+}
+
+.animate-rgb-border {
+  border-width: 2px !important;
+  border-style: solid !important;
+  animation: rgb-border 8s linear infinite !important;
+}
+
+/* Floating AI Button Style */
+.floating-ai-btn {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.floating-ai-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+}
