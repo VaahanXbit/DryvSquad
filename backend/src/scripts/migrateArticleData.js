@@ -1,20 +1,5 @@
 // backend/src/scripts/migrateArticleData.js
 /*
-================================================================================
-File Name : migrateArticleData.js
-Author : Tahseen Raza
-Created Date : 2026-06-22
-Description : Migrate article data from JSON to MongoDB
-Company : Vaahan International
-Copyright : (c) 2026 Vaahan International. All rights reserved.
-================================================================================
-*/
-
-const mongoose = require('mongoose');
-const path = require('path');
-const fs = require('fs');
-require('dotenv').config();
-
 const Article = require('../models/Article');
 
 // Connect to MongoDB

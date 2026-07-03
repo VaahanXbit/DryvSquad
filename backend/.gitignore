@@ -91,3 +91,4 @@ docker-compose.override.yml
 # ==========================
 *.tgz
 *.gz
+.env

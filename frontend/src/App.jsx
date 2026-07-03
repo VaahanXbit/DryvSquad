@@ -11,7 +11,7 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 */
 
 import { useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import Home from './pages/Home'
 import About from './pages/About'
@@ -26,6 +26,8 @@ import FeatureDetail from './pages/FeatureDetail'
 import Profile from './pages/Profile' 
 import Travelogues from './pages/Travelogues';
 import TravelogueDetail from './pages/TravelogueDetail';
+import AiModePage from './pages/AiModePage'
+import AdminPage from './pages/AdminPage'
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -39,6 +41,10 @@ const ScrollToTop = () => {
 }
 
 function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isAiModePage = location.pathname === '/ai-mode'
+
   return (
     <ThemeProvider>
       <div className="flex flex-col min-h-screen bg-white dark:bg-dark-950 transition-colors duration-100">
@@ -57,9 +63,22 @@ function App() {
             <Route path="/profile" element={<Profile />} /> 
             <Route path="/travelogues" element={<Travelogues />} />
             <Route path="/travelogue/:slug" element={<TravelogueDetail />} />
+            <Route path="/ai-mode" element={<AiModePage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </main>
-        <CommonFooter />
+        {!isAiModePage && <CommonFooter />}
+
+        {/* Floating AI Mode Button */}
+        {!isAiModePage && (
+          <button
+            onClick={() => navigate('/ai-mode')}
+            className="fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 px-5 py-3.5 rounded-full text-sm font-bold text-white shadow-xl hover:shadow-2xl floating-ai-btn animate-rgb-border"
+          >
+            <span className="text-base">✨</span>
+            <span>Ask AI Advisor</span>
+          </button>
+        )}
       </div>
     </ThemeProvider>
   )

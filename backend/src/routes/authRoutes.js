@@ -11,6 +11,7 @@ const {
   resendOTP,
   verifyPhone,
   confirmPhoneVerification,
+  adminLogin,
 } = require('../controllers/authController');
 
 // Auth routes
@@ -18,6 +19,7 @@ router.post('/check-user', checkUserExists);
 router.post('/send-otp', sendOTP);
 router.post('/verify-otp', verifyOTP);
 router.post('/resend-otp', resendOTP);
+router.post('/admin-login', adminLogin);
 
 // Phone verification routes
 router.post('/verify-phone', protect, verifyPhone);

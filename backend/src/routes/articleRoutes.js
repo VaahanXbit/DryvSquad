@@ -19,7 +19,10 @@ const {
   searchArticles,
   getFeaturedArticles,
   getRecentArticles,
+  createArticle,
 } = require('../controllers/articleController');
+
+const { protect, admin } = require('../middleware/auth');
 
 // ========================================
 // Article Routes
@@ -27,6 +30,9 @@ const {
 
 // Get all published articles
 router.get('/', getAllArticles);
+
+// Create a new article (protected with Admin role validation)
+router.post('/', protect, admin, createArticle);
 
 // Get article by slug
 router.get('/:slug', getArticleBySlug);
