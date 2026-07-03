@@ -22,56 +22,79 @@ const mongoose = require('mongoose');
 // Get full car hierarchy (Brand → Model → Variant)
 exports.getFullCarHierarchy = async (req, res) => {
   try {
-    const brands = await Brand.find().sort({ name: 1 });
-    const result = [];
-    
-    for (const brand of brands) {
-      const models = await Model.find({ brandId: brand._id }).sort({ name: 1 });
-      const brandWithModels = {
+    // ✅ OPTIMIZED: 3 batched queries run in parallel instead of the
+    // previous "1 + one-per-brand + one-per-model" sequential pattern
+    // (which was 50-100+ round trips on a real dataset). Response shape,
+    // field names, ordering, and all business logic are unchanged.
+    const [brands, models, variants] = await Promise.all([
+      Brand.find().sort({ name: 1 }).lean(),
+      Model.find().sort({ name: 1 }).lean(),
+      Variant.find().sort({ name: 1 }).lean(),
+    ]);
+
+    // Group models by brandId, and variants by modelId, in memory (O(n)).
+    // Because `models` and `variants` were fetched already sorted by name,
+    // the grouped arrays preserve the same per-group order the old
+    // per-brand / per-model queries produced.
+    const modelsByBrand = new Map();
+    for (const model of models) {
+      const key = String(model.brandId);
+      if (!modelsByBrand.has(key)) modelsByBrand.set(key, []);
+      modelsByBrand.get(key).push(model);
+    }
+
+    const variantsByModel = new Map();
+    for (const variant of variants) {
+      const key = String(variant.modelId);
+      if (!variantsByModel.has(key)) variantsByModel.set(key, []);
+      variantsByModel.get(key).push(variant);
+    }
+
+    const result = brands.map((brand) => {
+      const brandModels = modelsByBrand.get(String(brand._id)) || [];
+
+      return {
         brand: brand.name,
         brandSlug: brand.slug,
         brandIcon: brand.icon,
         brandDescription: brand.description,
-        models: []
+        models: brandModels.map((model) => {
+          const modelVariants = variantsByModel.get(String(model._id)) || [];
+
+          return {
+            name: model.name,
+            slug: model.slug,
+            image: model.image,
+            bodyType: model.bodyType,
+            seatingCapacity: model.seatingCapacity,
+            description: model.description,
+            variants: modelVariants.map((v) => ({
+              _id: v._id.toString(),
+              name: v.name,
+              price: v.price,
+              exShowroomPrice: v.exShowroomPrice,
+              onRoadPrice: v.onRoadPrice,
+              engine: v.engine,
+              displacement: v.displacement,
+              fuelType: v.fuelType,
+              transmission: v.transmission,
+              power: v.power,
+              torque: v.torque,
+              mileage: v.mileage,
+              torqueNumeric: v.torqueNumeric,
+              powerNumeric: v.powerNumeric,
+              mileageNumeric: v.mileageNumeric,
+              overallScore: v.overallScore,
+              // ✅ SEND SCORES AND FACTOR SCORES
+              scores: v.scores || null,
+              factorScores: v.factorScores || null,
+              specifications: v.specifications || {},
+            })),
+          };
+        }),
       };
-      
-      for (const model of models) {
-        const variants = await Variant.find({ modelId: model._id }).sort({ name: 1 });
-        brandWithModels.models.push({
-          name: model.name,
-          slug: model.slug,
-          image: model.image,
-          bodyType: model.bodyType,
-          seatingCapacity: model.seatingCapacity,
-          description: model.description,
-          variants: variants.map(v => ({
-            _id: v._id.toString(),
-            name: v.name,
-            price: v.price,
-            exShowroomPrice: v.exShowroomPrice,
-            onRoadPrice: v.onRoadPrice,
-            engine: v.engine,
-            displacement: v.displacement,
-            fuelType: v.fuelType,
-            transmission: v.transmission,
-            power: v.power,
-            torque: v.torque,
-            mileage: v.mileage,
-            torqueNumeric: v.torqueNumeric,
-            powerNumeric: v.powerNumeric,
-            mileageNumeric: v.mileageNumeric,
-            overallScore: v.overallScore,
-            // ✅ SEND SCORES AND FACTOR SCORES
-            scores: v.scores || null,
-            factorScores: v.factorScores || null,
-            specifications: v.specifications || {},
-          }))
-        });
-      }
-      
-      result.push(brandWithModels);
-    }
-    
+    });
+
     res.status(200).json({
       success: true,
       data: result,

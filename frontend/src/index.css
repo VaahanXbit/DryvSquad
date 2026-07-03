@@ -9,6 +9,10 @@
    CSS Variables for Theme Support
    ======================================== */
 :root {
+  /* Default/fallback fixed-header height, overwritten live by CommonHeader
+     via ResizeObserver so it always matches the real rendered nav height
+     (used by the Home mobile hero to clear the fixed nav). */
+  --header-height: 72px;
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;

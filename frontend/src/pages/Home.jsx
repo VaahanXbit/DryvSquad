@@ -4,7 +4,7 @@
 File Name : Home.jsx
 Author : Tahseen Raza
 Created Date : 2026-06-10
-Description : Home page component with banner slider and dynamic travelogues
+Description : Home page component with banner slider and combined travelogues & articles
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -151,7 +151,7 @@ const Home = () => {
   }
 
 // ========================================
-// Hero Section with Banner Slider - FINAL FIX: No empty space, Top text visible
+// Hero Section with Banner Slider
 // ========================================
 const renderHero = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -168,9 +168,10 @@ const renderHero = () => {
   }
 
   return (
-    <section className="relative w-full overflow-hidden bg-transparent">
-      {/* Removed aspect ratios. On mobile, it fills full width naturally */}
-      <div className="w-full relative aspect-[4/5] md:aspect-[1672/941]">
+    <section
+      className="relative w-full overflow-hidden bg-transparent pt-[var(--header-height,72px)] lg:pt-0"
+    >
+      <div className="w-full relative aspect-[4/5] lg:aspect-[1672/941]">
         
         {BANNERS.map((banner, index) => (
           <div
@@ -180,24 +181,16 @@ const renderHero = () => {
             }`}
           >
             <picture>
-              {/* Swap images based on device width */}
-              <source media="(max-width: 767px)" srcSet={banner.mobileImage} />
+              <source media="(max-width: 1023px)" srcSet={banner.mobileImage} />
               <img
                 src={banner.image}
                 alt={banner.title}
-                /* 
-                   FIX:
-                   - desktop: object-contain (shows whole image perfectly)
-                   - mobile: mobile-hero-fix (zooms in and adjusts downward to show the text)
-                */
-                className="w-full h-full object-contain md:object-contain mobile-hero-fix block"
+                className="w-full h-full object-contain block"
               />
             </picture>
 
-            {/* Small legibility gradient - Kept bottom-left only */}
             <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-black/55 via-black/10 to-transparent pointer-events-none"></div>
 
-            {/* CTA button */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: index === currentSlide ? 1 : 0, y: index === currentSlide ? 0 : 12 }}
@@ -219,7 +212,6 @@ const renderHero = () => {
           </div>
         ))}
 
-        {/* Navigation Arrows (Left & Right) */}
         <button
           onClick={() => goToSlide((currentSlide - 1 + BANNERS.length) % BANNERS.length)}
           className="absolute left-1.5 xs:left-2 sm:left-4 md:left-6 top-1/2 transform -translate-y-1/2 z-20 w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/30 transition-colors duration-150 flex items-center justify-center text-white border border-white/20"
@@ -241,15 +233,15 @@ const renderHero = () => {
         </button>
       </div>
 
-          <div className="hidden md:flex justify-center items-center gap-2 md:absolute md:bottom-5 md:left-0 md:right-0 md:mt-0 z-20">
+      <div className="flex justify-center items-center gap-1.5 xs:gap-2 absolute bottom-2 xs:bottom-3 sm:bottom-4 md:bottom-5 left-0 right-0 z-20">
         {BANNERS.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
             className={`rounded-full transition-all duration-300 ${
               index === currentSlide 
-                ? 'bg-yellow-500 w-5 h-2' 
-                : 'bg-white/60 w-1.5 h-2'
+                ? 'bg-yellow-500 w-4 h-1.5 xs:w-5 xs:h-2' 
+                : 'bg-white/60 w-1.5 h-1.5 xs:h-2'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -258,6 +250,7 @@ const renderHero = () => {
     </section>
   )
 }
+
   // ========================================
   // Search Section
   // ========================================
@@ -273,9 +266,9 @@ const renderHero = () => {
                 transition={{ duration: 0.5 }}
                 viewport={{ once: true }}
               >
-                <span className={`font-semibold text-sm tracking-wider uppercase ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                <h2 className={`font-bold text-2xl tracking-wider uppercase ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`}>
                   Find Your Answer
-                </span>
+                </h2>
                 <h2 className={`text-2xl md:text-3xl font-bold mt-2 mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   Search Our Automotive Library
                 </h2>
@@ -354,114 +347,207 @@ const renderHero = () => {
   }
 
   // ========================================
-  // DYNAMIC TRAVELOGUES SECTION
+  // COMBINED TRAVELOGUES & ARTICLES SECTION
+  // Two columns side by side with identical card styling
+  // Enhanced 3D shadow effect for light theme
   // ========================================
-  const renderTravelogues = () => {
-    if (loading) {
-      return (
-        <section className={`py-20 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
-          <div className="container-custom text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-            <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Loading travel stories...
-            </p>
-          </div>
-        </section>
-      )
-    }
+  const renderCombinedContent = () => {
+    const isTraveloguesLoading = loading;
+    const hasTravelogues = travelogues && travelogues.length > 0;
+    const hasArticles = featuredArticles && featuredArticles.length > 0;
 
-    if (!travelogues || travelogues.length === 0) {
-      return null
-    }
+    // Card shadow classes based on theme
+    const cardShadowClass = isDark 
+      ? 'shadow-lg hover:shadow-2xl' 
+      : 'shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_60px_rgb(0,0,0,0.18)]';
+
+    const cardBgClass = isDark ? 'bg-dark-800' : 'bg-white';
 
     return (
-      <section className={`py-20 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
+      <section className={`py-12 md:py-16 lg:py-20 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
         <div className="container-custom">
+          {/* Section Header */}
           <motion.div
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-8 md:mb-12"
           >
-            <span className="text-yellow-500 font-bold text-xl tracking-wider uppercase">
-              Travelogue
+            <span className="text-yellow-500 font-bold text-3xl tracking-wider uppercase">
+              Explore
             </span>
-
             <h2
-              className={`text-3xl md:text-4xl lg:text-5xl font-bold mt-3 ${isDark ? "text-white" : "text-gray-900"}`}
+              className={`text-2xl md:text-3xl lg:text-4xl font-bold mt-2 md:mt-3 ${isDark ? "text-white" : "text-gray-900"}`}
             >
-              Real Journeys. Real Driving Experiences.
+              Most Popular Articles &amp; Story
             </h2>
-
             <p
-              className={`text-lg mt-4 max-w-3xl mx-auto ${isDark ? "text-gray-400" : "text-gray-600"}`}
+              className={`text-sm md:text-base lg:text-lg mt-2 md:mt-4 max-w-3xl mx-auto ${isDark ? "text-gray-400" : "text-gray-600"}`}
             >
-              Explore real road trips, driving experiences, destination guides, and practical travel stories designed for Indian roads and everyday drivers.
+              Real driving experiences and expert automotive insights — all in one place.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {travelogues.map((log, idx) => {
-              return (
-                <motion.div
-                  key={log._id || idx}
-                  initial={{ opacity: 0, x: idx % 2 === 0 ? -50 : 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className={`group rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 ${isDark ? 'bg-dark-800' : 'bg-white'}`}
+          {/* Two Column Grid - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            
+            {/* LEFT COLUMN - TRAVELOGUES */}
+            <div>
+              <div className="mb-4 md:mb-6">
+                <h2 className="text-yellow-500 font-bold text-3xl tracking-wider uppercase">
+                  Travelogue
+                </h2>
+                <h5 className={`text-xl md:text-xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Real Journeys. Real Driving Experiences.
+                </h5>
+                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Explore real road trips, driving experiences, destination guides, and practical travel stories designed for Indian roads and everyday drivers.
+                </p>
+                <Link 
+                  to="/travelogues" 
+                  className={`inline-block mt-2 text-sm font-medium hover:text-yellow-500 transition-colors duration-150 ${isDark ? 'text-gray-400 hover:text-yellow-400' : 'text-gray-500 hover:text-yellow-600'}`}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2">
-                    <div className="h-64 md:h-full overflow-hidden">
-                      <img
-                        src={log.image || '/images/travelogue/default.png'}
-                        alt={log.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          e.target.src = '/images/travelogue/default.png';
-                        }}
-                      />
-                    </div>
-                    <div className="p-6 md:p-8">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-0.5 bg-yellow-500 text-gray-900 text-xs font-semibold rounded-full">
-                          {log.category}
-                        </span>
-                        {log.readTime && (
-                          <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            {log.readTime}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className={`text-2xl font-bold mb-3 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {log.title}
-                      </h3>
-                      <p className={`mb-4 leading-relaxed line-clamp-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {log.excerpt}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-5">
-                        {log.tags && log.tags.slice(0, 3).map((tag, i) => (
-                          <span
-                            key={i}
-                            className={`text-xs px-3 py-1 rounded-full ${isDark ? 'bg-dark-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                      <Link
-                        to={`/travelogue/${log.slug}`}
-                        className="inline-flex items-center text-yellow-500 font-semibold hover:text-yellow-600 transition-colors duration-150"
-                      >
-                        Read More →
+                  View All Travelogues →
+                </Link>
+              </div>
+
+              {isTraveloguesLoading ? (
+                <div className="flex justify-center items-center h-96">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
+                </div>
+              ) : !hasTravelogues ? (
+                <div className={`rounded-xl p-8 text-center ${cardBgClass} ${cardShadowClass}`}>
+                  <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No travelogues available</p>
+                </div>
+              ) : (
+                <div className="space-y-4 md:space-y-5">
+                  {travelogues.slice(0, 4).map((log, idx) => (
+                    <motion.div
+                      key={log._id || idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.08 }}
+                      whileHover={{ y: -4, scale: 1.01 }}
+                      className={`group rounded-xl overflow-hidden ${cardShadowClass} transition-all duration-300 h-[140px] md:h-[160px] ${cardBgClass} ${!isDark && 'border border-gray-100'}`}
+                    >
+                      <Link to={`/travelogue/${log.slug}`} className="flex h-full">
+                        <div className="w-[140px] md:w-[160px] h-full flex-shrink-0 overflow-hidden">
+                          <img
+                            src={log.image || '/images/travelogue/default.png'}
+                            alt={log.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => {
+                              e.target.src = '/images/travelogue/default.png';
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 p-3 md:p-4 flex flex-col justify-between min-w-0">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="px-2 py-0.5 bg-yellow-500 text-gray-900 text-[10px] font-semibold rounded-full whitespace-nowrap">
+                                {log.category || 'Travel'}
+                              </span>
+                              {log.readTime && (
+                                <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                  {log.readTime}
+                                </span>
+                              )}
+                            </div>
+                            <h4 className={`font-bold text-sm md:text-base leading-tight line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {log.title}
+                            </h4>
+                            <p className={`text-xs md:text-sm mt-1 line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {log.excerpt}
+                            </p>
+                          </div>
+                          <div className="flex items-center text-yellow-500 font-semibold text-xs md:text-sm hover:text-yellow-600 transition-colors duration-150 mt-1">
+                            Read More →
+                          </div>
+                        </div>
                       </Link>
-                    </div>
-                  </div>
-                </motion.div>
-              )
-            })}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT COLUMN - ARTICLES */}
+            <div>
+              <div className="mb-4 md:mb-6">
+                <h2 className="text-yellow-500 font-bold text-3xl tracking-wider uppercase">
+                  Automotive Insights Hub
+                </h2>
+                <h5 className={`text-2xl md:text-xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Featured Technology Guides
+                </h5>
+                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Learn modern automotive technologies, safety systems and engineering concepts through practical, easy-to-understand articles.
+                </p>
+                <Link 
+                  to="/articles" 
+                  className={`inline-block mt-2 text-sm font-medium hover:text-yellow-500 transition-colors duration-150 ${isDark ? 'text-gray-400 hover:text-yellow-400' : 'text-gray-500 hover:text-yellow-600'}`}
+                >
+                  View All Articles →
+                </Link>
+              </div>
+
+              {loading ? (
+                <div className="flex justify-center items-center h-96">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
+                </div>
+              ) : !hasArticles ? (
+                <div className={`rounded-xl p-8 text-center ${cardBgClass} ${cardShadowClass}`}>
+                  <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No articles available</p>
+                </div>
+              ) : (
+                <div className="space-y-4 md:space-y-5">
+                  {featuredArticles.slice(0, 4).map((article, idx) => (
+                    <motion.article
+                      key={article._id || idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.08 }}
+                      whileHover={{ y: -4, scale: 1.01 }}
+                      className={`group rounded-xl overflow-hidden ${cardShadowClass} transition-all duration-300 h-[140px] md:h-[160px] ${cardBgClass} ${!isDark && 'border border-gray-100'}`}
+                    >
+                      <Link to={`/article/${article.slug}`} className="flex h-full">
+                        <div className="w-[140px] md:w-[160px] h-full flex-shrink-0 overflow-hidden">
+                          <img 
+                            src={article.image || '/images/article/default.png'} 
+                            alt={article.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                        </div>
+                        <div className="flex-1 p-3 md:p-4 flex flex-col justify-between min-w-0">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="px-2 py-0.5 bg-yellow-500 text-gray-900 text-[10px] font-semibold rounded-full whitespace-nowrap">
+                                {article.category}
+                              </span>
+                              <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {article.readTime}
+                              </span>
+                            </div>
+                            <h4 className={`font-bold text-sm md:text-base leading-tight line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {article.title}
+                            </h4>
+                            <p className={`text-xs md:text-sm mt-1 line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {article.excerpt}
+                            </p>
+                          </div>
+                          <div className="flex items-center text-yellow-500 font-semibold text-xs md:text-sm hover:text-yellow-600 transition-colors duration-150 mt-1">
+                            Read Article →
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.article>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -510,69 +596,10 @@ const renderHero = () => {
         {renderStatsCards()}
       </section>
 
-      {renderTravelogues()}
+      {/* COMBINED SECTION - Travelogues & Articles side by side */}
+      {renderCombinedContent()}
 
-      <section className={`py-20 transition-colors duration-150 ${isDark ? 'bg-dark-800' : 'bg-white'}`}>
-        <div className="container-custom">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-12">
-            <span className="text-yellow-500 font-semibold text-sm tracking-wider uppercase">
-              Automotive Knowledge Hub
-            </span>
-
-            <h2 className={`text-3xl md:text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Featured Technology Guides
-            </h2>
-
-            <p className={`text-lg mt-4 max-w-3xl mx-auto ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Learn modern automotive technologies, safety systems and engineering concepts through practical, easy-to-understand articles.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredArticles && featuredArticles.length > 0 ? (
-              featuredArticles.map((article, idx) => (
-                <motion.article
-                  key={idx}
-                  variants={scaleUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.08 }}
-                  whileHover={{ y: -8 }}
-                  className={`group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 ${isDark ? 'bg-dark-800' : 'bg-white'}`}
-                >
-                  <Link to={`/article/${article.slug}`}>
-                    <div className="relative h-52 overflow-hidden">
-                      <img src={article.image} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute top-4 left-4">
-                        <span className="px-3 py-1 bg-yellow-500 text-gray-900 text-xs font-semibold rounded-full">{article.category}</span>
-                      </div>
-                    </div>
-                    <div className="p-5">
-                      <div className={`flex items-center gap-3 text-xs mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                        <span>{article.date}</span>
-                        <span>•</span>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <h3 className={`text-lg font-bold mb-2 line-clamp-2 group-hover:text-yellow-500 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{article.title}</h3>
-                      <p className={`text-sm mb-4 line-clamp-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{article.excerpt}</p>
-                      <div className="inline-flex items-center text-yellow-500 font-semibold text-sm hover:text-yellow-600 transition-colors duration-150">
-                        Read Article →
-                      </div>
-                    </div>
-                  </Link>
-                </motion.article>
-              ))
-            ) : (
-              // Loading placeholders while fetching
-              [...Array(4)].map((_, idx) => (
-                <div key={idx} className={`animate-pulse rounded-xl h-96 ${isDark ? 'bg-slate-800' : 'bg-gray-200'}`} />
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
+      {/* Testimonials Section */}
       <section className={`py-20 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
         <div className="container-custom">
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center max-w-4xl mx-auto">

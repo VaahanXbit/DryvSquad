@@ -473,7 +473,7 @@ const CommonHeader = () => {
             {/* Logo - Dynamic with Dark/Light version */}
             <Link to="/" className="flex items-center group flex-shrink-0">
               <img
-                src={isDark ? "/DSLogo-Dark2.png" : "/DSLogo2.png"}
+                src={isDark ? "/DSLogo-Dark4.png" : "/DSLogo2.png"}
                 alt="Vaahan International"
                 className="h-12 sm:h-14 md:h-16 lg:h-18 w-auto object-contain transition-transform duration-150 group-hover:scale-105"
                 style={{ maxWidth: '200px' }}

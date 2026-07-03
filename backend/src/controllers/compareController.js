@@ -33,13 +33,13 @@ const isValidObjectId = (id) => {
 const findVariantByAnyId = async (id) => {
   try {
     if (isValidObjectId(id)) {
-      const variant = await Variant.findById(id);
+      const variant = await Variant.findById(id).lean();
       if (variant) return variant;
     }
     
     if (typeof id === 'string') {
       // Try to find by customId field (if it exists)
-      const byCustomId = await Variant.findOne({ customId: id });
+      const byCustomId = await Variant.findOne({ customId: id }).lean();
       if (byCustomId) return byCustomId;
       
       // Try to find by variant name
@@ -48,17 +48,30 @@ const findVariantByAnyId = async (id) => {
       
       const variants = await Variant.find({ 
         name: { $regex: new RegExp(`^${variantName}$`, 'i') } 
-      });
-      
+      }).lean();
+
+      if (variants.length === 0) return null;
+
+      // Batch-fetch all models/brands for the candidates in two queries
+      // instead of awaiting Model.findById/Brand.findById one at a time in a loop.
+      const modelIds = [...new Set(variants.map(v => String(v.modelId)))];
+      const models = await Model.find({ _id: { $in: modelIds } }).lean();
+      const modelById = new Map(models.map(m => [String(m._id), m]));
+
+      const brandIds = [...new Set(models.map(m => String(m.brandId)))];
+      const brands = await Brand.find({ _id: { $in: brandIds } }).lean();
+      const brandById = new Map(brands.map(b => [String(b._id), b]));
+
+      const idLower = id.toLowerCase();
       for (const variant of variants) {
-        const model = await Model.findById(variant.modelId);
+        const model = modelById.get(String(variant.modelId));
         if (!model) continue;
-        const brand = await Brand.findById(model.brandId);
+        const brand = brandById.get(String(model.brandId));
         if (!brand) continue;
-        
-        const brandMatches = id.toLowerCase().includes(brand.name.toLowerCase());
-        const modelMatches = id.toLowerCase().includes(model.name.toLowerCase());
-        
+
+        const brandMatches = idLower.includes(brand.name.toLowerCase());
+        const modelMatches = idLower.includes(model.name.toLowerCase());
+
         if (brandMatches && modelMatches) {
           return variant;
         }
@@ -111,8 +124,11 @@ exports.compareCars = async (req, res) => {
       });
     }
     
-    const car1 = await findVariantByAnyId(car1Id);
-    const car2 = await findVariantByAnyId(car2Id);
+    // Run both lookups in parallel instead of one-after-another
+    const [car1, car2] = await Promise.all([
+      findVariantByAnyId(car1Id),
+      findVariantByAnyId(car2Id),
+    ]);
     
     if (!car1 || !car2) {
       console.log('❌ Car1 found:', !!car1, 'Car2 found:', !!car2);
@@ -122,12 +138,16 @@ exports.compareCars = async (req, res) => {
       });
     }
     
-    const model1 = await Model.findById(car1.modelId);
-    const model2 = await Model.findById(car2.modelId);
-    const brand1 = await Brand.findById(model1.brandId);
-    const brand2 = await Brand.findById(model2.brandId);
-    
-    const benchmarks = await Benchmark.find({ isActive: true });
+    // Fetch models, then brands + benchmarks, each batch in parallel
+    const [model1, model2] = await Promise.all([
+      Model.findById(car1.modelId).lean(),
+      Model.findById(car2.modelId).lean(),
+    ]);
+    const [brand1, brand2, benchmarks] = await Promise.all([
+      Brand.findById(model1.brandId).lean(),
+      Brand.findById(model2.brandId).lean(),
+      Benchmark.find({ isActive: true }).lean(),
+    ]);
     
     // ========================================
     // 🔧 FIX: Extract ALL numeric values including specifications
