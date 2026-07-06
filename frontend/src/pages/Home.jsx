@@ -115,13 +115,13 @@ const Home = () => {
   // ========================================
   const fetchHomeData = async () => {
     try {
-      // console.log('🔄 Fetching travelogues from API...')
-      const logs = await getFeaturedTravelogues(4)
-      // console.log('✅ Received logs:', logs)
+      const [logs, arts] = await Promise.all([
+        getFeaturedTravelogues(8),
+        getFeaturedArticles(8)
+      ])
       setTravelogues(logs)
       setFeaturedArticles(arts)
       setLoading(false)
-      // console.log('✅ State updated - travelogues:', logs.length, 'items')
     } catch (error) {
       console.error('Error fetching homepage data:', error)
       setLoading(false)
@@ -129,8 +129,7 @@ const Home = () => {
   }
 
   useEffect(() => {
-    // console.log('🔄 Home component mounted - fetching travelogues...')
-    fetchTravelogues()
+    fetchHomeData()
   }, [])
 
   // ========================================
@@ -428,6 +427,9 @@ const Home = () => {
   }
 
   const renderTechnologyGuides = () => {
+    const isArticlesLoading = loading;
+    const hasArticles = featuredArticles && featuredArticles.length > 0;
+
     const cardShadowClass = isDark
       ? 'shadow-lg hover:shadow-2xl'
       : 'shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_60px_rgb(0,0,0,0.18)]';
@@ -459,24 +461,35 @@ const Home = () => {
             </Link>
           </motion.div>
 
-          <Carousel ariaLabel="Technology Guides">
-            {LATEST_ARTICLES.slice(0, 8).map((article, idx) => (
-              <CarouselCard
-                key={idx}
-                to={`/article/${article.slug}`}
-                image={article.image}
-                category={article.category}
-                readTime={article.readTime}
-                title={article.title}
-                excerpt={article.excerpt}
-                ctaLabel="Read Article →"
-                isDark={isDark}
-                cardBgClass={cardBgClass}
-                cardShadowClass={cardShadowClass}
-                delay={idx * 0.06}
-              />
-            ))}
-          </Carousel>
+          {isArticlesLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
+            </div>
+          ) : !hasArticles ? (
+            <div className={`rounded-xl p-8 text-center ${cardBgClass} ${cardShadowClass}`}>
+              <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No articles available</p>
+            </div>
+          ) : (
+            <Carousel ariaLabel="Technology Guides">
+              {featuredArticles.slice(0, 8).map((article, idx) => (
+                <CarouselCard
+                  key={article._id || idx}
+                  to={`/article/${article.slug}`}
+                  image={article.image || '/images/article/default.png'}
+                  fallbackImage="/images/article/default.png"
+                  category={article.category}
+                  readTime={article.readTime}
+                  title={article.title}
+                  excerpt={article.excerpt}
+                  ctaLabel="Read Article →"
+                  isDark={isDark}
+                  cardBgClass={cardBgClass}
+                  cardShadowClass={cardShadowClass}
+                  delay={idx * 0.06}
+                />
+              ))}
+            </Carousel>
+          )}
         </div>
       </section>
     )
