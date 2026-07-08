@@ -2,14 +2,11 @@
 /*
 ================================================================================
 File Name : Carousel.jsx
-Description : Reusable horizontal scroll-snap carousel used on the homepage
+Description : Reusable horizontal free-scroll carousel used on the homepage
               for Travel Logs and Technology Guides. Netflix / Prime style:
-              - Desktop: multiple cards visible, arrow buttons to page through,
-                native drag/trackpad scroll also works.
-              - Mobile: one card fully visible with the next card peeking in,
-                swipe to move, no arrows (keeps mobile UI clean).
-              No visual styling is imposed here beyond layout/spacing — the
-              cards passed in as children keep their existing look untouched.
+              - Desktop: Native trackpad scroll + mouse click & drag.
+              - Mobile: Fluid momentum scrolling (no forced snapping).
+              - Arrows: Scrolls 85% of the visible container width per click.
 ================================================================================
 */
 
@@ -22,12 +19,19 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
+  // Refs for high-performance mouse dragging without re-renders
+  const isDragging = useRef(false)
+  const startX = useRef(0)
+  const scrollLeft = useRef(0)
+  const dragDistance = useRef(0)
+
   const updateArrowState = useCallback(() => {
     const el = trackRef.current
     if (!el) return
+    // Math.ceil ensures we don't get stuck due to sub-pixel rounding
     const maxScroll = el.scrollWidth - el.clientWidth
     setCanScrollLeft(el.scrollLeft > 4)
-    setCanScrollRight(el.scrollLeft < maxScroll - 4)
+    setCanScrollRight(Math.ceil(el.scrollLeft) < maxScroll - 4)
   }, [])
 
   useEffect(() => {
@@ -42,22 +46,70 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
     }
   }, [updateArrowState, children])
 
-  const scrollByCard = (direction) => {
+  const scrollByPage = (direction) => {
     const el = trackRef.current
     if (!el) return
-    const firstCard = el.firstElementChild
-    const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : el.clientWidth * 0.8
-    const gap = 20 // matches gap-5 track spacing below
-    el.scrollBy({ left: direction * (cardWidth + gap), behavior: 'smooth' })
+    // Scroll by 85% of the visible width (Netflix style)
+    const scrollAmount = el.clientWidth * 0.85
+    el.style.scrollBehavior = 'smooth'
+    el.scrollBy({ left: direction * scrollAmount })
+  }
+
+  // --- Mouse Drag Logic ---
+  const handleMouseDown = (e) => {
+    const el = trackRef.current
+    if (!el) return
+    isDragging.current = true
+    dragDistance.current = 0
+    startX.current = e.pageX - el.offsetLeft
+    scrollLeft.current = el.scrollLeft
+    
+    // Disable smooth scroll temporarily so mouse dragging is instant (1:1 tracking)
+    el.style.scrollBehavior = 'auto'
+    el.classList.add('cursor-grabbing')
+  }
+
+  const handleMouseLeave = () => {
+    isDragging.current = false
+    if (trackRef.current) {
+      trackRef.current.classList.remove('cursor-grabbing')
+    }
+  }
+
+  const handleMouseUp = () => {
+    isDragging.current = false
+    if (trackRef.current) {
+      trackRef.current.classList.remove('cursor-grabbing')
+    }
+  }
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return
+    e.preventDefault() // Prevents text selection while dragging
+    
+    const el = trackRef.current
+    const x = e.pageX - el.offsetLeft
+    const walk = x - startX.current // Exactly 1:1 drag distance
+    
+    dragDistance.current = Math.abs(walk)
+    el.scrollLeft = scrollLeft.current - walk
+  }
+
+  // Prevent accidental link clicking if the user was trying to drag
+  const handleClickCapture = (e) => {
+    if (dragDistance.current > 5) {
+      e.stopPropagation()
+      e.preventDefault()
+    }
   }
 
   return (
     <div className="relative group/carousel">
-      {/* Left arrow — desktop/tablet only, hidden on touch-first mobile widths */}
+      {/* Left arrow */}
       {canScrollLeft && (
         <button
           type="button"
-          onClick={() => scrollByCard(-1)}
+          onClick={() => scrollByPage(-1)}
           aria-label={`Scroll ${ariaLabel} left`}
           className={`hidden sm:flex absolute -left-3 md:-left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-10 md:h-10 rounded-full items-center justify-center shadow-lg transition-all duration-300 ease-out hover:scale-110 active:scale-95 ${
             isDark
@@ -75,7 +127,7 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
       {canScrollRight && (
         <button
           type="button"
-          onClick={() => scrollByCard(1)}
+          onClick={() => scrollByPage(1)}
           aria-label={`Scroll ${ariaLabel} right`}
           className={`hidden sm:flex absolute -right-3 md:-right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-10 md:h-10 rounded-full items-center justify-center shadow-lg transition-all duration-300 ease-out hover:scale-110 active:scale-95 ${
             isDark
@@ -89,7 +141,7 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
         </button>
       )}
 
-      {/* Right-edge fade hint so users on desktop know there's more to scroll */}
+      {/* Right-edge fade hint */}
       {canScrollRight && (
         <div
           className={`hidden sm:block pointer-events-none absolute right-0 top-0 bottom-0 w-12 md:w-16 z-10 bg-gradient-to-l ${
@@ -98,12 +150,23 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
         />
       )}
 
+      {/* Track Container */}
       <div
         ref={trackRef}
         role="region"
         aria-label={ariaLabel}
-        className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory hide-scrollbar scroll-smooth pb-2"
-        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onClickCapture={handleClickCapture}
+        className="flex gap-4 md:gap-5 overflow-x-auto hide-scrollbar pb-2 cursor-grab"
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          // smooth behavior gets dynamically applied for button clicks, 
+          // and stripped out for real-time 1:1 mouse dragging.
+          scrollBehavior: 'smooth' 
+        }}
       >
         {children}
       </div>

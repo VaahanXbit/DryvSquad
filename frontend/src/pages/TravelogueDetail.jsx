@@ -137,7 +137,7 @@ const TravelogueDetail = () => {
             {/* Tags */}
             {travelogue.tags && travelogue.tags.length > 0 && (
               <div className={`mt-6 sm:mt-8 pt-6 sm:pt-8 border-t transition-colors duration-300 ${isDark ? 'border-dark-700' : 'border-gray-200'}`}>
-                <h4 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-800'}`}>Tags:</h4>
+                {/* <h4 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-800'}`}>Tags:</h4> */}
                 <div className="flex flex-wrap gap-2">
                   {travelogue.tags.map((tag, idx) => (
                     <span key={idx} className={`px-3 py-1 text-sm rounded-full transition-colors duration-300 ${
@@ -151,7 +151,7 @@ const TravelogueDetail = () => {
             )}
 
             {/* Share Section */}
-            <div className={`mt-6 sm:mt-8 pt-6 sm:pt-8 border-t transition-colors duration-300 ${isDark ? 'border-dark-700' : 'border-gray-200'}`}>
+            {/* <div className={`mt-6 sm:mt-8 pt-6 sm:pt-8 border-t transition-colors duration-300 ${isDark ? 'border-dark-700' : 'border-gray-200'}`}>
               <h4 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-800'}`}>Share this story:</h4>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <button className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors duration-300 ${
@@ -165,7 +165,7 @@ const TravelogueDetail = () => {
                   🔖 Bookmark
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>

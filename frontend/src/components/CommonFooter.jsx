@@ -47,11 +47,12 @@ const CommonFooter = () => {
       <div className="container-custom py-6 sm:py-8 md:py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-6 md:gap-6">
           <div className="col-span-1 sm:col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center space-x-2 mb-3 group">
+           <Link to="/" className="flex items-center group flex-shrink-0">
               <img
-                src="/DSLogo-Dark4.png"
+                src={"/DSLogo-Dark4.png"}
                 alt="Vaahan International"
-                className="h-10 sm:h-11 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                className="h-12 sm:h-14 md:h-16 lg:h-18 w-auto object-contain transition-transform duration-150 group-hover:scale-105"
+                style={{ maxWidth: '300px' }}
               />
             </Link>
             <p className="text-gray-400 text-xs sm:text-sm mt-3 leading-relaxed max-w-sm">

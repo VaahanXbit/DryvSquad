@@ -16,6 +16,7 @@ import { useTheme } from '../context/ThemeContext'
 import { getArticleBySlug, getAllArticles } from '../data/articlesData'
 import { api } from '../services/api'
 import AuthModal from '../components/AuthModal'
+import { getAvatarUrl } from '../utils/avatar'
 
 // Pulls the userId out of a JWT without needing a network call — the token
 // payload is just base64, so this is safe to decode client-side (it's not
@@ -62,6 +63,15 @@ const getDisplayHandle = (comment) => {
 // Strips a leading "@" so it can be re-used as a plain mention prefix.
 const getMentionHandle = (comment) => getDisplayHandle(comment).replace(/^@/, '')
 
+// Same seed logic as the display handle — prefers the populated user's real
+// id, falling back to whatever we have, so a member's avatar stays visually
+// consistent between their profile and every comment they post.
+const getCommentAvatarSeed = (comment) => {
+  if (comment.user && typeof comment.user === 'object' && comment.user._id) return comment.user._id
+  if (comment.user && typeof comment.user === 'string') return comment.user
+  return comment.authorName || 'member'
+}
+
 // A single comment or reply card. Used for both top-level comments (which
 // can show a "view replies" toggle and a nested reply list) and for the
 // replies themselves (isReply=true keeps things one level deep, like
@@ -102,9 +112,16 @@ const CommentCard = ({
       isDark ? (isReply ? 'bg-dark-800' : 'bg-dark-900') : (isReply ? 'bg-gray-50' : 'bg-white')
     }`}>
       <div className="flex items-center justify-between mb-1 gap-2">
-        <span className={`font-semibold ${isReply ? 'text-xs sm:text-sm' : 'text-sm'} ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          {getDisplayHandle(comment)}
-        </span>
+        <div className="flex items-center gap-2 min-w-0">
+          <img
+            src={getAvatarUrl(getCommentAvatarSeed(comment))}
+            alt=""
+            className={`${isReply ? 'w-6 h-6' : 'w-7 h-7'} rounded-full flex-shrink-0 ${isDark ? 'bg-dark-700' : 'bg-gray-200'}`}
+          />
+          <span className={`font-semibold truncate ${isReply ? 'text-xs sm:text-sm' : 'text-sm'} ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {getDisplayHandle(comment)}
+          </span>
+        </div>
         <span className={`${isReply ? 'text-[10px] sm:text-xs' : 'text-xs'} whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
           {new Date(comment.createdAt).toLocaleDateString()}
           {comment.isEdited ? ' (edited)' : ''}
@@ -549,6 +566,14 @@ const ArticleDetail = () => {
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container-custom relative z-10 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
+            {/* Back to Articles */}
+            <Link
+              to="/articles"
+              className="inline-flex items-center gap-1.5 text-gray-300 hover:text-yellow-400 text-sm font-medium mb-4 sm:mb-5 transition-colors duration-300"
+            >
+              <span aria-hidden="true">←</span> Back to Articles
+            </Link>
+
             {/* Category & Read Time */}
             <div className="flex flex-wrap gap-2 mb-4 sm:mb-5">
               <span className="px-3 py-1 bg-yellow-500 text-gray-900 text-xs font-semibold rounded-full">
@@ -577,7 +602,7 @@ const ArticleDetail = () => {
       </section>
 
       {/* Article Content */}
-      <section className={`pt-8 sm:pt-12 md:pt-16 pb-6 sm:pb-8 md:pb-10 transition-colors duration-300 ${isDark ? 'bg-dark-900' : 'bg-white'}`}>
+      <section className={`pt-8 sm:pt-12 md:pt-16 pb-4 sm:pb-5 md:pb-6 transition-colors duration-300 ${isDark ? 'bg-dark-900' : 'bg-white'}`}>
         <div className="container-custom">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             {/* Featured Image */}
@@ -594,7 +619,7 @@ const ArticleDetail = () => {
 
             {/* Inline Article CTA Buttons (Loan / Insurance) */}
             {(article.showLoanCTA || article.showInsuranceCTA) && (
-              <div className={`mt-8 p-6 rounded-2xl border transition-all duration-300 ${
+              <div className={`mt-4 p-5 rounded-2xl border transition-all duration-300 ${
                 isDark ? 'bg-dark-950/80 border-dark-800 shadow-inner' : 'bg-slate-50 border-slate-200 shadow-sm'
               }`}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -696,7 +721,7 @@ const ArticleDetail = () => {
       </section>
 
       {/* Comments Section */}
-      <section className={`py-6 sm:py-8 md:py-10 transition-colors duration-300 ${isDark ? 'bg-dark-800' : 'bg-gray-50'}`}>
+      <section className={`pt-4 sm:pt-5 md:pt-6 pb-6 sm:pb-8 md:pb-10 transition-colors duration-300 ${isDark ? 'bg-dark-800' : 'bg-gray-50'}`}>
         <div className="container-custom">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <h2 className={`text-xl sm:text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -704,27 +729,36 @@ const ArticleDetail = () => {
             </h2>
 
             {/* New comment form */}
-            <form onSubmit={handlePostComment} className="mb-8">
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onFocus={() => { if (!token) setIsAuthModalOpen(true) }}
-                placeholder={token ? 'Share your thoughts...' : 'Sign in to join the discussion...'}
-                rows={3}
-                maxLength={2000}
-                className={`w-full rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors duration-300 ${
-                  isDark ? 'bg-dark-900 text-white placeholder-gray-500 border border-dark-700' : 'bg-white text-gray-900 placeholder-gray-400 border border-gray-200'
-                }`}
-              />
-              {commentError && <p className="text-red-500 text-xs mt-2">{commentError}</p>}
-              <div className="flex justify-end mt-3">
-                <button
-                  type="submit"
-                  disabled={postingComment || !commentText.trim()}
-                  className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 font-semibold px-5 py-2 rounded-lg text-sm transition-colors duration-300"
-                >
-                  {postingComment ? 'Posting...' : 'Post Comment'}
-                </button>
+            <form onSubmit={handlePostComment} className="mb-8 flex gap-3">
+              {token && (
+                <img
+                  src={getAvatarUrl(currentUserId)}
+                  alt=""
+                  className={`w-9 h-9 rounded-full flex-shrink-0 mt-0.5 ${isDark ? 'bg-dark-700' : 'bg-gray-200'}`}
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onFocus={() => { if (!token) setIsAuthModalOpen(true) }}
+                  placeholder={token ? 'Share your thoughts...' : 'Sign in to join the discussion...'}
+                  rows={3}
+                  maxLength={2000}
+                  className={`w-full rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors duration-300 ${
+                    isDark ? 'bg-dark-900 text-white placeholder-gray-500 border border-dark-700' : 'bg-white text-gray-900 placeholder-gray-400 border border-gray-200'
+                  }`}
+                />
+                {commentError && <p className="text-red-500 text-xs mt-2">{commentError}</p>}
+                <div className="flex justify-end mt-3">
+                  <button
+                    type="submit"
+                    disabled={postingComment || !commentText.trim()}
+                    className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 font-semibold px-5 py-2 rounded-lg text-sm transition-colors duration-300"
+                  >
+                    {postingComment ? 'Posting...' : 'Post Comment'}
+                  </button>
+                </div>
               </div>
             </form>
 
