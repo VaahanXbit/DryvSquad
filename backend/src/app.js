@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/authRoutes');
 const articleRoutes = require('./routes/articleRoutes');
+const commentRoutes = require('./routes/commentRoutes');
 const compareRoutes = require('./routes/compareRoutes');
 
 const carRoutes = require('./routes/carRoutes');
@@ -73,6 +74,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/comments', commentRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/compare', compareRoutes);
 app.use('/api/travelogues', travelogueRoutes);

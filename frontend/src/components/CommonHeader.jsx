@@ -54,8 +54,8 @@ const DESKTOP_CATEGORIES = [
 ]
 
 const MOBILE_CATEGORIES = [
-  { name: "Compare Cars", path: "/compare-cars", isDirect: true },
-  ...DESKTOP_CATEGORIES
+  { name: "Compare Cars", path: "/compare-cars" },
+  ...DESKTOP_CATEGORIES.map(({ name, path }) => ({ name, path }))
 ]
 
 const NAV_LINKS = [
@@ -68,7 +68,6 @@ const CommonHeader = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
-  const [activeMobileCategory, setActiveMobileCategory] = useState(null)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const location = useLocation()
   const { isDark } = useTheme()
@@ -194,7 +193,6 @@ const CommonHeader = () => {
   useEffect(() => {
     setIsOpen(false)
     setIsCategoriesOpen(false)
-    setActiveMobileCategory(null)
     setIsDropdownOpen(false)
   }, [location.pathname])
 
@@ -205,19 +203,11 @@ const CommonHeader = () => {
 
   const toggleCategories = useCallback(() => {
     setIsCategoriesOpen(prev => !prev)
-    if (!isCategoriesOpen) {
-      setActiveMobileCategory(null)
-    }
-  }, [isCategoriesOpen])
-
-  const toggleMobileSubCategory = useCallback((categoryName) => {
-    setActiveMobileCategory(prev => prev === categoryName ? null : categoryName)
   }, [])
 
   const closeMenu = useCallback(() => {
     setIsOpen(false)
     setIsCategoriesOpen(false)
-    setActiveMobileCategory(null)
   }, [])
 
   // Open auth modal
@@ -550,14 +540,33 @@ const CommonHeader = () => {
           {/* Mobile Menu */}
           <AnimatePresence>
             {isOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden lg:hidden"
-              >
-                <div className="pt-3 pb-4 space-y-1.5 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain pr-1">
+              <>
+                {/* Backdrop overlay - sits under the menu, above the hero/page content */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-x-0 bottom-0 bg-black/40 lg:hidden"
+                  style={{ top: 'var(--header-height, 4rem)' }}
+                  onClick={closeMenu}
+                  aria-hidden="true"
+                />
+
+                {/* Menu panel - absolutely positioned so it floats over the hero
+                    instead of pushing it down the page */}
+                <motion.div
+                  initial={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="absolute top-full left-0 w-full lg:hidden shadow-2xl border-t"
+                  style={{
+                    backgroundColor: brandColor,
+                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+                  }}
+                >
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-3 pb-4 space-y-1.5 max-h-[calc(100vh-var(--header-height,4rem))] overflow-y-auto overscroll-contain pr-1">
                   {NAV_LINKS.map((link) => (
                     <NavLink
                       key={link.path}
@@ -649,66 +658,16 @@ const CommonHeader = () => {
                           className="overflow-hidden"
                         >
                           <div className="ml-2 sm:ml-4 space-y-1 pt-1 pb-2">
-                            {MOBILE_CATEGORIES.map((item, idx) => {
-                              if (item.isDirect) {
-                                return (
-                                  <Link
-                                    key={idx}
-                                    to={item.path}
-                                    className={`block py-2 text-sm sm:text-base transition-colors duration-300 pl-2 border-l-2 border-transparent hover:border-gray-400 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
-                                    onClick={closeMenu}
-                                  >
-                                    {item.name}
-                                  </Link>
-                                )
-                              }
-
-                              const isActive = activeMobileCategory === item.name
-                              return (
-                                <div key={idx} className="space-y-1">
-                                  <button
-                                    onClick={() => toggleMobileSubCategory(item.name)}
-                                    className={`w-full flex items-center justify-between py-2 text-sm sm:text-base transition-colors duration-300 pl-2 border-l-2 border-transparent hover:border-gray-400 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
-                                  >
-                                    <span>{item.name}</span>
-                                    <svg
-                                      className={`w-3 h-3 transition-transform duration-150 ${isActive ? 'rotate-90' : ''
-                                        }`}
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                  </button>
-
-                                  <AnimatePresence>
-                                    {isActive && (
-                                      <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.15 }}
-                                        className="overflow-hidden"
-                                      >
-                                        <div className="ml-4 sm:ml-6 space-y-1 pb-1">
-                                          {item.articles.map((article, articleIdx) => (
-                                            <Link
-                                              key={articleIdx}
-                                              to={`${item.baseRoute || '/article'}/${article.slug}`}
-                                              className={`block py-1.5 text-xs sm:text-sm transition-colors duration-300 pl-2 border-l-2 border-transparent hover:border-gray-400 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
-                                              onClick={closeMenu}
-                                            >
-                                              {article.title}
-                                            </Link>
-                                          ))}
-                                        </div>
-                                      </motion.div>
-                                    )}
-                                  </AnimatePresence>
-                                </div>
-                              )
-                            })}
+                            {MOBILE_CATEGORIES.map((item, idx) => (
+                              <Link
+                                key={idx}
+                                to={item.path}
+                                className={`block py-2 text-sm sm:text-base transition-colors duration-300 pl-2 border-l-2 border-transparent hover:border-gray-400 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
+                                onClick={closeMenu}
+                              >
+                                {item.name}
+                              </Link>
+                            ))}
                           </div>
                         </motion.div>
                       )}
@@ -742,7 +701,8 @@ const CommonHeader = () => {
                     <ThemeToggle />
                   </div>
                 </div>
-              </motion.div>
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>

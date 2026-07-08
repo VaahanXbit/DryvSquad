@@ -10,7 +10,7 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import SearchBar from '../components/SearchBar'

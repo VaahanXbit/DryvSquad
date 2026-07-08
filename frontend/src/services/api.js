@@ -561,6 +561,25 @@ export const api = {
     }
   },
 
+  // Get every article regardless of status (admin manage view — requires admin token)
+  getAllArticlesAdmin: async (token) => {
+    try {
+      const response = await fetch(`${API_URL}/articles/admin/all`, {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('❌ Get all articles (admin) error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
   // Create a new article
   createArticle: async (articleData, token = null) => {
     try {
@@ -688,6 +707,113 @@ export const api = {
     }
   },
 
+  // ========================================
+  // ARTICLE COMMENTS & UPVOTES
+  // ========================================
+
+  // Get comments for an article (by article _id)
+  getComments: async (articleId) => {
+    try {
+      const response = await fetch(`${API_URL}/articles/${articleId}/comments`, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('❌ Get comments error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
+  // Add a comment to an article (requires logged-in member).
+  // Pass parentCommentId to post a reply instead of a top-level comment.
+  addComment: async (articleId, content, token, parentCommentId = null) => {
+    try {
+      const response = await fetch(`${API_URL}/articles/${articleId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content, parentComment: parentCommentId }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('❌ Add comment error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
+  // Edit your own comment
+  updateComment: async (commentId, content, token) => {
+    try {
+      const response = await fetch(`${API_URL}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('❌ Update comment error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
+  // Delete your own comment
+  deleteComment: async (commentId, token) => {
+    try {
+      const response = await fetch(`${API_URL}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('❌ Delete comment error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
+  // Toggle an upvote on an article (requires logged-in member)
+  upvoteArticle: async (articleId, token) => {
+    try {
+      const response = await fetch(`${API_URL}/articles/${articleId}/upvote`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('❌ Upvote article error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
   
   // ========================================
   // TRAVELOGUES API
@@ -783,6 +909,101 @@ export const api = {
       };
     }
   },
+
+  // // ========================================
+  // // TRAVELOGUES API
+  // // ========================================
+
+  // // Get all travelogues
+  // getAllTravelogues: async () => {
+  //   try {
+  //     const response = await fetch(`${API_URL}/travelogues`, {
+  //       headers: {
+  //         'Accept': 'application/json',
+  //       },
+  //     });
+  //     return await handleResponse(response);
+  //   } catch (error) {
+  //     console.error('❌ Get travelogues error:', error);
+  //     return {
+  //       success: false,
+  //       message: 'Network error. Please check your connection.',
+  //     };
+  //   }
+  // },
+
+  // // Create a new travelogue
+  // createTravelogue: async (travelogueData, token = null) => {
+  //   try {
+  //     const headers = {
+  //       'Content-Type': 'application/json',
+  //       'Accept': 'application/json',
+  //     };
+  //     if (token) {
+  //       headers['Authorization'] = `Bearer ${token}`;
+  //     }
+  //     const response = await fetch(`${API_URL}/travelogues`, {
+  //       method: 'POST',
+  //       headers,
+  //       body: JSON.stringify(travelogueData),
+  //     });
+  //     return await handleResponse(response);
+  //   } catch (error) {
+  //     console.error('❌ Create travelogue error:', error);
+  //     return {
+  //       success: false,
+  //       message: 'Network error. Please check your connection.',
+  //     };
+  //   }
+  // },
+
+  // // Update an existing travelogue
+  // updateTravelogue: async (id, travelogueData, token = null) => {
+  //   try {
+  //     const headers = {
+  //       'Content-Type': 'application/json',
+  //       'Accept': 'application/json',
+  //     };
+  //     if (token) {
+  //       headers['Authorization'] = `Bearer ${token}`;
+  //     }
+  //     const response = await fetch(`${API_URL}/travelogues/${id}`, {
+  //       method: 'PUT',
+  //       headers,
+  //       body: JSON.stringify(travelogueData),
+  //     });
+  //     return await handleResponse(response);
+  //   } catch (error) {
+  //     console.error('❌ Update travelogue error:', error);
+  //     return {
+  //       success: false,
+  //       message: 'Network error. Please check your connection.',
+  //     };
+  //   }
+  // },
+
+  // // Delete a travelogue
+  // deleteTravelogue: async (id, token = null) => {
+  //   try {
+  //     const headers = {
+  //       'Accept': 'application/json',
+  //     };
+  //     if (token) {
+  //       headers['Authorization'] = `Bearer ${token}`;
+  //     }
+  //     const response = await fetch(`${API_URL}/travelogues/${id}`, {
+  //       method: 'DELETE',
+  //       headers,
+  //     });
+  //     return await handleResponse(response);
+  //   } catch (error) {
+  //     console.error('❌ Delete travelogue error:', error);
+  //     return {
+  //       success: false,
+  //       message: 'Network error. Please check your connection.',
+  //     };
+  //   }
+  // },
 
   // ========================================
   // LEADS API

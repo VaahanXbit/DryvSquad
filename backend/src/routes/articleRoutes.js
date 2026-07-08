@@ -22,7 +22,13 @@ const {
   createArticle,
   updateArticle,
   deleteArticle,
+  upvoteArticle,
 } = require('../controllers/articleController');
+
+const {
+  getCommentsForArticle,
+  addComment,
+} = require('../controllers/commentController');
 
 const { protect, admin } = require('../middleware/auth');
 
@@ -56,5 +62,12 @@ router.get('/category/:category', getArticlesByCategory);
 
 // Search articles
 router.get('/search/:query', searchArticles);
+
+// Upvote / un-upvote an article (any logged-in member)
+router.post('/:id/upvote', protect, upvoteArticle);
+
+// Comments for an article
+router.get('/:articleId/comments', getCommentsForArticle);
+router.post('/:articleId/comments', protect, addComment);
 
 module.exports = router;

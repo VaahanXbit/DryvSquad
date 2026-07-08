@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import { api } from '../services/api'
+import { getAvatarUrl } from '../utils/avatar'
 
 const Profile = () => {
   const [user, setUser] = useState(null)
@@ -190,10 +191,18 @@ const Profile = () => {
               <div className={`px-6 py-8 text-center border-b ${
                 isDark ? 'border-dark-700' : 'border-gray-200'
               }`}>
-                <div className={`w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold mx-auto ${
+                <div className={`relative w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold mx-auto overflow-hidden ${
                   isDark ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-500 text-white'
                 }`}>
-                  {getUserInitials()}
+                  <span>{getUserInitials()}</span>
+                  {/* Sits on top of the initials; if it fails to load, the
+                      initials underneath stay visible as a safe fallback. */}
+                  <img
+                    src={getAvatarUrl(user._id || user.username || user.email)}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
                 </div>
                 <h2 className={`mt-4 text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {user.firstName} {user.lastName}

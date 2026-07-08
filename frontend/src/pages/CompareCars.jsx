@@ -1003,7 +1003,7 @@ const CompareCars = () => {
     setEditingCar(null)
     setShowEditPopup(false)
     setEditAnchorRef(null)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    // window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handlePopularCompare = (comparison) => {

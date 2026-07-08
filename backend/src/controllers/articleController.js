@@ -153,7 +153,9 @@ exports.getFeaturedArticles = async (req, res) => {
     const limit = parseInt(req.query.limit) || 3;
     
     // Sort by lastWeekViews (descending) first, then total views, then newest
+    // Sort by lastWeekViews (descending) first, then total views, then newest
     const articles = await Article.find({ status: 'published' })
+      .sort({ lastWeekViews: -1, views: -1, createdAt: -1 })
       .sort({ lastWeekViews: -1, views: -1, createdAt: -1 })
       .limit(limit);
     
@@ -381,6 +383,59 @@ exports.updateArticle = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update article',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+// ========================================
+// POST /api/articles/:id/upvote - Toggle an upvote from the logged-in member
+// ========================================
+exports.upvoteArticle = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // The special hardcoded admin identity has no real user document, so it
+    // can't be tracked in upvotedBy.
+    if (req.user?._id === 'admin_user') {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot upvote articles.',
+      });
+    }
+
+    const article = await Article.findById(id);
+    if (!article) {
+      return res.status(404).json({
+        success: false,
+        message: 'Article not found',
+      });
+    }
+
+    const userId = req.user._id.toString();
+    const alreadyUpvoted = article.upvotedBy.some((u) => u.toString() === userId);
+
+    if (alreadyUpvoted) {
+      // Toggle off
+      article.upvotedBy = article.upvotedBy.filter((u) => u.toString() !== userId);
+      article.upvotes = Math.max(0, article.upvotes - 1);
+    } else {
+      article.upvotedBy.push(userId);
+      article.upvotes += 1;
+    }
+
+    await article.save();
+
+    res.status(200).json({
+      success: true,
+      upvotes: article.upvotes,
+      hasUpvoted: !alreadyUpvoted,
+    });
+  } catch (error) {
+    console.error('❌ Upvote article error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upvote article',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

@@ -98,6 +98,23 @@ const ArticleSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  // Upvotes from logged-in members. upvotedBy tracks who has upvoted so a
+  // member can only upvote once and can toggle their upvote off again.
+  upvotes: {
+    type: Number,
+    default: 0,
+  },
+  upvotedBy: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'User',
+    default: [],
+  },
+  // Denormalized comment count so article lists can show it without a
+  // separate query against the Comment collection.
+  commentsCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 // Update updatedAt on save
@@ -117,4 +134,3 @@ ArticleSchema.index({ category: 1 });
 ArticleSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Article', ArticleSchema);
-
