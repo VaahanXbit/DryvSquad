@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Landmark, ShieldAlert, ArrowLeft, Send, CheckCircle2, ChevronDown } from 'lucide-react'
 import { api } from '../services/api'
 
 const LeadFormPage = ({ type }) => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromArticle = location.state?.fromArticle || '/ai-mode'
+  const isFromArticle = fromArticle.startsWith('/article/')
   const isLoan = type === 'auto-loan'
   
   // Dynamic Car Database Models State
@@ -116,10 +119,10 @@ const LeadFormPage = ({ type }) => {
 
       <div className="w-full max-w-xl relative z-10 animate-fade-in">
         <Link 
-          to="/ai-mode" 
+          to={fromArticle} 
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white mb-6 transition-colors"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to AI Advisor
+          <ArrowLeft className="w-3.5 h-3.5" /> {isFromArticle ? 'Back to Article' : 'Back to AI Advisor'}
         </Link>
 
         <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl relative">
@@ -135,10 +138,10 @@ const LeadFormPage = ({ type }) => {
               </p>
               <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
                 <button
-                  onClick={() => navigate('/ai-mode')}
+                  onClick={() => navigate(fromArticle)}
                   className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg hover:shadow-yellow-500/10"
                 >
-                  Return to AI Advisor
+                  {isFromArticle ? 'Return to Article' : 'Return to AI Advisor'}
                 </button>
                 <button
                   onClick={() => {

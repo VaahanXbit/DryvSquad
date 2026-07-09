@@ -1,8 +1,15 @@
+import os
+import dns.resolver
 from pymongo import MongoClient
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
+# Override dns.resolver default nameservers to resolve MongoDB Atlas SRV records
+try:
+    dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+    dns.resolver.default_resolver.nameservers = ['8.8.8.8', '1.1.1.1']
+except Exception as e:
+    print(f"[WARNING] Failed to set custom DNS nameservers: {e}")
 
 client = MongoClient(os.getenv("MONGODB_URI"))
 

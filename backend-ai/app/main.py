@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from llm.prompt_builder import build_prompt, build_rewrite_prompt, check_small_talk, build_small_talk_prompt
 from llm.llm_service import generate
+from llm.car_finder import find_matching_cars
 from db.mongodb import cache_collection, articles_collection
 from datetime import datetime
 
@@ -70,6 +71,15 @@ class AIResponse(BaseModel):
     suggest_insurance: Optional[bool] = False
 
 
+class CarFinderRequest(BaseModel):
+    budget: str
+    seating: str
+    usage: str
+    terrain: str
+    driver: str
+    custom_query: Optional[str] = ""
+
+
 @app.get("/")
 def root():
     return {"status": "DryvSquad AI Mode API is running"}
@@ -78,6 +88,23 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "dryvsquad-ai"}
+
+
+
+@app.post("/api/ai-car-finder")
+async def ai_car_finder(request: CarFinderRequest):
+    budget = request.budget.strip()
+    seating = request.seating.strip()
+    usage = request.usage.strip()
+    terrain = request.terrain.strip()
+    driver = request.driver.strip()
+    custom_query = request.custom_query.strip() if request.custom_query else ""
+    
+    if not budget or not seating or not usage or not terrain or not driver:
+        raise HTTPException(status_code=400, detail="Missing required search parameters.")
+        
+    result = find_matching_cars(budget, seating, usage, terrain, driver, custom_query)
+    return result
 
 
 @app.post("/api/ai-mode", response_model=AIResponse)
@@ -232,7 +259,6 @@ async def ai_mode(request: QueryRequest):
 
 
 def watch_mongodb_changes():
-    import threading
     import time
     from app.scripts.ingest_articles import ingest
     

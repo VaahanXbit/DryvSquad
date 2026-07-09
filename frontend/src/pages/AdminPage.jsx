@@ -53,6 +53,25 @@ const AdminPage = () => {
     }))
   }
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File size exceeds the 2MB limit. Please upload a smaller image.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        image: reader.result,
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault()
     setIsLoggingIn(true)
@@ -672,11 +691,35 @@ const AdminPage = () => {
                   <input
                     type="text"
                     name="image"
-                    value={formData.image}
+                    value={formData.image.startsWith('data:') ? 'Device Image Selected (Base64)' : formData.image}
                     onChange={handleInputChange}
-                    placeholder="e.g. https://images.unsplash.com/photo-1503376780353-7e6692767b70"
-                    className="w-full bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    disabled={formData.image.startsWith('data:')}
+                    placeholder={formData.image.startsWith('data:') ? 'Clear uploaded image to use URL' : "e.g. https://images.unsplash.com/photo-1503376780353-7e6692767b70"}
+                    className="w-full bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all disabled:opacity-50"
                   />
+                  
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">OR</span>
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all border border-slate-700">
+                      <span>Upload from Device</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    {formData.image.startsWith('data:') && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                        className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold rounded-lg transition-all border border-rose-500/20"
+                      >
+                        Clear Upload
+                      </button>
+                    )}
+                  </div>
+
                   {formData.image && (
                     <div className="mt-3 rounded-xl border border-slate-700/50 p-2 bg-slate-900/40 inline-block">
                       <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1 font-semibold">Preview</p>

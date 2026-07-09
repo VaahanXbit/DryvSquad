@@ -133,6 +133,45 @@ const ArticleDetail = () => {
               <div dangerouslySetInnerHTML={{ __html: article.content }} />
             </div>
 
+            {/* Inline Article CTA Buttons (Loan / Insurance) */}
+            {(article.showLoanCTA || article.showInsuranceCTA) && (
+              <div className={`mt-8 p-6 rounded-2xl border transition-all duration-300 ${
+                isDark ? 'bg-dark-950/80 border-dark-800 shadow-inner' : 'bg-slate-50 border-slate-200 shadow-sm'
+              }`}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h4 className={`text-sm font-extrabold uppercase tracking-wider ${isDark ? 'text-yellow-500' : 'text-yellow-600'}`}>
+                      DryvSquad Advisor Recommendations
+                    </h4>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                      Take the next step based on this article's expert insights.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                    {article.showLoanCTA && (
+                      <Link
+                        to="/loan-quotes"
+                        state={{ fromArticle: `/article/${slug}` }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 text-xs font-bold rounded-xl shadow transition-all hover:shadow-yellow-500/10 w-full sm:w-auto text-center justify-center"
+                      >
+                        <Landmark className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                        <span>Get Auto Loan Quotes</span>
+                      </Link>
+                    )}
+                    {article.showInsuranceCTA && (
+                      <Link
+                        to="/insurance-quotes"
+                        state={{ fromArticle: `/article/${slug}` }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 text-xs font-bold rounded-xl shadow transition-all hover:shadow-yellow-500/10 w-full sm:w-auto text-center justify-center"
+                      >
+                        <ShieldAlert className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                        <span>Get Insurance Quotes</span>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Tags */}
             {article.tags && article.tags.length > 0 && (
               <div className={`mt-6 sm:mt-8 pt-6 sm:pt-8 border-t transition-colors duration-300 ${isDark ? 'border-dark-700' : 'border-gray-200'}`}>

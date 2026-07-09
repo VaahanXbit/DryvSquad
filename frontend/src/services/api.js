@@ -826,43 +826,54 @@ export const api = {
   },
 
   // ========================================
-  // SETTINGS API
+  // AI COMPARE API
   // ========================================
 
-  // Get global settings (links, etc.)
-  getSettings: async () => {
+  // Fetch AI car comparison analysis
+  getAiComparison: async (car1, car2, reportType, query = '') => {
     try {
-      const response = await fetch(`${API_URL}/settings`, {
+      const aiUrl = import.meta.env.VITE_AI_API_URL || 'http://127.0.0.1:8002';
+      const response = await fetch(`${aiUrl}/api/ai-compare`, {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: JSON.stringify({ car1, car2, report_type: reportType, query }),
       });
-      return await handleResponse(response);
+      return await response.json();
     } catch (error) {
-      console.error('❌ Get settings error:', error);
+      console.error('❌ AI comparison endpoint error:', error);
       return { success: false, message: 'Network error. Please try again.' };
     }
   },
 
-  // Update global settings (Admin only)
-  updateSettings: async (settingsData, token = null) => {
+  // ========================================
+  // AI CAR FINDER API
+  // ========================================
+  getAiCarFinderRecommendations: async (budget, seating, usage, terrain, driver, customQuery = '') => {
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const response = await fetch(`${API_URL}/settings`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(settingsData),
+      const aiUrl = import.meta.env.VITE_AI_API_URL || 'http://127.0.0.1:8002';
+      console.log('🌐 [VITE API] Attempting to fetch AI matches from:', `${aiUrl}/api/ai-car-finder`);
+      const response = await fetch(`${aiUrl}/api/ai-car-finder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          budget,
+          seating,
+          usage,
+          terrain,
+          driver,
+          custom_query: customQuery
+        }),
       });
-      return await handleResponse(response);
+      return await response.json();
     } catch (error) {
-      console.error('❌ Update settings error:', error);
-      return { success: false, message: 'Network error. Please try again.' };
+      console.error('❌ AI car finder endpoint error:', error);
+      return { success: false, recommendations: [] };
     }
   },
 
