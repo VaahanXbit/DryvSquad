@@ -178,6 +178,7 @@ const AiCarFinder = () => {
   // --- RESULTS STATES ---
   const [loading, setLoading] = useState(false)
   const [recommendations, setRecommendations] = useState([])
+  const [noExactMatch, setNoExactMatch] = useState(false)
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState('')
   const [isLoaded, setIsLoaded] = useState(false)
@@ -197,6 +198,7 @@ const AiCarFinder = () => {
         if (state.driver) setDriver(state.driver)
         if (state.city) setCity(state.city)
         if (state.recommendations) setRecommendations(state.recommendations)
+        if (state.noExactMatch !== undefined) setNoExactMatch(state.noExactMatch)
         if (state.searched !== undefined) setSearched(state.searched)
         if (state.premiumUnlocked !== undefined) setPremiumUnlocked(state.premiumUnlocked)
         if (state.secondaryUsage) setSecondaryUsage(state.secondaryUsage)
@@ -216,7 +218,7 @@ const AiCarFinder = () => {
     if (localStorage.getItem('token')) {
       setPremiumUnlocked(true)
     }
-  })
+  }, [])
 
   // Auto-save finder state to sessionStorage on any state change (only after load)
   useEffect(() => {
@@ -231,6 +233,7 @@ const AiCarFinder = () => {
         driver,
         city,
         recommendations,
+        noExactMatch,
         searched,
         premiumUnlocked,
         secondaryUsage,
@@ -242,12 +245,12 @@ const AiCarFinder = () => {
     } catch (e) {
       // Ignore incognito quota errors
     }
-  }, [isLoaded, budget, seating, usage, terrain, driver, city, recommendations, searched, premiumUnlocked, secondaryUsage, financePlan, resalePlan, maintenanceBudget])
+  }, [isLoaded, budget, seating, usage, terrain, driver, city, recommendations, noExactMatch, searched, premiumUnlocked, secondaryUsage, financePlan, resalePlan, maintenanceBudget])
 
   const navigateToVariants = (car) => {
     navigate(`/model-variants/${car.slug}`, {
       state: {
-        modelName: getBaseModelName(car.name, car.brand),
+        modelName: car.displayName || (car.brand + " " + getBaseModelName(car.name, car.brand)),
         brand: car.brand,
         verdict: car.verdict,
         focus: car.focus,
@@ -265,6 +268,7 @@ const AiCarFinder = () => {
     setDriver('Experienced')
     setCity('Mumbai')
     setRecommendations([])
+    setNoExactMatch(false)
     setSearched(false)
     setSecondaryUsage('None')
     setFinancePlan('Outright Cash Purchase')
@@ -316,12 +320,13 @@ const AiCarFinder = () => {
       
       if (result && result.success) {
         const rawRecs = result.recommendations || []
+        setNoExactMatch(!!result.noExactMatch)
         
         // De-duplicate recommendations by their base model name
         const seenModels = new Set()
         const uniqueRecs = []
         for (const car of rawRecs) {
-          const baseName = `${car.brand} ${getBaseModelName(car.name, car.brand)}`.toLowerCase().trim()
+          const baseName = (car.displayName || `${car.brand} ${getBaseModelName(car.name, car.brand)}`).toLowerCase().trim()
           if (!seenModels.has(baseName)) {
             seenModels.add(baseName)
             uniqueRecs.push(car)
@@ -331,9 +336,10 @@ const AiCarFinder = () => {
         setRecommendations(uniqueRecs)
         // Pre-fill target car for checkout if available
         if (uniqueRecs.length > 0) {
+          const firstCarName = uniqueRecs[0].displayName || `${uniqueRecs[0].brand} ${getBaseModelName(uniqueRecs[0].name, uniqueRecs[0].brand)}`
           setCheckoutData(prev => ({ 
             ...prev, 
-            selectedCar: `${uniqueRecs[0].brand} ${getBaseModelName(uniqueRecs[0].name, uniqueRecs[0].brand)}` 
+            selectedCar: firstCarName
           }))
         }
       } else {
@@ -405,7 +411,13 @@ const AiCarFinder = () => {
         doc.text(`Your selected target model: ${carName}`, 20, 50)
         
         // Loan Calculation
-        const loanAmount = 800000 // Mock base loan
+        const matchedCar = recommendations.find(r => 
+          (r.displayName && r.displayName.toLowerCase().trim() === carName.toLowerCase().trim()) ||
+          (`${r.brand} ${r.name}`.toLowerCase().trim() === carName.toLowerCase().trim())
+        )
+        const carPrice = matchedCar && matchedCar.minPrice ? matchedCar.minPrice : 800000
+        const downpaymentVal = parseInt(checkoutData.downpayment) || 200000
+        const loanAmount = Math.max(50000, carPrice - downpaymentVal)
         const rate = 8.75 // Interest rate
         const tenureYears = parseInt(checkoutData.tenure) || 5
         const n = tenureYears * 12
@@ -664,8 +676,8 @@ const AiCarFinder = () => {
                     onChange={(e) => setSeating(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-200 appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-500 cursor-pointer font-sans"
                   >
-                    <option value="2-4 Seats">2 - 4 Seats (Small family)</option>
-                    <option value="5 Seats">5 Seats (Standard Hatch/SUV)</option>
+                    <option value="2-4 Seats">2 - 4 Seats (Couples)</option>
+                    <option value="5 Seats">5 Seats (Small family)</option>
                     <option value="7+ Seats">7+ Seats (Large MUV/SUV)</option>
                   </select>
                   <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -767,7 +779,7 @@ const AiCarFinder = () => {
                 </span>
               ) : (
                 <span className="text-[10px] font-bold text-yellow-500 rounded-full">
-                  🔒 Locked Gated Report
+                  🔒 Login to access
                 </span>
               )}
             </div>
@@ -979,6 +991,12 @@ const AiCarFinder = () => {
                 exit={{ opacity: 0, y: 15 }}
                 className="space-y-8"
               >
+                {noExactMatch && (
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
+                    <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+                    <span>⚠️ We couldn't find an exact match within your budget. Showing the closest alternatives:</span>
+                  </div>
+                )}
                 <div className="border-b pb-2 border-slate-200 dark:border-slate-800">
                   <h2 className={`text-sm sm:text-base font-medium ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                     I have found some great options for you. Here's a quick look at the best ones.
@@ -1004,7 +1022,7 @@ const AiCarFinder = () => {
                           <div className="h-56 bg-slate-100/80 dark:bg-dark-950 relative overflow-hidden flex items-center justify-center p-0">
                             <img 
                               src={car.image || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800'} 
-                              alt={getBaseModelName(car.name, car.brand)} 
+                              alt={car.displayName || car.name} 
                               className="w-full h-full object-contain"
                               onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800' }}
                             />
@@ -1014,7 +1032,7 @@ const AiCarFinder = () => {
                           <div className="p-5 pb-6 space-y-4">
                             <div>
                               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">{car.brand}</span>
-                              <h3 className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{getBaseModelName(car.name, car.brand)}</h3>
+                              <h3 className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{car.displayName || car.name}</h3>
                               <div className="mt-1 flex items-baseline gap-1 text-xs">
                                 <span className="text-yellow-500 font-bold">{car.priceRange}</span>
                                 <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">(Ex-Showroom Price)</span>
@@ -1062,7 +1080,7 @@ const AiCarFinder = () => {
                             onClick={() => navigateToVariants(car)}
                             className="font-bold text-yellow-500 hover:underline cursor-pointer transition-all mr-1"
                           >
-                            {car.brand} {getBaseModelName(car.name, car.brand)}
+                            {car.displayName || (car.brand + " " + car.name)}
                           </button>
                           <span className={`${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
                             - {formatVerdict(car.verdict)}
