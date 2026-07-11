@@ -49,10 +49,13 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
   const scrollByPage = (direction) => {
     const el = trackRef.current
     if (!el) return
-    // Scroll by 85% of the visible width (Netflix style)
+    // Scroll by 85% of the visible width (Netflix style).
+    // behavior: 'smooth' is passed per-call only — the element's own
+    // scroll-behavior stays 'auto' (native) at all times, so trackpad,
+    // touch, and mouse-wheel scrolling are always instant/1:1 like a
+    // real Netflix/Prime row. Only this button-triggered scroll eases.
     const scrollAmount = el.clientWidth * 0.85
-    el.style.scrollBehavior = 'smooth'
-    el.scrollBy({ left: direction * scrollAmount })
+    el.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' })
   }
 
   // --- Mouse Drag Logic ---
@@ -63,9 +66,6 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
     dragDistance.current = 0
     startX.current = e.pageX - el.offsetLeft
     scrollLeft.current = el.scrollLeft
-    
-    // Disable smooth scroll temporarily so mouse dragging is instant (1:1 tracking)
-    el.style.scrollBehavior = 'auto'
     el.classList.add('cursor-grabbing')
   }
 
@@ -160,12 +160,14 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
         onClickCapture={handleClickCapture}
-        className="flex gap-4 md:gap-5 overflow-x-auto hide-scrollbar pb-2 cursor-grab"
-        style={{ 
+        className="flex gap-4 md:gap-5 overflow-x-auto overflow-y-hidden hide-scrollbar pb-2 cursor-grab"
+        style={{
           WebkitOverflowScrolling: 'touch',
-          // smooth behavior gets dynamically applied for button clicks, 
-          // and stripped out for real-time 1:1 mouse dragging.
-          scrollBehavior: 'smooth' 
+          // Native ('auto') at all times — trackpad/touch/wheel scrolling
+          // is always instant and 1:1, exactly like Netflix/Prime rows.
+          // Smooth easing is applied per-call only for arrow-button clicks
+          // (see scrollByPage), never as a blanket style.
+          scrollBehavior: 'auto',
         }}
       >
         {children}

@@ -19,6 +19,7 @@ import { api } from '../services/api'
 import ComparisonResults from '../components/compare/ComparisonResults'
 import { jsPDF } from 'jspdf'
 import { Sparkles, Landmark, ShieldAlert, FileText, Loader2, ChevronDown, Check, AlertCircle } from 'lucide-react'
+import { SkeletonStyles, CompareCardGridSkeleton, FadeIn } from '../components/skeletons/Skeletons'
 
 // ========================================
 // CarDekho Style Car Selection Popup
@@ -741,19 +742,31 @@ const PopularComparisonCard = ({ comparison, onClick, isDark }) => {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex-1 text-center">
-          <img src={car1.image} alt={car1.model} className="w-full h-20 object-contain mx-auto mb-1.5 rounded bg-[#f4f5f7] dark:bg-dark-700 p-2 mix-blend-multiply dark:mix-blend-normal" />
+      <div className="flex items-stretch justify-between mb-2">
+        <div className="flex-1 min-w-0 text-center">
+          <div className="w-full aspect-square rounded bg-[#f4f5f7] dark:bg-dark-700 mb-1.5 flex items-center justify-center overflow-hidden">
+            <img
+              src={car1.image}
+              alt={car1.model}
+              className="max-w-full max-h-full w-auto h-auto object-contain p-2 mix-blend-multiply dark:mix-blend-normal"
+            />
+          </div>
           <span className="text-xs font-semibold block text-gray-800 dark:text-white theme-transition">{car1.model}</span>
           <span className="text-[10px] text-gray-500 dark:text-gray-400 theme-transition truncate block max-w-full">{car1.variant}</span>
         </div>
 
-        <div className="flex flex-col items-center px-2">
+        <div className="flex flex-col items-center justify-center px-2 shrink-0">
           <span className="text-[10px] font-bold text-gray-400">VS</span>
         </div>
 
-        <div className="flex-1 text-center">
-          <img src={car2.image} alt={car2.model} className="w-full h-20 object-contain mx-auto mb-1.5 rounded bg-[#f4f5f7] dark:bg-dark-700 p-2 mix-blend-multiply dark:mix-blend-normal" />
+        <div className="flex-1 min-w-0 text-center">
+          <div className="w-full aspect-square rounded bg-[#f4f5f7] dark:bg-dark-700 mb-1.5 flex items-center justify-center overflow-hidden">
+            <img
+              src={car2.image}
+              alt={car2.model}
+              className="max-w-full max-h-full w-auto h-auto object-contain p-2 mix-blend-multiply dark:mix-blend-normal"
+            />
+          </div>
           <span className="text-xs font-semibold block text-gray-800 dark:text-white theme-transition">{car2.model}</span>
           <span className="text-[10px] text-gray-500 dark:text-gray-400 theme-transition truncate block max-w-full">{car2.variant}</span>
         </div>
@@ -1345,11 +1358,55 @@ const CompareCars = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading car data...</p>
-        </div>
+      <div className={`min-h-screen ${isDark ? 'bg-dark-900' : 'bg-white'}`}>
+        <SkeletonStyles />
+
+        {/* Hero renders immediately — it's static content, no need to wait */}
+        <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <img
+              src="./imageCompare.png"
+              alt="Compare Cars"
+              className="w-full h-full object-cover opacity-30"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent"></div>
+          </div>
+          <div className="container-custom relative z-10">
+            <div className="max-w-3xl">
+              <div className="inline-block px-3 sm:px-4 py-1.5 bg-[#fc641c] rounded-full text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-sm">
+                🚗 Car Comparison Tool
+              </div>
+              <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
+                Compare Cars{' '}
+                <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Side by Side</span>
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8">
+                Select two cars to compare their features, scores, and specifications
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Selection card skeletons — same 2-up layout as the real selection cards */}
+        <section className={`py-8 sm:py-10 md:py-12 transition-colors duration-300 ${isDark ? 'bg-dark-950' : 'bg-white'}`}>
+          <div className="container-custom">
+            <div className="max-w-4xl mx-auto">
+              <CompareCardGridSkeleton count={2} isDark={isDark} />
+            </div>
+          </div>
+        </section>
+
+        {/* Popular comparisons skeleton */}
+        <section className={`py-12 md:py-16 transition-colors duration-300 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
+          <div className="container-custom">
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-8">
+                <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Popular Comparisons</h2>
+              </div>
+              <CompareCardGridSkeleton count={5} isDark={isDark} />
+            </div>
+          </div>
+        </section>
       </div>
     )
   }
@@ -1367,6 +1424,7 @@ const CompareCars = () => {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-dark-900' : 'bg-white'}`}>
+      <SkeletonStyles />
       
       {/* RESTORED HERO SECTION */}
       <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
@@ -1551,16 +1609,22 @@ const CompareCars = () => {
             </div>
             
             {/* Display the dynamically generated popular comparisons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              {popularCardsData.map((comparison) => (
-                <PopularComparisonCard 
-                  key={comparison.id} 
-                  comparison={comparison} 
-                  onClick={() => handlePopularCompare(comparison)} 
-                  isDark={isDark} 
-                />
-              ))}
-            </div>
+            {popularCardsData.length === 0 ? (
+              <CompareCardGridSkeleton count={5} isDark={isDark} />
+            ) : (
+              <FadeIn>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                {popularCardsData.map((comparison) => (
+                  <PopularComparisonCard 
+                    key={comparison.id} 
+                    comparison={comparison} 
+                    onClick={() => handlePopularCompare(comparison)} 
+                    isDark={isDark} 
+                  />
+                ))}
+              </div>
+              </FadeIn>
+            )}
           </div>
         </div>
       </section>

@@ -17,8 +17,8 @@ import { useTheme } from '../context/ThemeContext';
 import {
   getAllTravelogues,
   getTraveloguesByCategory,
-  getTravelogueCategories
 } from '../data/traveloguesData';
+import { SkeletonStyles, CategorySkeleton, CardGridSkeleton, TravelogueCardSkeleton, FadeIn } from '../components/skeletons/Skeletons';
 
 const Travelogues = () => {
   const { isDark } = useTheme();
@@ -32,15 +32,25 @@ const Travelogues = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
         setError(null);
 
         const allLogs = await getAllTravelogues();
         setTravelogues(allLogs);
         setFilteredLogs(allLogs);
 
-        const categoriesData = await getTravelogueCategories();
-        setCategories(categoriesData);
+        // Derive category counts client-side from the list we already have,
+        // instead of firing a second identical network request.
+        const categoryMap = {};
+        allLogs.forEach((log) => {
+          if (log.category) categoryMap[log.category] = (categoryMap[log.category] || 0) + 1;
+        });
+        setCategories(
+          Object.entries(categoryMap).map(([name, count]) => ({
+            id: name.toLowerCase().replace(/\s+/g, '-'),
+            name,
+            count,
+          }))
+        );
 
       } catch (err) {
         console.error('❌ Error fetching travelogues:', err);
@@ -64,19 +74,6 @@ const Travelogues = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-          <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Loading travel stories...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
@@ -97,6 +94,7 @@ const Travelogues = () => {
 
   return (
     <>
+      <SkeletonStyles />
       <section className="relative overflow-hidden pt-24 sm:pt-28 md:pt-32 pb-10 sm:pb-12 md:pb-16 bg-gradient-to-r from-blue-950 via-slate-900 to-slate-700">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container-custom relative z-10 text-center">
@@ -122,6 +120,9 @@ const Travelogues = () => {
       <section className={`sticky top-14 sm:top-16 z-20 border-b transition-colors duration-300 ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-200'
         }`}>
         <div className="container-custom">
+          {loading ? (
+            <CategorySkeleton isDark={isDark} count={5} />
+          ) : (
           <div className="flex flex-nowrap gap-2 py-2.5 sm:py-3 md:py-4 overflow-x-auto hide-scrollbar">
             {allCategories.map((category) => (
               <button
@@ -144,19 +145,23 @@ const Travelogues = () => {
               </button>
             ))}
           </div>
+          )}
         </div>
       </section>
 
       <section className={`py-8 sm:py-12 md:py-16 transition-colors duration-300 ${isDark ? 'bg-dark-900' : 'bg-gray-50'
         }`}>
         <div className="container-custom">
-          {filteredLogs.length === 0 ? (
+          {loading ? (
+            <CardGridSkeleton count={6} isDark={isDark} CardComponent={TravelogueCardSkeleton} />
+          ) : filteredLogs.length === 0 ? (
             <div className="text-center py-12 sm:py-16 md:py-20">
               <div className="text-5xl sm:text-6xl mb-4">📖</div>
               <h3 className={`text-xl sm:text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>No Travel Stories Found</h3>
               <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Try selecting a different category</p>
             </div>
           ) : (
+            <FadeIn>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
               {filteredLogs.map((log, idx) => (
                 <motion.article
@@ -212,6 +217,7 @@ const Travelogues = () => {
                 </motion.article>
               ))}
             </div>
+            </FadeIn>
           )}
         </div>
       </section>

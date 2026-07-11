@@ -19,6 +19,7 @@ import CarouselCard from '../components/CarouselCard'
 import { useTheme } from '../context/ThemeContext'
 import { getFeaturedTravelogues } from '../data/traveloguesData'
 import { getFeaturedArticles } from '../data/articlesData'
+import { SkeletonStyles, CarouselSkeleton, FadeIn } from '../components/skeletons/Skeletons'
 
 // ========================================
 // STATIC DATA
@@ -138,11 +139,6 @@ const Home = () => {
   const fadeUp = {
     hidden: { opacity: 0, y: 40 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }
-  }
-
-  const scaleUp = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } }
   }
 
   // ========================================
@@ -394,14 +390,13 @@ const Home = () => {
           </motion.div>
 
           {isTraveloguesLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
-            </div>
+            <CarouselSkeleton count={4} isDark={isDark} />
           ) : !hasTravelogues ? (
             <div className={`rounded-xl p-8 text-center ${cardBgClass} ${cardShadowClass}`}>
               <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No travelogues available</p>
             </div>
           ) : (
+            <FadeIn>
             <Carousel ariaLabel="Travel Logs">
               {travelogues.slice(0, 8).map((log, idx) => (
                 <CarouselCard
@@ -420,6 +415,7 @@ const Home = () => {
                 />
               ))}
             </Carousel>
+            </FadeIn>
           )}
         </div>
       </section>
@@ -462,14 +458,13 @@ const Home = () => {
           </motion.div>
 
           {isArticlesLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
-            </div>
+            <CarouselSkeleton count={4} isDark={isDark} />
           ) : !hasArticles ? (
             <div className={`rounded-xl p-8 text-center ${cardBgClass} ${cardShadowClass}`}>
               <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No articles available</p>
             </div>
           ) : (
+            <FadeIn>
             <Carousel ariaLabel="Technology Guides">
               {featuredArticles.slice(0, 8).map((article, idx) => (
                 <CarouselCard
@@ -489,7 +484,55 @@ const Home = () => {
                 />
               ))}
             </Carousel>
+            </FadeIn>
           )}
+        </div>
+      </section>
+    )
+  }
+
+  const renderTestimonials = () => {
+    const cardBgClass = isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-100'
+
+    return (
+      <section className={`py-4 md:py-4 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
+        <div className="container-custom">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center max-w-4xl mx-auto mb-8 md:mb-10"
+          >
+            <span className="text-yellow-500 font-bold text-xl tracking-wider uppercase">Testimonials</span>
+            <h2 className={`text-3xl md:text-4xl font-bold mt-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              What Our Readers Say
+            </h2>
+          </motion.div>
+
+          <Carousel ariaLabel="Testimonials">
+            {TESTIMONIALS.map((testimonial, idx) => (
+              <div
+                key={idx}
+                className={`flex-shrink-0 w-[80vw] xs:w-[70vw] sm:w-[300px] md:w-[340px] rounded-xl p-6 text-left border shadow-md transition-colors duration-150 ${cardBgClass}`}
+              >
+                <div className="flex text-yellow-400 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className={`italic mb-4 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  "{testimonial.quote}"
+                </p>
+                <div>
+                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{testimonial.name}</p>
+                  <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>{testimonial.role}</p>
+                </div>
+              </div>
+            ))}
+          </Carousel>
         </div>
       </section>
     )
@@ -530,6 +573,7 @@ const Home = () => {
   // ========================================
   return (
     <>
+      <SkeletonStyles />
       {renderHero()}
 
       <section className={`transition-colors duration-150 border-b ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-gray-50 border-gray-100'} pb-6 md:pb-10`}>
@@ -543,46 +587,10 @@ const Home = () => {
       {/* Technology Guides — horizontal carousel */}
       {renderTechnologyGuides()}
 
-      {/* Testimonials Section */}
-      <section className={`py-4 md:py-4 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
-        <div className="container-custom">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center max-w-4xl mx-auto">
-            <span className="text-yellow-500 font-bold text-xl tracking-wider uppercase">Testimonials</span>
-            <h2 className={`text-3xl md:text-4xl font-bold mt-3 mb-10 md:mb-12 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              What Our Readers Say
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {TESTIMONIALS.map((testimonial, idx) => (
-                <motion.div
-                  key={idx}
-                  variants={scaleUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.08 }}
-                  className={`rounded-xl p-6 text-left border shadow-md transition-colors duration-150 ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-100'}`}
-                >
-                  <div className="flex text-yellow-400 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <p className={`italic mb-4 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    "{testimonial.quote}"
-                  </p>
-                  <div>
-                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{testimonial.name}</p>
-                    <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>{testimonial.role}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Testimonials Section — same horizontal Carousel component as
+          Travelogue / Technology Guides, so mobile scrolling (native
+          swipe, arrows, no per-card fade delay) matches exactly. */}
+      {renderTestimonials()}
 
       {renderNewsletter()}
     </>

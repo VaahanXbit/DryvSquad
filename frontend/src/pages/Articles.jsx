@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTheme } from '../context/ThemeContext'
 import { getAllArticles, getArticlesByCategory, getCategories } from '../data/articlesData'
+import { SkeletonStyles, CategorySkeleton, CardGridSkeleton, ArticleCardSkeleton, FadeIn } from '../components/skeletons/Skeletons'
 
 const Articles = () => {
   const { isDark } = useTheme()
@@ -28,18 +29,18 @@ const Articles = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
         setError(null)
-        
-        // Fetch all articles
-        const allArticles = await getAllArticles()
+
+        // Independent requests — fetch in parallel instead of one-by-one.
+        const [allArticles, categoriesData] = await Promise.all([
+          getAllArticles(),
+          getCategories(),
+        ])
+
         setArticles(allArticles)
         setFilteredArticles(allArticles)
-        
-        // Fetch categories
-        const categoriesData = await getCategories()
         setCategories(categoriesData)
-        
+
       } catch (err) {
         console.error('❌ Error fetching articles:', err)
         setError('Failed to load articles. Please try again.')
@@ -62,19 +63,6 @@ const Articles = () => {
     }
   }
 
-  if (loading) {
-    return (
-      <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-          <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Loading articles...
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   if (error) {
     return (
       <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
@@ -95,6 +83,7 @@ const Articles = () => {
 
   return (
     <>
+      <SkeletonStyles />
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-24 sm:pt-28 md:pt-32 pb-10 sm:pb-12 md:pb-16 bg-gradient-to-r from-blue-950 via-slate-900 to-slate-700">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -123,6 +112,9 @@ const Articles = () => {
         isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-200'
       }`}>
         <div className="container-custom">
+          {loading ? (
+            <CategorySkeleton isDark={isDark} count={5} />
+          ) : (
           <div className="flex flex-nowrap gap-2 py-2.5 sm:py-3 md:py-4 overflow-x-auto hide-scrollbar">
             {allCategories.map((category) => (
               <button
@@ -147,6 +139,7 @@ const Articles = () => {
               </button>
             ))}
           </div>
+          )}
         </div>
       </section>
 
@@ -155,13 +148,16 @@ const Articles = () => {
         isDark ? 'bg-dark-900' : 'bg-gray-50'
       }`}>
         <div className="container-custom">
-          {filteredArticles.length === 0 ? (
+          {loading ? (
+            <CardGridSkeleton count={6} isDark={isDark} CardComponent={ArticleCardSkeleton} />
+          ) : filteredArticles.length === 0 ? (
             <div className="text-center py-12 sm:py-16 md:py-20">
               <div className="text-5xl sm:text-6xl mb-4">📚</div>
               <h3 className={`text-xl sm:text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>No Articles Found</h3>
               <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Try selecting a different category</p>
             </div>
           ) : (
+            <FadeIn>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
               {filteredArticles.map((article, idx) => (
                 <motion.article
@@ -216,6 +212,7 @@ const Articles = () => {
                 </motion.article>
               ))}
             </div>
+            </FadeIn>
           )}
         </div>
       </section>

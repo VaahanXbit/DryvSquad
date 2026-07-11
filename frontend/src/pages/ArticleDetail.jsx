@@ -17,6 +17,7 @@ import { getArticleBySlug, getAllArticles } from '../data/articlesData'
 import { api } from '../services/api'
 import AuthModal from '../components/AuthModal'
 import { getAvatarUrl } from '../utils/avatar'
+import { SkeletonStyles, ArticleDetailSkeleton, CommentListSkeleton, FadeIn } from '../components/skeletons/Skeletons'
 
 // Pulls the userId out of a JWT without needing a network call — the token
 // payload is just base64, so this is safe to decode client-side (it's not
@@ -294,14 +295,17 @@ const ArticleDetail = () => {
     const fetchArticle = async () => {
       try {
         setLoading(true)
-        
-        // Get article by slug from API
-        const articleData = await getArticleBySlug(slug)
+        // Article-by-slug and the full article list are independent
+        // requests — fetch them in parallel instead of one-by-one.
+        const [articleData, allArticlesData] = await Promise.all([
+          getArticleBySlug(slug),
+          getAllArticles(),
+        ])
+
         setArticle(articleData || null)
-        
+
         if (articleData) {
-          // Get related articles (same category, different slug)
-          const allArticlesData = await getAllArticles()
+          // Related articles (same category, different slug)
           const related = allArticlesData
             .filter(a => a.category === articleData.category && a.slug !== slug)
             .slice(0, 3)
@@ -528,14 +532,10 @@ const ArticleDetail = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-          <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Loading article...
-          </p>
-        </div>
-      </div>
+      <>
+        <SkeletonStyles />
+        <ArticleDetailSkeleton isDark={isDark} />
+      </>
     )
   }
 
@@ -561,6 +561,7 @@ const ArticleDetail = () => {
 
   return (
     <>
+      <SkeletonStyles />
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-24 sm:pt-28 md:pt-32 pb-10 sm:pb-12 md:pb-16 bg-gradient-to-r from-blue-950 via-slate-900 to-slate-700">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -765,10 +766,11 @@ const ArticleDetail = () => {
 
             {/* Comments list */}
             {commentsLoading ? (
-              <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Loading comments...</p>
+              <CommentListSkeleton count={3} isDark={isDark} />
             ) : topLevelComments.length === 0 ? (
               <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Be the first to comment on this article.</p>
             ) : (
+              <FadeIn>
               <div className="space-y-4">
                 {topLevelComments.map((comment) => (
                   <CommentCard
@@ -796,6 +798,7 @@ const ArticleDetail = () => {
                   />
                 ))}
               </div>
+              </FadeIn>
             )}
           </div>
         </div>

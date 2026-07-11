@@ -142,10 +142,13 @@ const processBrand = async (brandData) => {
   const results = { brand: brand, success: true, errors: [], modelsProcessed: 0, variantsProcessed: 0 }
 
   try {
+    // Generate slug if not provided
+    const slug = brandSlug || brand.toLowerCase().replace(/\s+/g, '-')
+    
     // 1. Create Brand
     const brandDoc = new Brand({
       name: brand,
-      slug: brandSlug,
+      slug: slug,
       icon: brandIcon || '🚗',
       description: brandDescription || '',
     })
@@ -157,7 +160,7 @@ const processBrand = async (brandData) => {
       try {
         const modelDoc = new Model({
           brandId: brandDoc._id,
-          name: modelData.name,
+          name: modelData.name || modelData.model, // Handle both 'name' and 'model' fields
           slug: modelData.slug,
           image: modelData.image || '/images/default.png',
           bodyType: modelData.bodyType || 'SUV',
@@ -166,10 +169,10 @@ const processBrand = async (brandData) => {
         })
         await modelDoc.save()
         results.modelsProcessed++
-        console.log(`   ✅ Model created: ${modelData.name}`)
+        console.log(`   ✅ Model created: ${modelData.name || modelData.model}`)
 
         // 3. Process Variants
-        for (const variantData of modelData.variants) {
+        for (const variantData of (modelData.variants || [])) {
           try {
             // Map transmission to valid enum values
             let transmission = variantData.transmission || 'N/A'
@@ -186,17 +189,11 @@ const processBrand = async (brandData) => {
             const powerNumeric = variantData.powerNumeric || extractNumeric(variantData.power)
             const mileageNumeric = variantData.mileageNumeric || extractNumeric(variantData.mileage)
             
-            // 🔧 FIX: Get specifications with proper handling
+            // Get specifications with proper handling
             const specs = getSpecifications(variantData.specifications || {})
             
             // Log for debugging
             console.log(`   📝 Saving variant: ${variantData.name}`)
-            console.log(`   📦 Specifications:`, JSON.stringify({
-              bootSpace: specs.bootSpace,
-              groundClearance: specs.groundClearance,
-              turningRadius: specs.turningRadius,
-              fuelTankCapacity: specs.fuelTankCapacity,
-            }))
 
             const variantDoc = new Variant({
               modelId: modelDoc._id,
@@ -211,7 +208,6 @@ const processBrand = async (brandData) => {
               power: variantData.power || 'N/A',
               torque: variantData.torque || 'N/A',
               mileage: variantData.mileage || 'N/A',
-              // ✅ FIX: Save numeric fields
               torqueNumeric: torqueNumeric,
               powerNumeric: powerNumeric,
               mileageNumeric: mileageNumeric,
@@ -242,7 +238,6 @@ const processBrand = async (brandData) => {
                 familyScore: { rearSeatSpace: 0, bootCapacity: 0, childSafety: 0, easeOfEntry: 0, familyFeatures: 0 },
                 maintenanceScore: { serviceCost: 0, spareParts: 0, serviceNetwork: 0, reliability: 0, warranty: 0 },
               },
-              // ✅ FIX: Save specifications properly
               specifications: specs,
             })
             await variantDoc.save()
@@ -253,8 +248,8 @@ const processBrand = async (brandData) => {
           }
         }
       } catch (error) {
-        console.error(`   ❌ Failed to create model ${modelData.name}: ${error.message}`)
-        results.errors.push({ model: modelData.name, error: error.message })
+        console.error(`   ❌ Failed to create model ${modelData.name || modelData.model}: ${error.message}`)
+        results.errors.push({ model: modelData.name || modelData.model, error: error.message })
         results.success = false
       }
     }

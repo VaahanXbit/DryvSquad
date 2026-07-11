@@ -2,13 +2,17 @@
 /*
 ================================================================================
 File Name : CarouselCard.jsx
-Description : Single card used inside the homepage Travel Logs and Technology
-              Guides carousels — image-only, editorial style.
+Description : Single card used inside the homepage Travel Logs, Technology
+              Guides, and Testimonials carousels — image-only, editorial
+              style. No entrance/hover transforms on the card itself (only
+              the poster image zooms, clipped inside its own frame) so the
+              row never grows a stray vertical scrollbar and cards render
+              instantly with zero delay while scrolling — same as
+              Netflix / Prime style rows.
 ================================================================================
 */
 
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 
 const CarouselCard = ({
   to,
@@ -18,25 +22,19 @@ const CarouselCard = ({
   title,
   isDark,
   cardShadowClass,
-  delay = 0,
 }) => {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.45, ease: 'easeOut' }}
-      whileHover={{ y: -6, transition: { type: 'spring', stiffness: 300, damping: 22 } }}
-      // REMOVED 'snap-start' from the class string below
-      className={`group flex-shrink-0 w-[62vw] xs:w-[54vw] sm:w-[240px] md:w-[260px] lg:w-[280px] rounded-xl overflow-hidden will-change-transform ${cardShadowClass} transition-shadow duration-500 ease-out ${!isDark && 'border border-gray-100'}`}
+    <article
+      className={`group flex-shrink-0 w-[62vw] xs:w-[54vw] sm:w-[240px] md:w-[260px] lg:w-[280px] rounded-xl overflow-hidden will-change-transform ${cardShadowClass} transition-shadow duration-300 ease-out ${!isDark && 'border border-gray-100'}`}
     >
       <Link to={to} className="block h-full">
-        <div className="relative w-full aspect-[3/4] overflow-hidden">
+        <div className="relative w-full aspect-[3/4] overflow-hidden rounded-xl">
           <img
             src={image}
             alt={title}
             draggable="false" // IMPORTANT: Prevents the browser's default ghost image dragging
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.06]"
             onError={(e) => {
               if (fallbackImage) e.target.src = fallbackImage
             }}
@@ -53,7 +51,7 @@ const CarouselCard = ({
           </div>
         </div>
       </Link>
-    </motion.article>
+    </article>
   )
 }
 
