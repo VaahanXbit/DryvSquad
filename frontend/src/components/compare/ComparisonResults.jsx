@@ -1,7 +1,8 @@
 // src/components/compare/ComparisonResults.jsx
-
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from '../../context/LocationContext'
+import { api } from '../../services/api'
 
 const ComparisonResults = ({ 
   comparisonData, 
@@ -11,8 +12,56 @@ const ComparisonResults = ({
   carCardRef2 
 }) => {
   const [expandedRow, setExpandedRow] = useState(null)
+  const { location } = useLocation()
   
   const { car1, car2, summary } = comparisonData
+
+  // State for on-road prices
+  const [car1OnRoadPrice, setCar1OnRoadPrice] = useState(null)
+  const [car2OnRoadPrice, setCar2OnRoadPrice] = useState(null)
+  const [pricingLoading, setPricingLoading] = useState(true)
+
+  const fetchOnRoadPrices = async () => {
+    setPricingLoading(true)
+    try {
+      // Fetch both prices in parallel
+      const [price1, price2] = await Promise.all([
+        api.calculateOnRoadPrice(car1.id, location.city, location.stateCode),
+        api.calculateOnRoadPrice(car2.id, location.city, location.stateCode)
+      ])
+
+      if (price1.success && price1.data?.pricing) {
+        // ✅ Combined fallback evaluation logic
+        setCar1OnRoadPrice(price1.data.pricing.total || price1.data.pricing.totalOnRoadPrice)
+      }
+      if (price2.success && price2.data?.pricing) {
+        setCar2OnRoadPrice(price2.data.pricing.total || price2.data.pricing.totalOnRoadPrice)
+      }
+    } catch (error) {
+      console.error('Error fetching on-road prices:', error)
+    } finally {
+      setPricingLoading(false)
+    }
+  }
+
+  // Fetch on-road prices when component mounts or location changes
+  useEffect(() => {
+    if (location && car1?.id && car2?.id) {
+      fetchOnRoadPrices()
+    }
+  }, [location, car1?.id, car2?.id])
+
+  const formatPrice = (price) => {
+    if (!price) return 'N/A'
+    if (price >= 10000000) {
+      return `₹${(price / 10000000).toFixed(2)} Cr`
+    } else if (price >= 100000) {
+      return `₹${(price / 100000).toFixed(2)} Lakh`
+    } else if (price >= 1000) {
+      return `₹${(price / 1000).toFixed(2)}K`
+    }
+    return `₹${price.toFixed(0)}`
+  }
 
   const categoryOrder = [
     { key: 'torque', label: 'MAX TORQUE', icon: '⚡' },
@@ -125,15 +174,24 @@ const ComparisonResults = ({
     }
   }
 
+  const hasOnRoadPrice = car1OnRoadPrice !== null || car2OnRoadPrice !== null
+
   return (
     <div className="bg-white dark:bg-dark-800 rounded-xl shadow-lg overflow-hidden theme-transition">
       
-      {/* Header - Only title + close */}
+      {/* Header */}
       <div className="px-6 md:px-8 py-4 md:py-6 border-b border-gray-200 dark:border-dark-700 theme-transition">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white theme-transition">
-            {/* Title space kept if needed in future */}
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white theme-transition">
+              Comparison Results
+            </h2>
+            {location && (
+              <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded-full flex items-center gap-1">
+                📍 {location.city || location.state}
+              </span>
+            )}
+          </div>
           <button 
             onClick={onClear} 
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 bg-gray-50 hover:bg-gray-100 dark:bg-dark-700 dark:hover:bg-dark-600 rounded-full"
@@ -145,7 +203,7 @@ const ComparisonResults = ({
         </div>
       </div>
 
-      {/* ✅ Car Cards with ID for scroll tracking */}
+      {/* Car Cards with On-Road Price */}
       <div 
         id="comparison-car-cards"
         className="px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 md:gap-6 bg-gradient-to-b from-gray-50 to-white dark:from-dark-800/80 dark:to-dark-800 border-b border-gray-200 dark:border-dark-700 theme-transition"
@@ -168,7 +226,6 @@ const ComparisonResults = ({
             />
           </div>
           
-          {/* ✅ UPDATED ROW: Brand name centered, Edit button aligned right */}
           <div className="flex items-center justify-center w-full relative mb-1 sm:mb-1.5 px-1 sm:px-2">
             <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 bg-yellow-500 text-gray-900 rounded-full shadow-sm">
               {car1.brand}
@@ -183,7 +240,32 @@ const ComparisonResults = ({
 
           <div className="text-xs sm:text-lg md:text-xl font-bold text-gray-800 dark:text-white leading-tight theme-transition px-1">{car1.model}</div>
           <div className="text-[9px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1 uppercase tracking-wider font-semibold theme-transition">{car1Variant}</div>
-          <div className="text-[11px] sm:text-sm font-bold text-yellow-600 dark:text-yellow-400 mt-1 sm:mt-2 theme-transition">{car1.price}</div>
+          
+          {/* Ex-Showroom Price */}
+          <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Ex-Showroom: <span className="font-semibold text-gray-700 dark:text-gray-300">{car1.price}</span>
+          </div>
+
+          {/* On-Road Price */}
+          <div className="mt-1">
+            {pricingLoading ? (
+              <div className="flex items-center justify-center gap-1">
+                <div className="w-3 h-3 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-[10px] text-gray-400">Loading...</span>
+              </div>
+            ) : car1OnRoadPrice ? (
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
+                <span className="text-[10px] sm:text-xs text-yellow-600 dark:text-yellow-400">💰</span>
+                <span className="text-xs sm:text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                  {formatPrice(car1OnRoadPrice)}
+                </span>
+                <span className="text-[8px] sm:text-[9px] text-yellow-500/70">On-Road</span>
+              </div>
+            ) : (
+              <span className="text-[10px] text-gray-400">No location data</span>
+            )}
+          </div>
+
           {car1.overallScore && (
             <div className="mt-1.5 sm:mt-3 inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
               <span className="text-[10px] sm:text-xs text-yellow-600 dark:text-yellow-400">★</span>
@@ -205,7 +287,6 @@ const ComparisonResults = ({
             />
           </div>
           
-          {/* ✅ UPDATED ROW: Brand name centered, Edit button aligned right */}
           <div className="flex items-center justify-center w-full relative mb-1 sm:mb-1.5 px-1 sm:px-2">
             <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 bg-yellow-500 text-gray-900 rounded-full shadow-sm">
               {car2.brand}
@@ -220,7 +301,32 @@ const ComparisonResults = ({
 
           <div className="text-xs sm:text-lg md:text-xl font-bold text-gray-800 dark:text-white leading-tight theme-transition px-1">{car2.model}</div>
           <div className="text-[9px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1 uppercase tracking-wider font-semibold theme-transition">{car2Variant}</div>
-          <div className="text-[11px] sm:text-sm font-bold text-yellow-600 dark:text-yellow-400 mt-1 sm:mt-2 theme-transition">{car2.price}</div>
+          
+          {/* Ex-Showroom Price */}
+          <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Ex-Showroom: <span className="font-semibold text-gray-700 dark:text-gray-300">{car2.price}</span>
+          </div>
+
+          {/* On-Road Price */}
+          <div className="mt-1">
+            {pricingLoading ? (
+              <div className="flex items-center justify-center gap-1">
+                <div className="w-3 h-3 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-[10px] text-gray-400">Loading...</span>
+              </div>
+            ) : car2OnRoadPrice ? (
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
+                <span className="text-[10px] sm:text-xs text-yellow-600 dark:text-yellow-400">💰</span>
+                <span className="text-xs sm:text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                  {formatPrice(car2OnRoadPrice)}
+                </span>
+                <span className="text-[8px] sm:text-[9px] text-yellow-500/70">On-Road</span>
+              </div>
+            ) : (
+              <span className="text-[10px] text-gray-400">No location data</span>
+            )}
+          </div>
+
           {car2.overallScore && (
             <div className="mt-1.5 sm:mt-3 inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
               <span className="text-[10px] sm:text-xs text-yellow-600 dark:text-yellow-400">★</span>
@@ -277,7 +383,7 @@ const ComparisonResults = ({
                     onClick={() => toggleExpand(key)}
                   >
                     <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200 theme-transition">
-                      {isExpanded }
+                      {isExpanded ? 'Hide Details' : 'View Details'}
                     </span>
                     <svg 
                       className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300 transition-transform duration-300 ${
@@ -364,6 +470,64 @@ const ComparisonResults = ({
               </div>
             )
           })}
+
+          {/* On-Road Price Comparison Row */}
+          {hasOnRoadPrice && (
+            <div className="bg-white dark:bg-dark-800 border border-yellow-300 dark:border-yellow-700/50 rounded-xl overflow-hidden theme-transition">
+              <div className="px-3 sm:px-6 md:px-8 py-4 md:py-6 grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 md:gap-6 items-center bg-yellow-50/30 dark:bg-yellow-900/10">
+                
+                <div className="flex items-center gap-2 sm:gap-4 col-span-2 md:col-span-1">
+                  <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 shadow-sm text-lg sm:text-2xl theme-transition">
+                    💰
+                  </div>
+                  <span className="font-bold text-xs sm:text-sm text-gray-800 dark:text-gray-200 uppercase tracking-wide theme-transition">
+                    ON-ROAD PRICE
+                  </span>
+                  {location && (
+                    <span className="text-[10px] bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      📍 {location.city || location.state}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-center justify-center col-span-1">
+                  <span className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-200 mb-1 text-center theme-transition">
+                    {car1.price}
+                  </span>
+                  {pricingLoading ? (
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs text-gray-400">Loading...</span>
+                    </div>
+                  ) : car1OnRoadPrice ? (
+                    <span className="text-lg sm:text-xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {formatPrice(car1OnRoadPrice)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400">N/A</span>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-center justify-center col-span-1">
+                  <span className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-200 mb-1 text-center theme-transition">
+                    {car2.price}
+                  </span>
+                  {pricingLoading ? (
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs text-gray-400">Loading...</span>
+                    </div>
+                  ) : car2OnRoadPrice ? (
+                    <span className="text-lg sm:text-xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {formatPrice(car2OnRoadPrice)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400">N/A</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

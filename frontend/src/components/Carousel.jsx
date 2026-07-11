@@ -13,7 +13,7 @@ Description : Reusable horizontal free-scroll carousel used on the homepage
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useTheme } from '../context/ThemeContext'
 
-const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
+const Carousel = ({ children, ariaLabel = 'Carousel', center = false }) => {
   const { isDark } = useTheme()
   const trackRef = useRef(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -160,7 +160,7 @@ const Carousel = ({ children, ariaLabel = 'Carousel' }) => {
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
         onClickCapture={handleClickCapture}
-        className="flex gap-4 md:gap-5 overflow-x-auto overflow-y-hidden hide-scrollbar pb-2 cursor-grab"
+        className={`flex gap-4 md:gap-5 overflow-x-auto overflow-y-hidden hide-scrollbar pb-2 cursor-grab ${center ? 'justify-center' : ''}`}
         style={{
           WebkitOverflowScrolling: 'touch',
           // Native ('auto') at all times — trackpad/touch/wheel scrolling

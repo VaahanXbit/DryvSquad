@@ -1119,6 +1119,126 @@ export const api = {
     }
   },
 
+  // ========================================
+// LOCATION API
+// ========================================
+
+// Reverse geocode coordinates
+reverseGeocode: async (lat, lng) => {
+  try {
+    const response = await fetch(`${API_URL}/location/reverse-geocode?lat=${lat}&lng=${lng}`, {
+      headers: { 'Accept': 'application/json' },
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('❌ Reverse geocode error:', error);
+    return { success: false, message: 'Failed to get location' };
+  }
+},
+
+// Search locations
+searchLocations: async (query) => {
+  try {
+    const response = await fetch(`${API_URL}/location/search?q=${encodeURIComponent(query)}`, {
+      headers: { 'Accept': 'application/json' },
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('❌ Search locations error:', error);
+    return { success: false, message: 'Failed to search locations' };
+  }
+},
+
+// Get popular locations
+getPopularLocations: async () => {
+  try {
+    const response = await fetch(`${API_URL}/location/popular`, {
+      headers: { 'Accept': 'application/json' },
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('❌ Get popular locations error:', error);
+    return { success: false, message: 'Failed to get popular locations' };
+  }
+},
+
+// Save user location (authenticated)
+saveUserLocation: async (token, locationData) => {
+  try {
+    const response = await fetch(`${API_URL}/location/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(locationData),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('❌ Save location error:', error);
+    return { success: false, message: 'Failed to save location' };
+  }
+},
+
+// Get user location (authenticated)
+getUserLocation: async (token) => {
+  try {
+    const response = await fetch(`${API_URL}/location/user`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('❌ Get user location error:', error);
+    return { success: false, message: 'Failed to get user location' };
+  }
+},
+
+// ========================================
+// PRICING API
+// ========================================
+
+// Calculate on-road price for a variant
+calculateOnRoadPrice: async (variantId, city, stateCode, includeInsurance = true) => {
+  try {
+    const response = await fetch(`${API_URL}/pricing/calculate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ variantId, city, stateCode, includeInsurance }),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('❌ Calculate price error:', error);
+    return { success: false, message: 'Failed to calculate price' };
+  }
+},
+
+// Calculate on-road prices for multiple variants
+calculateMultiplePrices: async (variantIds, city, stateCode) => {
+  try {
+    const response = await fetch(`${API_URL}/pricing/calculate-multiple`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ variantIds, city, stateCode }),
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('❌ Calculate multiple prices error:', error);
+    return { success: false, message: 'Failed to calculate prices' };
+  }
+},
+
+
+
 };
 
 export default api;

@@ -522,6 +522,9 @@ const Home = () => {
   }
 
   const renderTestimonials = () => {
+    const cardShadowClass = isDark
+      ? 'shadow-lg hover:shadow-2xl'
+      : 'shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_60px_rgb(0,0,0,0.18)]';
     const cardBgClass = isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-100'
 
     return (
@@ -540,11 +543,11 @@ const Home = () => {
             </h2>
           </motion.div>
 
-          <Carousel ariaLabel="Testimonials">
+          <Carousel ariaLabel="Testimonials" center>
             {TESTIMONIALS.map((testimonial, idx) => (
               <div
                 key={idx}
-                className={`flex-shrink-0 w-[80vw] xs:w-[70vw] sm:w-[300px] md:w-[340px] rounded-xl p-6 text-left border shadow-md transition-colors duration-150 ${cardBgClass}`}
+                className={`flex-shrink-0 flex flex-col justify-center w-[62vw] xs:w-[54vw] sm:w-[240px] md:w-[260px] lg:w-[280px] min-h-[360px] sm:min-h-[380px] md:min-h-[400px] rounded-xl p-6 text-left border select-none cursor-default ${cardShadowClass} transition-shadow duration-300 ease-out ${cardBgClass}`}
               >
                 <div className="flex text-yellow-400 mb-4">
                   {[...Array(5)].map((_, i) => (

@@ -59,6 +59,16 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  selectedLocation: {
+  city: { type: String, trim: true },
+  district: { type: String, trim: true },
+  state: { type: String, trim: true },
+  stateCode: { type: String, uppercase: true, trim: true },
+  latitude: { type: Number },
+  longitude: { type: Number },
+  pincode: { type: String, trim: true },
+  locationUpdatedAt: { type: Date },
+},
 });
 
 module.exports = mongoose.model('User', UserSchema);

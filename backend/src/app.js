@@ -1,4 +1,4 @@
-// src/app.js
+// backend/src/app.js (Add location routes)
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,15 +7,14 @@ const authRoutes = require('./routes/authRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const compareRoutes = require('./routes/compareRoutes');
-
 const carRoutes = require('./routes/carRoutes');
 const travelogueRoutes = require('./routes/travelogueRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const leadRoutes = require('./routes/leadRoutes');
-
+const locationRoutes = require('./routes/locationRoutes'); // ✅ ADD THIS
+const pricingRoutes = require('./routes/pricingRoutes'); // ✅ ADD THIS
 
 const connectDB = require('./config/database');
-
 
 // Connect to MongoDB
 connectDB();
@@ -37,24 +36,16 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5000",
-
-  // Production
   "https://www.dryvsquad.com",
   "https://dryvsquad.com",
-
-  // Optional: Your backend frontend URLs
   "https://vaahan-international-obbc.vercel.app",
   "https://vaahan-international-jnrgeygvv-tahseen-razas-projects.vercel.app",
-
-  // Environment variable
   process.env.FRONTEND_URL,
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
     if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
@@ -80,9 +71,8 @@ app.use('/api/compare', compareRoutes);
 app.use('/api/travelogues', travelogueRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/leads', leadRoutes);
-
-
-
+app.use('/api/location', locationRoutes); // ✅ ADD THIS
+app.use('/api/pricing', pricingRoutes); // ✅ ADD THIS
 
 // Health check
 app.get('/health', (req, res) => {

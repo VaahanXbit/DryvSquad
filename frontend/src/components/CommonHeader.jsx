@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from './ThemeToggle'
 import AuthModal from './AuthModal'
 import { useTheme } from '../context/ThemeContext'
+import { useLocation as useLocationContext } from '../context/LocationContext'
 import { api } from '../services/api'
 
 // Static category data
@@ -71,6 +72,9 @@ const CommonHeader = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const location = useLocation()
   const { isDark } = useTheme()
+  
+  // Location context
+  const { location: userLocation, openLocationModal, isLoading: locationLoading } = useLocationContext()
 
   // State for hiding header when sticky comparison appears
   const [hideHeader, setHideHeader] = useState(false)
@@ -88,20 +92,13 @@ const CommonHeader = () => {
   // Dropdown ref for click outside
   const dropdownRef = useRef(null)
 
-  // Ref to the <nav> element itself — used to publish its real, live rendered
-  // height as a CSS variable so other components (e.g. the Home hero) can
-  // reserve exactly enough space to clear it, instead of guessing pixel values
-  // that drift out of sync whenever the header's own sizing changes.
+  // Ref to the <nav> element itself
   const navRef = useRef(null)
 
   // Memoized values
   const brandColor = useMemo(() => isDark ? '#0f172a' : '#ffffff', [isDark])
 
-  // Publish the nav's real, live rendered height as a CSS variable on <html>.
-  // This is what lets the Home hero (or anything else) reserve exactly the
-  // right amount of space to clear the fixed header — no guessed pixel
-  // values, no drift when the logo size / padding / scroll state changes,
-  // correct on first paint and on every resize, on mobile and desktop alike.
+  // Publish the nav's real height as a CSS variable
   useEffect(() => {
     const el = navRef.current
     if (!el) return
@@ -255,97 +252,97 @@ const CommonHeader = () => {
   }, [])
 
   // Desktop Categories Dropdown
- const CategoriesDropdown = useCallback(() => {
-  const [isCatOpen, setIsCatOpen] = useState(false)
-  const timeoutRef = useRef(null)
-  const dropdownRef = useRef(null)
+  const CategoriesDropdown = useCallback(() => {
+    const [isCatOpen, setIsCatOpen] = useState(false)
+    const timeoutRef = useRef(null)
+    const dropdownRef = useRef(null)
 
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    setIsCatOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setIsCatOpen(false)
-    }, 200)
-  }
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsCatOpen(false)
-      }
-    }
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
-
-  useEffect(() => {
-    return () => {
+    const handleMouseEnter = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      setIsCatOpen(true)
     }
-  }, [])
 
-  const catTextColor = isDark ? 'text-white' : 'text-gray-900'
-  const catSubTextColor = isDark ? 'text-gray-400' : 'text-gray-500'
-  const catHoverBg = isDark ? 'hover:bg-dark-700' : 'hover:bg-gray-100'
-  const catBorderColor = isDark ? 'border-dark-700' : 'border-gray-100'
-  const catBgColor = isDark ? 'bg-dark-800' : 'bg-white'
-  const catHoverText = isDark ? 'hover:text-yellow-400' : 'hover:text-gray-700'
+    const handleMouseLeave = () => {
+      timeoutRef.current = setTimeout(() => {
+        setIsCatOpen(false)
+      }, 200)
+    }
 
-  return (
-    <div
-      className="relative inline-block"
-      ref={dropdownRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <button className={`flex items-center gap-1 font-semibold text-sm xl:text-[16px] tracking-wide transition-colors duration-300 ${catTextColor} ${catHoverText}`}>
-        Categories
-        <svg className={`w-3 h-3 xl:w-4 xl:h-4 transition-transform duration-150 ${isCatOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsCatOpen(false)
+        }
+      }
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }, [])
 
-      {isCatOpen && (
-        <div
-          className={`absolute top-full left-0 mt-1 w-56 sm:w-64 md:w-72 rounded-lg shadow-xl border ${catBorderColor} z-50 ${catBgColor}`}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          <Link
-            to="/compare-cars"
-            className={`flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 ${catHoverBg} transition-colors duration-200 border-b ${catBorderColor}`}
-            onClick={() => setIsCatOpen(false)}
+    useEffect(() => {
+      return () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      }
+    }, [])
+
+    const catTextColor = isDark ? 'text-white' : 'text-gray-900'
+    const catSubTextColor = isDark ? 'text-gray-400' : 'text-gray-500'
+    const catHoverBg = isDark ? 'hover:bg-dark-700' : 'hover:bg-gray-100'
+    const catBorderColor = isDark ? 'border-dark-700' : 'border-gray-100'
+    const catBgColor = isDark ? 'bg-dark-800' : 'bg-white'
+    const catHoverText = isDark ? 'hover:text-yellow-400' : 'hover:text-gray-700'
+
+    return (
+      <div
+        className="relative inline-block"
+        ref={dropdownRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <button className={`flex items-center gap-1 font-semibold text-sm xl:text-[16px] tracking-wide transition-colors duration-300 ${catTextColor} ${catHoverText}`}>
+          Categories
+          <svg className={`w-3 h-3 xl:w-4 xl:h-4 transition-transform duration-150 ${isCatOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {isCatOpen && (
+          <div
+            className={`absolute top-full left-0 mt-1 w-56 sm:w-64 md:w-72 rounded-lg shadow-xl border ${catBorderColor} z-50 ${catBgColor}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
-            <div>
-              <div className={`font-bold text-sm sm:text-base ${catTextColor}`}>Compare Cars</div>
-              <div className={`text-[10px] sm:text-xs ${catSubTextColor}`}>Side by side comparison</div>
-            </div>
-            <span className="text-yellow-500 text-xs sm:text-sm">→</span>
-          </Link>
-
-          {DESKTOP_CATEGORIES.map((category, idx) => (
             <Link
-              key={idx}
-              to={category.path}
-              className={`flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 ${catHoverBg} transition-colors duration-200 border-b ${catBorderColor} last:border-0`}
+              to="/compare-cars"
+              className={`flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 ${catHoverBg} transition-colors duration-200 border-b ${catBorderColor}`}
               onClick={() => setIsCatOpen(false)}
             >
               <div>
-                <div className={`font-semibold text-sm sm:text-base ${catTextColor}`}>
-                  {category.name}
-                </div>
+                <div className={`font-bold text-sm sm:text-base ${catTextColor}`}>Compare Cars</div>
+                <div className={`text-[10px] sm:text-xs ${catSubTextColor}`}>Side by side comparison</div>
               </div>
               <span className="text-yellow-500 text-xs sm:text-sm">→</span>
             </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}, [isDark])
+
+            {DESKTOP_CATEGORIES.map((category, idx) => (
+              <Link
+                key={idx}
+                to={category.path}
+                className={`flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 ${catHoverBg} transition-colors duration-200 border-b ${catBorderColor} last:border-0`}
+                onClick={() => setIsCatOpen(false)}
+              >
+                <div>
+                  <div className={`font-semibold text-sm sm:text-base ${catTextColor}`}>
+                    {category.name}
+                  </div>
+                </div>
+                <span className="text-yellow-500 text-xs sm:text-sm">→</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }, [isDark])
 
   // Consistent text classes
   const navLinkClasses = `font-semibold text-sm xl:text-[16px] tracking-wide transition-colors duration-300`
@@ -386,6 +383,63 @@ const CommonHeader = () => {
     return user.email?.split('@')[0] || 'User'
   }
 
+  // Location button component (reused for desktop and mobile)
+  const LocationButton = ({ isMobile = false }) => {
+    // Show loading state or "Select Location" if no location
+    if (locationLoading) {
+      return (
+        <button 
+          onClick={openLocationModal} 
+          className={`flex items-center gap-2 ${isMobile ? 'px-3 py-2 w-full' : 'px-3 py-1.5'} rounded-lg transition-colors duration-200 ${
+            isDark ? 'bg-dark-700 text-gray-400' : 'bg-gray-100 text-gray-500'
+          }`}
+        >
+          <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Loading...</span>
+        </button>
+      )
+    }
+
+    if (!userLocation) {
+      return (
+        <button 
+          onClick={openLocationModal} 
+          className={`flex items-center gap-2 ${isMobile ? 'px-3 py-2 w-full' : 'px-3 py-1.5'} rounded-lg transition-colors duration-200 ${
+            isDark ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400' : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700'
+          } font-medium`}
+        >
+          <svg className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'} flex-shrink-0`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span className="text-sm font-medium">Select Location</span>
+        </button>
+      )
+    }
+
+    const displayName = userLocation.city || userLocation.district || userLocation.state || 'Location'
+
+    return (
+      <button 
+        onClick={openLocationModal} 
+        className={`flex items-center gap-1.5 ${isMobile ? 'px-3 py-2 w-full' : 'px-3 py-1.5'} rounded-lg transition-colors duration-200 ${
+          isDark ? 'bg-dark-700 hover:bg-dark-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+        }`}
+      >
+        <svg className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'} text-yellow-500 flex-shrink-0`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span className={`${isMobile ? 'text-sm' : 'text-sm'} font-medium truncate max-w-[100px] sm:max-w-[120px]`}>
+          {displayName}
+        </span>
+        <svg className={`${isMobile ? 'w-4 h-4' : 'w-3 h-3'} text-gray-400 flex-shrink-0`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    )
+  }
+
   return (
     <>
       <nav
@@ -403,7 +457,7 @@ const CommonHeader = () => {
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            {/* Logo - Dynamic with Dark/Light version */}
+            {/* Logo */}
             <Link to="/" className="flex items-center group flex-shrink-0">
               <img
                 src={isDark ? "/DSLogo-Dark4.png" : "/DSLogo2.png"}
@@ -413,8 +467,11 @@ const CommonHeader = () => {
               />
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - Location button now appears BEFORE nav links */}
             <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 2xl:space-x-8">
+              {/* Location Button - Desktop (prominently placed) */}
+              <LocationButton isMobile={false} />
+
               {NAV_LINKS.map((link) => (
                 <NavLink
                   key={link.path}
@@ -541,7 +598,6 @@ const CommonHeader = () => {
           <AnimatePresence>
             {isOpen && (
               <>
-                {/* Backdrop overlay - sits under the menu, above the hero/page content */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -553,8 +609,6 @@ const CommonHeader = () => {
                   aria-hidden="true"
                 />
 
-                {/* Menu panel - absolutely positioned so it floats over the hero
-                    instead of pushing it down the page */}
                 <motion.div
                   initial={{ opacity: 0, y: -12 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -566,141 +620,144 @@ const CommonHeader = () => {
                     borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
                   }}
                 >
-                <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-3 pb-4 space-y-1.5 max-h-[calc(100vh-var(--header-height,4rem))] overflow-y-auto overscroll-contain pr-1">
-                  {NAV_LINKS.map((link) => (
-                    <NavLink
-                      key={link.path}
-                      to={link.path}
-                      className={({ isActive }) => {
-                        return `${mobileNavLinkClasses} ${isActive ? mobileNavLinkActiveClasses : mobileNavLinkInactiveClasses}`
-                      }}
-                      onClick={closeMenu}
-                    >
-                      {link.name}
-                    </NavLink>
-                  ))}
+                  <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-3 pb-4 space-y-1.5 max-h-[calc(100vh-var(--header-height,4rem))] overflow-y-auto overscroll-contain pr-1">
+                    
+                    {/* Location Button - Mobile (Prominent, at the top) */}
+                    <LocationButton isMobile={true} />
 
-                  {!isLoading && (
-                    user ? (
-                      <>
-                        <div className={`px-3 py-2 ${mobileNavLinkClasses} ${mobileNavLinkInactiveClasses}`}>
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isDark
-                                ? 'bg-yellow-500 text-gray-900'
-                                : 'bg-gray-900 text-white'
-                              }`}>
-                              {getUserInitials()}
+                    {NAV_LINKS.map((link) => (
+                      <NavLink
+                        key={link.path}
+                        to={link.path}
+                        className={({ isActive }) => {
+                          return `${mobileNavLinkClasses} ${isActive ? mobileNavLinkActiveClasses : mobileNavLinkInactiveClasses}`
+                        }}
+                        onClick={closeMenu}
+                      >
+                        {link.name}
+                      </NavLink>
+                    ))}
+
+                    {!isLoading && (
+                      user ? (
+                        <>
+                          <div className={`px-3 py-2 ${mobileNavLinkClasses} ${mobileNavLinkInactiveClasses}`}>
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isDark
+                                  ? 'bg-yellow-500 text-gray-900'
+                                  : 'bg-gray-900 text-white'
+                                }`}>
+                                {getUserInitials()}
+                              </div>
+                              <span className="font-medium">{getUserName()}</span>
                             </div>
                           </div>
-                        </div>
-                        <Link
-                          to="/profile"
-                          className={`${mobileNavLinkClasses} ${mobileNavLinkInactiveClasses}`}
-                          onClick={closeMenu}
-                        >
-                          <div className="flex items-center gap-3">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            My Profile
-                          </div>
-                        </Link>
+                          <Link
+                            to="/profile"
+                            className={`${mobileNavLinkClasses} ${mobileNavLinkInactiveClasses}`}
+                            onClick={closeMenu}
+                          >
+                            <div className="flex items-center gap-3">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              My Profile
+                            </div>
+                          </Link>
+                          <button
+                            onClick={() => {
+                              handleLogout()
+                              closeMenu()
+                            }}
+                            className={`${mobileNavLinkClasses} ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                              </svg>
+                              Logout
+                            </div>
+                          </button>
+                        </>
+                      ) : (
                         <button
-                          onClick={() => {
-                            handleLogout()
-                            closeMenu()
-                          }}
-                          className={`${mobileNavLinkClasses} ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`}
+                          ref={mobileLoginRef}
+                          onClick={openAuthModalMobile}
+                          className={`${mobileNavLinkClasses} ${mobileNavLinkInactiveClasses}`}
                         >
-                          <div className="flex items-center gap-3">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Logout
-                          </div>
+                          Login / Register
                         </button>
-                      </>
-                    ) : (
+                      )
+                    )}
+
+                    <div className="py-1">
                       <button
-                        ref={mobileLoginRef}
-                        onClick={openAuthModalMobile}
-                        className={`${mobileNavLinkClasses} ${mobileNavLinkInactiveClasses}`}
+                        onClick={toggleCategories}
+                        className={`w-full flex items-center justify-between py-2 font-medium text-base sm:text-lg transition-colors duration-300 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
                       >
-                        Login / Register
-                      </button>
-                    )
-                  )}
-
-                  <div className="py-1">
-                    <button
-                      onClick={toggleCategories}
-                      className={`w-full flex items-center justify-between py-2 font-medium text-base sm:text-lg transition-colors duration-300 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
-                    >
-                      <span>Categories</span>
-                      <svg
-                        className={`w-4 h-4 transition-transform duration-150 ${isCategoriesOpen ? 'rotate-180' : ''
-                          }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-
-                    <AnimatePresence>
-                      {isCategoriesOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.15 }}
-                          className="overflow-hidden"
+                        <span>Categories</span>
+                        <svg
+                          className={`w-4 h-4 transition-transform duration-150 ${isCategoriesOpen ? 'rotate-180' : ''
+                            }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <div className="ml-2 sm:ml-4 space-y-1 pt-1 pb-2">
-                            {MOBILE_CATEGORIES.map((item, idx) => (
-                              <Link
-                                key={idx}
-                                to={item.path}
-                                className={`block py-2 text-sm sm:text-base transition-colors duration-300 pl-2 border-l-2 border-transparent hover:border-gray-400 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
-                                onClick={closeMenu}
-                              >
-                                {item.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      <AnimatePresence>
+                        {isCategoriesOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="ml-2 sm:ml-4 space-y-1 pt-1 pb-2">
+                              {MOBILE_CATEGORIES.map((item, idx) => (
+                                <Link
+                                  key={idx}
+                                  to={item.path}
+                                  className={`block py-2 text-sm sm:text-base transition-colors duration-300 pl-2 border-l-2 border-transparent hover:border-gray-400 ${isDark ? 'text-white hover:text-yellow-400' : 'text-gray-900 hover:text-gray-700'}`}
+                                  onClick={closeMenu}
+                                >
+                                  {item.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    <Link
+                      to="/contact"
+                      className="
+                        block
+                        text-center
+                        bg-[#0B1F3A]
+                        hover:bg-[#08172C]
+                        text-white
+                        font-semibold
+                        py-2.5
+                        rounded-xl
+                        transition-all
+                        duration-150
+                        text-base
+                        mt-2
+                      "
+                      onClick={closeMenu}
+                    >
+                      Get Started
+                    </Link>
+
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-gray-200 dark:border-dark-700">
+                      <ThemeToggle />
+                    </div>
                   </div>
-
-                  
-
-                  <Link
-                    to="/contact"
-                    className="
-                      block
-                      text-center
-                      bg-[#0B1F3A]
-                      hover:bg-[#08172C]
-                      text-white
-                      font-semibold
-                      py-2.5
-                      rounded-xl
-                      transition-all
-                      duration-150
-                      text-base
-                      mt-2
-                    "
-                    onClick={closeMenu}
-                  >
-                    Get Started
-                  </Link>
-
-                  <div className="flex items-center justify-between pt-2 mt-1 border-t border-gray-200 dark:border-dark-700">
-                    <ThemeToggle />
-                  </div>
-                </div>
                 </motion.div>
               </>
             )}
