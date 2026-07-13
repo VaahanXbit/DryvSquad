@@ -368,6 +368,17 @@ exports.updateArticle = async (req, res) => {
         .replace(/(^-|-$)/g, '');
     }
 
+    // Check if the new slug is already taken by another article
+    if (slug !== article.slug) {
+      const slugExists = await Article.findOne({ slug, _id: { $ne: id } });
+      if (slugExists) {
+        return res.status(400).json({
+          success: false,
+          message: `An article with this slug already exists: "${slug}"`,
+        });
+      }
+    }
+
     // Process keywords and tags arrays
     const processedTags = Array.isArray(tags)
       ? tags

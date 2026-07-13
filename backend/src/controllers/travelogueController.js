@@ -160,6 +160,15 @@ exports.createTravelogue = async (req, res) => {
         .replace(/(^-|-$)/g, '');
     }
 
+    // Check if a travelogue with this slug already exists
+    const slugExists = await Travelogue.findOne({ slug });
+    if (slugExists) {
+      return res.status(400).json({
+        success: false,
+        message: `A travelogue with this slug already exists: "${slug}"`,
+      });
+    }
+
     // Process tags array
     const processedTags = Array.isArray(tags) 
       ? tags 
@@ -241,6 +250,17 @@ exports.updateTravelogue = async (req, res) => {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
+    }
+
+    // Check if the new slug is already taken by another travelogue
+    if (slug !== travelogue.slug) {
+      const slugExists = await Travelogue.findOne({ slug, _id: { $ne: id } });
+      if (slugExists) {
+        return res.status(400).json({
+          success: false,
+          message: `A travelogue with this slug already exists: "${slug}"`,
+        });
+      }
     }
 
     // Process tags array

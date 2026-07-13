@@ -482,10 +482,12 @@ def find_matching_cars(
     fuel_pref: str = "",
     resale_importance: str = "",
     monthly_opex_band: str = "",
-    non_negotiables: list = [],
+    non_negotiables: list = None,
     custom_query: str = ""
 ) -> dict:
     import traceback
+    if non_negotiables is None:
+        non_negotiables = []
     
     city_class = classify_city(city)
     db_state_code = state.upper() if state else "DL"

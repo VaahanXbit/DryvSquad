@@ -398,7 +398,11 @@ const AdminPage = () => {
     
     // Load blocks from article or fallback to a single default body block
     if (item.blocks && Array.isArray(item.blocks)) {
-      setEditorBlocks(item.blocks)
+      const normalizedBlocks = item.blocks.map((block, idx) => ({
+        ...block,
+        id: block.id || `${Date.now()}-${idx}-${Math.random()}`
+      }))
+      setEditorBlocks(normalizedBlocks)
     } else {
       setEditorBlocks([
         { id: Date.now(), type: 'body', text: item.content || '' }
