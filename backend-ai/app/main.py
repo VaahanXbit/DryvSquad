@@ -77,10 +77,17 @@ class AIResponse(BaseModel):
 class CarFinderRequest(BaseModel):
     budget: str
     seating: str
-    usage: str
+    usage: List[str] = []
     terrain: str
     driver: str
-    city_type: str
+    city: str
+    state: str = "DL"
+    lifeProfile: str = "solo_commuter"
+    tenure: str = ""
+    fuelPref: str = ""
+    resaleImportance: str = ""
+    monthlyOpexBand: str = ""
+    nonNegotiables: List[str] = []
     custom_query: Optional[str] = ""
 
 
@@ -99,16 +106,38 @@ def health():
 async def ai_car_finder(request: CarFinderRequest):
     budget = request.budget.strip()
     seating = request.seating.strip()
-    usage = request.usage.strip()
+    usage = request.usage
     terrain = request.terrain.strip()
     driver = request.driver.strip()
-    city_type = request.city_type.strip()
+    city = request.city.strip()
+    state = request.state.strip() if request.state else "DL"
+    life_profile = request.lifeProfile.strip() if request.lifeProfile else "solo_commuter"
+    tenure = request.tenure.strip() if request.tenure else ""
+    fuel_pref = request.fuelPref.strip() if request.fuelPref else ""
+    resale_importance = request.resaleImportance.strip() if request.resaleImportance else ""
+    monthly_opex_band = request.monthlyOpexBand.strip() if request.monthlyOpexBand else ""
+    non_negotiables = request.nonNegotiables
     custom_query = request.custom_query.strip() if request.custom_query else ""
     
-    if not budget or not seating or not usage or not terrain or not driver or not city_type:
+    if not budget or not seating or not terrain or not driver or not city:
         raise HTTPException(status_code=400, detail="Missing required search parameters.")
         
-    result = find_matching_cars(budget, seating, usage, terrain, driver, city_type, custom_query)
+    result = find_matching_cars(
+        budget=budget,
+        seating=seating,
+        usage=usage,
+        terrain=terrain,
+        driver=driver,
+        city=city,
+        state=state,
+        life_profile=life_profile,
+        tenure=tenure,
+        fuel_pref=fuel_pref,
+        resale_importance=resale_importance,
+        monthly_opex_band=monthly_opex_band,
+        non_negotiables=non_negotiables,
+        custom_query=custom_query
+    )
     return result
 
 

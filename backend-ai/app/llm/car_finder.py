@@ -21,14 +21,118 @@ def clean_float(val_str) -> float:
     except:
         return 0.0
 
-def extract_field_from_query(query: str, field_name: str) -> str:
-    if not query:
-        return ""
-    pattern = rf"{field_name}:\s*([^|]*)"
-    match = re.search(pattern, query, re.IGNORECASE)
-    if match:
-        return match.group(1).strip()
-    return ""
+MASS_MARKET_BRANDS = {"maruti suzuki", "suzuki", "hyundai", "tata", "mahindra", "honda", "citroen", "citroën"}
+
+def _has_auto(transmissions: list) -> bool:
+    return any("auto" in t or "amt" in t or "dct" in t or "cvt" in t for t in transmissions) or any(t == "at" for t in transmissions)
+
+def get_on_road_price(
+    ex_showroom_price: int,
+    state_code: str,
+    fuel_type: str,
+    has_loan: bool = False,
+    accessories_cost: int = 0,
+    state_rules: dict = None
+) -> int:
+    try:
+        # 1. Fetch State Pricing Rule from DB if not provided
+        if not state_rules:
+            state_rules = db["statepricingrules"].find_one({"stateCode": state_code.upper(), "isActive": True})
+            if not state_rules:
+                # Fallback to state name search
+                state_rules = db["statepricingrules"].find_one({"state": state_code, "isActive": True})
+            if not state_rules:
+                # Try any active rule as a fallback
+                state_rules = db["statepricingrules"].find_one({"isActive": True})
+            
+        if not state_rules:
+            # Absolute fallback if collections are empty (unlikely on prod)
+            return ex_showroom_price + accessories_cost
+            
+        # 2. Road Tax
+        fuel = fuel_type.lower()
+        road_tax_list = []
+        if "electric" in fuel or "ev" in fuel:
+            road_tax_list = state_rules.get("roadTax", {}).get("ev", [])
+        elif "cng" in fuel:
+            road_tax_list = state_rules.get("roadTax", {}).get("cng", [])
+        else:
+            road_tax_list = state_rules.get("roadTax", {}).get("petrolDiesel", [])
+            
+        road_tax = 0
+        for slab in road_tax_list:
+            min_p = slab.get("minPrice", 0) or 0
+            max_p = slab.get("maxPrice")
+            if ex_showroom_price >= min_p and (max_p is None or ex_showroom_price <= max_p):
+                road_tax = int(ex_showroom_price * slab.get("ratePercent", 0) / 100)
+                break
+                
+        # 3. Registration
+        reg_rules = state_rules.get("registration", {})
+        registration = int(reg_rules.get("flatFee", 5000) + reg_rules.get("additionalCharges", 1500))
+        
+        # 4. Insurance
+        ins_rules = state_rules.get("insurance", {})
+        comprehensive_rate = ins_rules.get("comprehensiveRatePercent", 4)
+        min_premium = ins_rules.get("minPremium", 8000)
+        insurance = int(ex_showroom_price * comprehensive_rate / 100)
+        if insurance < min_premium:
+            insurance = min_premium
+            
+        # 5. TCS
+        tcs = 0
+        if ex_showroom_price > 1000000:
+            tcs = int(ex_showroom_price * 0.01)
+            
+        # 6. Fastag
+        fastag = state_rules.get("fastag", {})
+        fastag_charges = int(fastag.get("issuanceFee", 100) + fastag.get("minBalance", 200))
+        if fastag_charges == 0:
+            fastag_charges = 500 # fallback
+            
+        # 7. Hypothecation
+        hypothecation = 1500 if has_loan else 0
+        
+        # 8. Handling Charges
+        handling = state_rules.get("handlingCharges", 10000)
+        
+        # 9. Luxury Tax
+        lux_rules = state_rules.get("luxuryTax", {})
+        luxury_tax = 0
+        if lux_rules.get("applicable", False):
+            threshold = lux_rules.get("thresholdPrice", 2000000)
+            if ex_showroom_price > threshold:
+                luxury_tax = int(ex_showroom_price * lux_rules.get("ratePercent", 0) / 100)
+                
+        # 10. EV Subsidy
+        subsidy = 0
+        if "electric" in fuel or "ev" in fuel:
+            sub_rules = state_rules.get("evSubsidy", {})
+            if sub_rules.get("applicable", False):
+                subsidy = sub_rules.get("flatSubsidy", 0)
+                max_sub = sub_rules.get("maxSubsidy", 0)
+                if subsidy > max_sub and max_sub > 0:
+                    subsidy = max_sub
+                    
+        # On-Road Price Formula
+        on_road = (
+            ex_showroom_price
+            + road_tax
+            + registration
+            + insurance
+            + tcs
+            + fastag_charges
+            + hypothecation
+            + handling
+            + luxury_tax
+            + accessories_cost
+            - subsidy
+        )
+        return int(on_road)
+    except Exception as e:
+        print(f"[ERROR] Failed to calculate on-road price: {e}")
+        # Default fallback
+        return int(ex_showroom_price * 1.15) + accessories_cost
 
 def get_all_cars_data() -> list:
     try:
@@ -83,6 +187,9 @@ def get_all_cars_data() -> list:
 def parse_budget_range(budget_str: str) -> tuple:
     b = budget_str.lower().strip()
     
+    if "80l+" in b:
+        return 0, 9990000000
+        
     # Try dynamic up-to parsing first
     if "up to" in b:
         match = re.search(r"up to\s*(\d+)", b)
@@ -161,18 +268,18 @@ def format_price_lakh(price_val: int) -> str:
         return f"{val:.2f}".rstrip('0').rstrip('.') + " Lakh"
     return str(price_val)
 
-def check_hard_filters(matching_variants, non_negotiables: list, fuel_pref: str) -> bool:
+def check_hard_filters(matching_variants, non_negotiables: list) -> bool:
     # 1. Transmission check
-    if "automatic transmission only" in non_negotiables:
+    if "automatic" in non_negotiables:
         has_auto = any(
-            any(x in str(v.get("transmission", "")).lower() for x in ["auto", "amt", "dct", "cvt", "at"])
+            _has_auto([str(v.get("transmission", "")).lower()])
             for v, _ in matching_variants
         )
         if not has_auto:
             return False
             
     # 2. Drive type check
-    if "4wd / awd" in non_negotiables:
+    if "awd_4wd" in non_negotiables:
         has_awd = any(
             any(x in str(v.get("driveType", "")).lower() for x in ["awd", "4wd"])
             for v, _ in matching_variants
@@ -181,16 +288,25 @@ def check_hard_filters(matching_variants, non_negotiables: list, fuel_pref: str)
             return False
             
     # 3. EV check
-    if "ev / electric" in non_negotiables:
+    if "ev" in non_negotiables:
         has_ev = any(
-            "electric" in str(v.get("fuelType", "")).lower()
+            any(x in str(v.get("fuelType", "")).lower() for x in ["electric", "ev"])
             for v, _ in matching_variants
         )
         if not has_ev:
             return False
             
-    # 4. Airbags check
-    if "6+ airbags (safety first)" in non_negotiables:
+    # 4. Ground Clearance check
+    if "high_clearance" in non_negotiables:
+        has_gc = any(
+            clean_int(v.get("groundClearance")) >= 180
+            for v, _ in matching_variants
+        )
+        if not has_gc:
+            return False
+            
+    # 5. Airbags check
+    if "airbags_6" in non_negotiables:
         has_airbags_data = any(
             v.get("airbags") is not None and clean_int(v.get("airbags")) > 0
             for v, _ in matching_variants
@@ -202,23 +318,14 @@ def check_hard_filters(matching_variants, non_negotiables: list, fuel_pref: str)
             )
             if not has_6_airbags:
                 return False
-        else:
-            print("[FILTER] Skipping airbag check, no data")
-            
-    # 5. Fuel preference check
-    if fuel_pref and fuel_pref != "no preference":
-        has_fuel = any(
-            fuel_pref in str(v.get("fuelType", "")).lower()
-            for v, _ in matching_variants
-        )
-        if not has_fuel:
-            return False
-            
+                
     return True
 
-def calculate_car_score(c: dict, seating: str, usage: str, terrain: str, driver: str, city_class: str) -> int:
+def calculate_car_score(c: dict, usage: list, terrain: str, city: str, state: str, params: dict, on_road_price: int) -> int:
     matching_variants = c["matching_variants"]
-    points = 100
+    raw_score = 0
+    
+    brand_lower = c.get("brand", "").lower().strip()
     
     variant_seats = [clean_int(v["seatingCapacity"]) for v, _ in matching_variants if v.get("seatingCapacity")]
     variant_transmissions = [str(v.get("transmission")).lower() for v, _ in matching_variants if v.get("transmission")]
@@ -229,99 +336,170 @@ def calculate_car_score(c: dict, seating: str, usage: str, terrain: str, driver:
     variant_categories = [str(v.get("category")).lower() for v, _ in matching_variants if v.get("category")]
     variant_drives = [str(v.get("driveType")).lower() for v, _ in matching_variants if v.get("driveType")]
     variant_hills = [v.get("hillAssist") for v, _ in matching_variants if v.get("hillAssist") is not None]
-
-    # 1. Seating Capacity Scoring
-    seat_sel = seating.lower()
-    if "7" in seat_sel:
-        if any(s >= 7 for s in variant_seats):
-            points += 50
-        else:
-            points -= 30
-    elif "5" in seat_sel:
-        if any(s >= 5 for s in variant_seats):
-            points += 50
+    
+    # 1. Budget Headroom (10 pts)
+    min_budget = params.get("min_budget", 0)
+    max_budget = params.get("max_budget", 9990000000)
+    if max_budget > 50000000:
+        midpoint = 4000000
     else:
-        points += 50
+        midpoint = (min_budget + max_budget) / 2
         
-    # 2. Primary Usage Scoring
-    usage_sel = usage.lower()
-    if "city" in usage_sel:
-        if any("auto" in t or "amt" in t or "dct" in t or "cvt" in t for t in variant_transmissions):
-            points += 25
-        if any("electric" in f or "cng" in f or "petrol" in f for f in variant_fuels):
-            points += 15
-    elif "highway" in usage_sel:
-        if any("diesel" in f or "hybrid" in f for f in variant_fuels):
-            points += 30
-    elif "weekend" in usage_sel:
-        if any(b >= 350 for b in variant_boot):
-            points += 25
-    elif "adventure" in usage_sel:
-        if any("suv" in cat for cat in variant_categories):
-            points += 25
-        if any("awd" in d or "4wd" in d for d in variant_drives):
-            points += 20
-
-    # 3. Road & Terrain Conditions Scoring
-    terrain_sel = terrain.lower()
-    if "rough" in terrain_sel:
+    if on_road_price <= midpoint:
+        raw_score += 10
+    else:
+        raw_score += 5
+        
+    # 2. Profile Match (25 pts)
+    life_profile = params.get("life_profile", "solo_commuter").lower()
+    if life_profile == "joint_family":
+        if any(s >= 7 for s in variant_seats):
+            raw_score += 25
+        else:
+            raw_score -= 15
+    elif life_profile == "adventure":
+        if any("suv" in cat for cat in variant_categories) or any(d in ["awd", "4wd"] for d in variant_drives):
+            raw_score += 25
+    elif life_profile == "senior_citizen":
+        if _has_auto(variant_transmissions):
+            raw_score += 15
         if any(gc >= 180 for gc in variant_clearances):
-            points += 30
-        if any("suv" in cat for cat in variant_categories):
-            points += 15
-    elif "hills" in terrain_sel:
-        if any(h is True for h in variant_hills):
-            points += 20
-        if any("awd" in d or "4wd" in d for d in variant_drives):
-            points += 25
-            
-    # 4. Driver Profile Scoring
-    driver_sel = driver.lower()
-    if "beginner" in driver_sel:
-        if any("auto" in t or "amt" in t or "dct" in t or "cvt" in t for t in variant_transmissions):
-            points += 20
+            raw_score += 10
+    elif life_profile == "new_driver":
+        if _has_auto(variant_transmissions):
+            raw_score += 15
         if any(r <= 5.2 and r > 0 for r in variant_radius):
-            points += 15
-    elif "senior" in driver_sel:
-        if any("auto" in t or "amt" in t or "dct" in t or "cvt" in t for t in variant_transmissions):
-            points += 15
-        if any(gc >= 170 for gc in variant_clearances):
-            points += 20
-    elif "experienced" in driver_sel:
-        if any("manual" in t or "dct" in t for t in variant_transmissions):
-            points += 15
-            
-    # 5. City Type Scoring
-    city_sel = city_class
-    if "tier 1" in city_sel:
-        if any("auto" in t or "amt" in t or "dct" in t or "cvt" in t for t in variant_transmissions):
-            points += 25
-        if any("electric" in f for f in variant_fuels):
-            points += 20
-        if any(r <= 5.2 and r > 0 for r in variant_radius):
-            points += 20
-    elif "tier 2" in city_sel:
-        if any("diesel" in f or "hybrid" in f or "petrol" in f for f in variant_fuels):
-            points += 15
-        if any(gc >= 175 for gc in variant_clearances):
-            points += 15
-    elif "rural" in city_sel or "tier 3" in city_sel:
+            raw_score += 10
+    elif life_profile == "commercial":
+        if brand_lower in MASS_MARKET_BRANDS:
+            raw_score += 25
+    else:
+        raw_score += 12
+        
+    # 3. Terrain & Location (20 pts)
+    t_sel = terrain.lower()
+    if "rough" in t_sel:
         if any(gc >= 180 for gc in variant_clearances):
-            points += 25
-        if any("suv" in cat for cat in variant_categories):
-            points += 15
-        if c["brand"].lower() in ["maruti suzuki", "hyundai", "tata"]:
-            points += 30
-        if any("electric" in f for f in variant_fuels):
-            points -= 20
+            raw_score += 20
+    elif "hills" in t_sel:
+        if any(h is True for h in variant_hills) or any(d in ["awd", "4wd"] for d in variant_drives):
+            raw_score += 20
+    else:
+        raw_score += 10
+        
+    city_class = classify_city(city)
+    if "rural" in city_class or "tier 3" in city_class or "village" in city_class:
+        if any(gc >= 200 for gc in variant_clearances):
+            raw_score += 10
+    elif "tier 2" in city_class:
+        if brand_lower in MASS_MARKET_BRANDS:
+            raw_score += 5
             
-    return points
+    # 4. Usage Match (12 pts max)
+    usage_score = 0
+    usage_list = usage[:2] if isinstance(usage, list) else [str(usage)]
+    for u in usage_list:
+        u_lower = u.lower()
+        if "city" in u_lower:
+            if _has_auto(variant_transmissions):
+                usage_score += 6
+        elif "highway" in u_lower:
+            if any("diesel" in f or "hybrid" in f for f in variant_fuels):
+                usage_score += 6
+        elif "weekend" in u_lower:
+            if any(b >= 350 for b in variant_boot):
+                usage_score += 6
+        elif "adventure" in u_lower:
+            if any("suv" in cat for cat in variant_categories):
+                usage_score += 6
+    raw_score += min(12, usage_score)
+    
+    # 5. Fuel Match (10 pts)
+    fuel_pref = params.get("fuel_pref", "").lower().strip()
+    if "electric" in fuel_pref or "ev" in fuel_pref:
+        fuel_token = "electric"
+    elif "cng" in fuel_pref:
+        fuel_token = "cng"
+    elif "diesel" in fuel_pref:
+        fuel_token = "diesel"
+    elif "petrol" in fuel_pref:
+        fuel_token = "petrol"
+    elif "hybrid" in fuel_pref:
+        fuel_token = "hybrid"
+    else:
+        fuel_token = ""
+        
+    if fuel_token:
+        if any(fuel_token in f for f in variant_fuels):
+            raw_score += 10
+        else:
+            raw_score -= 8
+            
+    # 6. Ownership Signals (12 pts max)
+    owner_sum = 0
+    tenure = params.get("tenure", "").strip()
+    resale = params.get("resale_importance", "").lower().strip()
+    non_negs = params.get("non_negotiables", [])
+    
+    if tenure == "2-3" and brand_lower in MASS_MARKET_BRANDS:
+        owner_sum += 6
+    elif tenure == "7+" and brand_lower in MASS_MARKET_BRANDS:
+        owner_sum += 6
+        
+    if resale == "critical" and brand_lower in MASS_MARKET_BRANDS:
+        owner_sum += 4
+        
+    if "low_service_cost" in non_negs and brand_lower in MASS_MARKET_BRANDS:
+        owner_sum += 4
+    if "resale_value" in non_negs and brand_lower in MASS_MARKET_BRANDS:
+        owner_sum += 4
+        
+    raw_score += min(12, owner_sum)
+    
+    # 7. Operating Cost Signal (8 pts)
+    opex = params.get("monthly_opex_band", "").lower().strip()
+    if opex == "under 3k":
+        if any("electric" in f or "ev" in f or "cng" in f for f in variant_fuels):
+            raw_score += 8
+            
+    # 8. Standout-Match Kicker (8 pts)
+    if life_profile == "adventure" and any(gc >= 220 for gc in variant_clearances):
+        raw_score += 8
+        
+    final_score = max(0, min(100, round(raw_score * 0.85)))
+    return final_score
 
-def find_matching_cars(budget: str, seating: str, usage: str, terrain: str, driver: str, city_type: str, custom_query: str = "") -> dict:
+def find_matching_cars(
+    budget: str,
+    seating: str,
+    usage: list,
+    terrain: str,
+    driver: str,
+    city: str,
+    state: str = "DL",
+    life_profile: str = "solo_commuter",
+    tenure: str = "",
+    fuel_pref: str = "",
+    resale_importance: str = "",
+    monthly_opex_band: str = "",
+    non_negotiables: list = None,
+    custom_query: str = ""
+) -> dict:
     import traceback
+    if non_negotiables is None:
+        non_negotiables = []
     
-    city_class = classify_city(city_type)
+    city_class = classify_city(city)
+    db_state_code = state.upper() if state else "DL"
     
+    if city and db_state_code == "DL":
+        try:
+            loc_doc = db["locations"].find_one({"city": {"$regex": f"^{re.escape(city)}$", "$options": "i"}})
+            if loc_doc and loc_doc.get("stateCode"):
+                db_state_code = loc_doc.get("stateCode").upper()
+        except Exception as e:
+            print(f"[WARNING] Dynamic state lookup failed: {e}")
+
     print(f"\n==================================================")
     print(f"[AI CAR MATCHMAKER] New Search Request Received")
     print(f"   Budget: {budget}")
@@ -329,47 +507,79 @@ def find_matching_cars(budget: str, seating: str, usage: str, terrain: str, driv
     print(f"   Usage: {usage}")
     print(f"   Terrain: {terrain}")
     print(f"   Driver: {driver}")
-    print(f"   Raw City Input: {city_type} (Classified: {city_class})")
+    print(f"   City: {city} (Classified: {city_class})")
+    print(f"   Resolved State: {db_state_code}")
+    print(f"   Life Profile: {life_profile}")
+    print(f"   Tenure: {tenure}")
+    print(f"   Fuel Pref: {fuel_pref}")
+    print(f"   Resale Importance: {resale_importance}")
+    print(f"   Monthly Opex Band: {monthly_opex_band}")
+    print(f"   Non Negotiables: {non_negotiables}")
     print(f"   Custom Query: {custom_query}")
     print(f"==================================================")
     
+    # Fetch state pricing rules once per request to avoid N+1 DB queries in loops
+    state_rules = None
+    try:
+        state_rules = db["statepricingrules"].find_one({"stateCode": db_state_code, "isActive": True})
+        if not state_rules:
+            state_rules = db["statepricingrules"].find_one({"state": state, "isActive": True})
+        if not state_rules:
+            state_rules = db["statepricingrules"].find_one({"isActive": True})
+    except Exception as e:
+        print(f"[WARNING] Failed to pre-fetch state pricing rules: {e}")
+
     cars = get_all_cars_data()
     if not cars:
         print("[DATABASE ERROR] No cars retrieved from the database!")
         return {"success": False, "recommendations": [], "noExactMatch": False, "relaxedNonNegotiables": False}
         
-    non_neg_str = extract_field_from_query(custom_query, "NonNegotiables")
-    non_negotiables = [x.strip().lower() for x in non_neg_str.split(",") if x.strip()]
-    
-    fuel_pref = extract_field_from_query(custom_query, "FuelPref").strip().lower()
-    
     min_price, max_price = parse_budget_range(budget)
+    
+    params = {
+        "min_budget": min_price,
+        "max_budget": max_price,
+        "life_profile": life_profile,
+        "tenure": tenure,
+        "fuel_pref": fuel_pref,
+        "resale_importance": resale_importance,
+        "monthly_opex_band": monthly_opex_band,
+        "non_negotiables": non_negotiables
+    }
     
     scored_cars = []
     no_exact_match = False
     relaxed_non_negotiables = False
     
-    # PHASE 1: Try with Budget + Non-negotiable Hard Filters 
+    # PHASE 1: Try with Budget (calculated On-Road) + Non-negotiable Hard Filters 
     for c in cars:
         matching_variants = []
         for v in c["variants"]:
-            price_val = v.get("exShowroomPrice", 0)
-            if not price_val and v.get("price"):
-                price_val = clean_int(v["price"])
+            ex_showroom = v.get("exShowroomPrice", 0)
+            if not ex_showroom and v.get("price"):
+                ex_showroom = clean_int(v["price"])
+            price_val = get_on_road_price(
+                ex_showroom_price=ex_showroom,
+                state_code=db_state_code,
+                fuel_type=v.get("fuelType", "petrol"),
+                has_loan=False,
+                accessories_cost=0,
+                state_rules=state_rules
+            )
             if price_val and min_price <= price_val <= max_price:
                 matching_variants.append((v, price_val))
                 
         if not matching_variants:
             continue
             
-        if not check_hard_filters(matching_variants, non_negotiables, fuel_pref):
+        if not check_hard_filters(matching_variants, non_negotiables):
             continue
             
         matching_variants.sort(key=lambda x: x[1])
         c_copy = dict(c)
         c_copy["matching_variants"] = matching_variants
         
-        points = calculate_car_score(c_copy, seating, usage, terrain, driver, city_class)
+        points = calculate_car_score(c_copy, usage, terrain, city, db_state_code, params, matching_variants[0][1])
         scored_cars.append((c_copy, points))
         
     # De-duplicate by base name
@@ -381,9 +591,9 @@ def find_matching_cars(budget: str, seating: str, usage: str, terrain: str, driv
             seen_base_names.add(base_name)
             unique_scored_cars.append((c, score))
             
-    # PHASE 2: Fallback  Relax Non-negotiables, Keep Budget
+    # PHASE 2: Fallback - Relax Non-negotiables, Keep Budget
     if not unique_scored_cars:
-        print("[FILTER] No cars matched hard filters. Relaxing non-negotiables & fuel preference.")
+        print("[FILTER] No cars matched hard filters. Relaxing non-negotiables.")
         relaxed_non_negotiables = True
         no_exact_match = True
         scored_cars = []
@@ -391,9 +601,17 @@ def find_matching_cars(budget: str, seating: str, usage: str, terrain: str, driv
         for c in cars:
             matching_variants = []
             for v in c["variants"]:
-                price_val = v.get("exShowroomPrice", 0)
-                if not price_val and v.get("price"):
-                    price_val = clean_int(v["price"])
+                ex_showroom = v.get("exShowroomPrice", 0)
+                if not ex_showroom and v.get("price"):
+                    ex_showroom = clean_int(v["price"])
+                price_val = get_on_road_price(
+                    ex_showroom_price=ex_showroom,
+                    state_code=db_state_code,
+                    fuel_type=v.get("fuelType", "petrol"),
+                    has_loan=False,
+                    accessories_cost=0,
+                    state_rules=state_rules
+                )
                 if price_val and min_price <= price_val <= max_price:
                     matching_variants.append((v, price_val))
                     
@@ -404,7 +622,7 @@ def find_matching_cars(budget: str, seating: str, usage: str, terrain: str, driv
             c_copy = dict(c)
             c_copy["matching_variants"] = matching_variants
             
-            points = calculate_car_score(c_copy, seating, usage, terrain, driver, city_class)
+            points = calculate_car_score(c_copy, usage, terrain, city, db_state_code, params, matching_variants[0][1])
             scored_cars.append((c_copy, points))
             
         seen_base_names = set()
@@ -423,14 +641,22 @@ def find_matching_cars(budget: str, seating: str, usage: str, terrain: str, driv
         for c in cars:
             all_vars = []
             for v in c["variants"]:
-                p_val = v.get("exShowroomPrice", 0) or clean_int(v.get("price"))
+                ex_showroom = v.get("exShowroomPrice", 0) or clean_int(v.get("price"))
+                p_val = get_on_road_price(
+                    ex_showroom_price=ex_showroom,
+                    state_code=db_state_code,
+                    fuel_type=v.get("fuelType", "petrol"),
+                    has_loan=False,
+                    accessories_cost=0,
+                    state_rules=state_rules
+                )
                 all_vars.append((v, p_val))
             all_vars.sort(key=lambda x: x[1])
             
             c_copy = dict(c)
             c_copy["matching_variants"] = all_vars
             
-            points = calculate_car_score(c_copy, seating, usage, terrain, driver, city_class)
+            points = calculate_car_score(c_copy, usage, terrain, city, db_state_code, params, all_vars[0][1])
             scored_cars.append((c_copy, points))
             
         seen_base_names = set()
@@ -474,6 +700,24 @@ def find_matching_cars(budget: str, seating: str, usage: str, terrain: str, driv
         
     cars_list_summary = "\n".join(cars_context)
     
+    # Prepend structured parameters context to custom_query for LLM Prompt context
+    structured_notes = []
+    if tenure:
+        structured_notes.append(f"Ownership tenure: {tenure} years")
+    if fuel_pref:
+        structured_notes.append(f"Stated fuel preference: {fuel_pref}")
+    if resale_importance:
+        structured_notes.append(f"Resale value importance: {resale_importance}")
+    if monthly_opex_band:
+        structured_notes.append(f"Target monthly opex/maintenance: {monthly_opex_band}")
+    if non_negotiables:
+        structured_notes.append(f"Soft non-negotiables: {', '.join(non_negotiables)}")
+        
+    combined_query_notes = " | ".join(structured_notes)
+    final_query_context = custom_query
+    if combined_query_notes:
+        final_query_context = f"{combined_query_notes} | {custom_query}" if custom_query else combined_query_notes
+        
     prompt = f"""You are DryvSquad AI, an elite automotive matchmaker for the Indian car market.
 A buyer is looking for a car based on these lifestyle preferences:
 - Budget Range: {budget}
@@ -481,7 +725,7 @@ A buyer is looking for a car based on these lifestyle preferences:
 - Primary Usage: {usage}
 - Road & Terrain Conditions: {terrain}
 - Primary Driver Profile: {driver}
-- Additional Custom Requirements: {custom_query}
+- Additional Custom Requirements: {final_query_context}
 
 Here is the list of available cars in our database with their matched specifications:
 {cars_list_summary}
@@ -553,8 +797,23 @@ Do not include any other text or JSON. Provide only the recommendations in the f
             
             matching_vars = db_car.get("matching_variants", [])
             if not matching_vars:
-                matching_vars = [(v, v.get("exShowroomPrice", 0) or clean_int(v.get("price"))) for v in db_car["variants"]]
+                matching_vars = [(v, get_on_road_price(v.get("exShowroomPrice", 0) or clean_int(v.get("price")), db_state_code, v.get("fuelType", "petrol"), has_loan=False, accessories_cost=0, state_rules=state_rules)) for v in db_car["variants"]]
                 matching_vars.sort(key=lambda x: x[1])
+            
+            matching_vars_data = []
+            for v, p_val in matching_vars:
+                matching_vars_data.append({
+                    "name": v.get("name", ""),
+                    "exShowroomPrice": v.get("exShowroomPrice", 0),
+                    "onRoadPrice": p_val,
+                    "transmission": v.get("transmission", ""),
+                    "fuelType": v.get("fuelType", ""),
+                    "groundClearance": v.get("groundClearance", ""),
+                    "airbags": v.get("airbags", 0),
+                    "seats": v.get("seatingCapacity", "")
+                })
+                
+            recommended_variant_name = matching_vars[0][0].get("name", "") if matching_vars else ""
             
             if len(matching_vars) > 1:
                 price_str = f"₹{format_price_lakh(matching_vars[0][1])} - ₹{format_price_lakh(matching_vars[-1][1])}"
@@ -585,7 +844,9 @@ Do not include any other text or JSON. Provide only the recommendations in the f
                 "engine": engine,
                 "power": power,
                 "mileage": mileage,
-                "seatingCapacity": seating_cap
+                "seatingCapacity": seating_cap,
+                "matchingVariants": matching_vars_data,
+                "recommendedVariant": recommended_variant_name
             })
             
         print(f"[SUCCESS] Successfully hydrated and matched {len(hydrated)} cars!")

@@ -160,7 +160,15 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
+                      (origin.endsWith('.vercel.app') && (
+                        origin.includes('vaahan') || 
+                        origin.includes('dryvsquad') || 
+                        origin.includes('demo-frontend-wine')
+                      )) ||
+                      /^https?:\/\/localhost:\d+$/.test(origin);
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.log('❌ CORS blocked for origin:', origin);

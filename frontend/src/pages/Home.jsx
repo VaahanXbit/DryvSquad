@@ -239,16 +239,6 @@ const Home = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-
-          {/* Top Right "Launch AI Car Finder" CTA Button (positioned below sticky navbar) */}
-          <div className="absolute top-20 right-4 sm:top-22 sm:right-6 md:top-24 md:right-8 z-45">
-            <button
-              onClick={() => navigate('/ai-car-finder')}
-              className="px-4 py-2 sm:px-6 sm:py-3 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold rounded-xl text-xs sm:text-sm transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-white/20 flex items-center gap-2 cursor-pointer font-sans"
-            >
-              <span>Launch Car Finder</span>
-            </button>
-          </div>
         </div>
 
         {/* Dots */}

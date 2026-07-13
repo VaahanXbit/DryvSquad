@@ -27,7 +27,7 @@ const ModelVariants = () => {
 
   // Retrieve passed state from routing
   const state = location.state || {}
-  const { modelName, brand, verdict, focus, image, searchParams } = state
+  const { modelName, brand, verdict, focus, image, matchingVariants, recommendedVariant, searchParams } = state
 
   useEffect(() => {
     const fetchVariants = async () => {
@@ -51,6 +51,50 @@ const ModelVariants = () => {
       fetchVariants()
     }
   }, [slug])
+
+  // Filter variants to show only relevant ones if matchingVariants list is provided
+  const relevantVariants = matchingVariants && matchingVariants.length > 0
+    ? variants.filter(v => matchingVariants.some(mv => mv.name.toLowerCase().trim() === v.name.toLowerCase().trim()))
+    : variants;
+
+  // Hydrate on-road price if matched and sort recommended variant to the front
+  const processedVariants = (relevantVariants.length > 0 ? relevantVariants : variants).map(v => {
+    const match = matchingVariants?.find(mv => mv.name.toLowerCase().trim() === v.name.toLowerCase().trim());
+    return {
+      ...v,
+      onRoadPrice: match ? match.onRoadPrice : v.onRoadPrice
+    };
+  }).sort((a, b) => {
+    const isARecommended = recommendedVariant && recommendedVariant.toLowerCase().trim() === a.name.toLowerCase().trim();
+    const isBRecommended = recommendedVariant && recommendedVariant.toLowerCase().trim() === b.name.toLowerCase().trim();
+    if (isARecommended && !isBRecommended) return -1;
+    if (!isARecommended && isBRecommended) return 1;
+    return 0;
+  });
+
+  // Basis for recommended tag
+  const getRecommendationBasis = (v) => {
+    if (!searchParams) return "Best matches your search profile and constraints.";
+    const reasons = [];
+    const trans = (v.transmission || '').toLowerCase();
+    const isAuto = trans.includes('auto') || trans.includes('cvt') || trans.includes('dct') || trans.includes('amt') || trans.includes('at');
+    const fuel = (v.fuelType || '').toLowerCase();
+    const seats = String(v.seatingCapacity || '');
+    
+    if (isAuto) reasons.push("convenient automatic transmission");
+    if (fuel.includes('electric') || fuel.includes('ev')) reasons.push("clean zero-emission electric motor");
+    else if (fuel.includes('hybrid')) reasons.push("efficient hybrid setup");
+    else if (fuel.includes('diesel')) reasons.push("fuel-efficient diesel engine");
+    else reasons.push("refined petrol engine");
+    
+    if (seats.includes('7') || seats.includes('8')) {
+      reasons.push("spacious cabin layout");
+    }
+    
+    reasons.push("ideal budget headroom");
+    
+    return `Recommended on the basis of its ${reasons.slice(0, 2).join(' and ')}, offering the best overall configuration.`;
+  }
 
   // Helper to dynamically explain why a specific variant matches the user's search choices
   const getSelectionReason = (variant) => {
@@ -187,117 +231,130 @@ const ModelVariants = () => {
               animate={{ opacity: 1, y: 0 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
-              {variants.map((v) => (
-                <div
-                  key={v._id || v.id}
-                  className={`rounded-3xl border overflow-hidden shadow-lg flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] hover:shadow-xl ${
-                    isDark ? 'bg-dark-900 border-dark-800' : 'bg-white border-slate-200'
-                  }`}
-                >
-                  <div>
-                    {/* Why Selected Banner */}
-                    <div className="px-5 py-3 bg-yellow-500/10 border-b border-yellow-500/10 flex items-start gap-2">
-                      <Sparkles className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
-                      <p className="text-xs font-bold text-yellow-500 leading-tight">
-                        {getSelectionReason(v)}
-                      </p>
-                    </div>
+              {processedVariants.map((v) => {
+                const isRecommended = recommendedVariant && recommendedVariant.toLowerCase().trim() === v.name.toLowerCase().trim();
+                return (
+                  <div
+                    key={v._id || v.id}
+                    className={`rounded-3xl border overflow-hidden shadow-lg flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] hover:shadow-xl ${
+                      isRecommended 
+                        ? (isDark ? 'bg-dark-900 border-yellow-500 shadow-yellow-500/5' : 'bg-white border-yellow-500 shadow-yellow-500/5')
+                        : (isDark ? 'bg-dark-900 border-dark-800' : 'bg-white border-slate-200')
+                    }`}
+                  >
+                    <div>
+                      {/* Recommended Header Badge */}
+                      {isRecommended && (
+                        <div className="px-5 py-2.5 bg-yellow-500 text-slate-950 flex items-center gap-1.5 font-bold uppercase tracking-widest text-[10px]">
+                          <Sparkles className="w-4 h-4 fill-slate-950 shrink-0" />
+                          <span>Recommended Option</span>
+                        </div>
+                      )}
 
-                    {/* Variant Image */}
-                    <div className="h-52 bg-slate-100/80 dark:bg-dark-950 flex items-center justify-center p-4 relative border-b border-slate-100 dark:border-dark-950">
-                      <img
-                        src={image || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800'}
-                        alt={`${brand} ${modelName} ${v.name}`}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          e.target.src = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800'
-                        }}
-                      />
-                    </div>
+                      {/* Why Selected Banner */}
+                      <div className="px-5 py-3 bg-yellow-500/10 border-b border-yellow-500/10 flex items-start gap-2">
+                        <Sparkles className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
+                        <p className="text-xs font-bold text-yellow-500 leading-tight">
+                          {isRecommended ? getRecommendationBasis(v) : getSelectionReason(v)}
+                        </p>
+                      </div>
 
-                    {/* Core details */}
-                    <div className="p-6 space-y-4">
-                      <div>
-                        <h3 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          {v.name}
-                        </h3>
-                        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                          {v.exShowroomPrice && (
-                            <span className="text-yellow-500 font-bold">
-                              Ex-Showroom: {formatCurrency(v.exShowroomPrice)}
-                            </span>
+                      {/* Variant Image */}
+                      <div className="h-52 bg-slate-100/80 dark:bg-dark-950 flex items-center justify-center p-4 relative border-b border-slate-100 dark:border-dark-950">
+                        <img
+                          src={image || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800'}
+                          alt={`${brand} ${modelName} ${v.name}`}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800'
+                          }}
+                        />
+                      </div>
+
+                      {/* Core details */}
+                      <div className="p-6 space-y-4">
+                        <div>
+                          <h3 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {v.name}
+                          </h3>
+                          <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                            {v.exShowroomPrice && (
+                              <span className="text-yellow-500 font-bold">
+                                Ex-Showroom: {formatCurrency(v.exShowroomPrice)}
+                              </span>
+                            )}
+                            {v.onRoadPrice && (
+                              <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
+                                On-Road: {formatCurrency(v.onRoadPrice)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Specs Matrix */}
+                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-dark-800">
+                          {v.engine && (
+                            <div className="flex items-center gap-2">
+                              <Cpu className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <div className="text-[10px] leading-tight">
+                                <span className="text-slate-400 block font-semibold">Engine</span>
+                                <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.engine}</span>
+                              </div>
+                            </div>
                           )}
-                          {v.onRoadPrice && (
-                            <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
-                              On-Road: {formatCurrency(v.onRoadPrice)}
-                            </span>
+                          {v.displacement && (
+                            <div className="flex items-center gap-2">
+                              <Milestone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <div className="text-[10px] leading-tight">
+                                <span className="text-slate-400 block font-semibold">Displacement</span>
+                                <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.displacement} cc</span>
+                              </div>
+                            </div>
+                          )}
+                          {v.transmission && (
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <div className="text-[10px] leading-tight">
+                                <span className="text-slate-400 block font-semibold">Transmission</span>
+                                <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.transmission}</span>
+                              </div>
+                            </div>
+                          )}
+                          {v.fuelType && (
+                            <div className="flex items-center gap-2">
+                              <Fuel className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <div className="text-[10px] leading-tight">
+                                <span className="text-slate-400 block font-semibold">Fuel Type</span>
+                                <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.fuelType}</span>
+                              </div>
+                            </div>
+                          )}
+                          {v.power && (
+                            <div className="flex items-center gap-2 col-span-2">
+                              <Gauge className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <div className="text-[10px] leading-tight">
+                                <span className="text-slate-400 block font-semibold">Max Power</span>
+                                <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.power}</span>
+                              </div>
+                            </div>
                           )}
                         </div>
                       </div>
+                    </div>
 
-                      {/* Specs Matrix */}
-                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-dark-800">
-                        {v.engine && (
-                          <div className="flex items-center gap-2">
-                            <Cpu className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <div className="text-[10px] leading-tight">
-                              <span className="text-slate-400 block font-semibold">Engine</span>
-                              <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.engine}</span>
-                            </div>
-                          </div>
-                        )}
-                        {v.displacement && (
-                          <div className="flex items-center gap-2">
-                            <Milestone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <div className="text-[10px] leading-tight">
-                              <span className="text-slate-400 block font-semibold">Displacement</span>
-                              <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.displacement} cc</span>
-                            </div>
-                          </div>
-                        )}
-                        {v.transmission && (
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <div className="text-[10px] leading-tight">
-                              <span className="text-slate-400 block font-semibold">Transmission</span>
-                              <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.transmission}</span>
-                            </div>
-                          </div>
-                        )}
-                        {v.fuelType && (
-                          <div className="flex items-center gap-2">
-                            <Fuel className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <div className="text-[10px] leading-tight">
-                              <span className="text-slate-400 block font-semibold">Fuel Type</span>
-                              <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.fuelType}</span>
-                            </div>
-                          </div>
-                        )}
-                        {v.power && (
-                          <div className="flex items-center gap-2 col-span-2">
-                            <Gauge className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <div className="text-[10px] leading-tight">
-                              <span className="text-slate-400 block font-semibold">Max Power</span>
-                              <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{v.power}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                    {/* Actions footer */}
+                    <div className="p-6 pt-0 border-t border-slate-100 dark:border-dark-800/60 mt-4">
+                      <button
+                        onClick={() => navigate(`/compare-cars?car1=${brand} ${modelName} ${v.name}`)}
+                        className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 hover:scale-[1.01] transition-all cursor-pointer shadow-md shadow-yellow-500/5"
+                      >
+                        <span>Compare Variant</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-
-                  {/* Actions footer */}
-                  <div className="p-6 pt-0 border-t border-slate-100 dark:border-dark-800/60 mt-4">
-                    <button
-                      onClick={() => navigate(`/compare-cars?car1=${brand} ${modelName} ${v.name}`)}
-                      className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 hover:scale-[1.01] transition-all cursor-pointer shadow-md shadow-yellow-500/5"
-                    >
-                      <span>Compare Variant</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </motion.div>
           )}
         </AnimatePresence>

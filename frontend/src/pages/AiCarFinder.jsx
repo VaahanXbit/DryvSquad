@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '../context/ThemeContext'
-import { useLocation } from '../context/LocationContext'
+import { useDsLocation } from '../context/LocationContext'
 import { api } from '../services/api'
 import { jsPDF } from 'jspdf'
 import { 
@@ -48,7 +48,7 @@ const getBaseModelName = (name, brand) => {
 const AiCarFinder = () => {
   const { isDark } = useTheme()
   const navigate = useNavigate()
-  const { location } = useLocation()
+  const { location } = useDsLocation()
 
   // --- WIZARD STATES ---
   const [currentStep, setCurrentStep] = useState(1)
@@ -174,6 +174,8 @@ const AiCarFinder = () => {
         verdict: car.verdict,
         focus: car.focus,
         image: car.image,
+        matchingVariants: car.matchingVariants || [],
+        recommendedVariant: car.recommendedVariant || '',
         searchParams: { 
           budget: mappedBudget, 
           seating: lifeProfile === 'joint_family' ? '7 Seats' : '5 Seats', 
@@ -227,41 +229,37 @@ const AiCarFinder = () => {
     }, 100);
 
     try {
-      const mappedBudget = budgetSlider >= 80 ? "80L+" : `up to ${budgetSlider}L`
-      const mappedSeating = lifeProfile === 'joint_family' ? '7 Seats' : '5 Seats'
-      const mappedDriver = lifeProfile === 'new_driver' ? 'Beginner' : lifeProfile === 'senior_citizen' ? 'Senior' : 'Experienced'
-      let mappedUsage = dailyReality.join(' + ')
-      if (!mappedUsage) {
-        if (lifeProfile === 'solo_commuter') mappedUsage = 'Daily office commute (city)'
-        else if (lifeProfile === 'young_couple') mappedUsage = 'Weekend family outings'
-        else if (lifeProfile === 'small_family') mappedUsage = 'School runs + errands'
-        else if (lifeProfile === 'joint_family') mappedUsage = 'Weekend family outings'
-        else if (lifeProfile === 'adventure') mappedUsage = 'Off-road / adventure'
-        else if (lifeProfile === 'senior_citizen') mappedUsage = 'Occasional use / second car'
-        else if (lifeProfile === 'new_driver') mappedUsage = 'Occasional use / second car'
-        else if (lifeProfile === 'commercial') mappedUsage = 'Commercial / cab / high daily kms'
-        else mappedUsage = 'Daily office commute (city)'
-      }
+      const payload = {
+        budget: budgetSlider >= 80 ? "80L+" : `up to ${budgetSlider}L`,
+        seating: lifeProfile === 'joint_family' ? '7 Seats' : '5 Seats',
+        usage: dailyReality,
+        terrain: (nonNegotiables.includes('High ground clearance') || dailyReality.includes('Off-road / adventure')) ? 'Rough' : 'Smooth',
+        driver: lifeProfile === 'new_driver' ? 'Beginner' : lifeProfile === 'senior_citizen' ? 'Senior' : 'Experienced',
+        city: city,
+        state: (() => {
+          if (!location?.stateCode) {
+            console.warn("⚠️ [Location Warning] location.stateCode is falsy. Falling back to DL for pricing rules.");
+          }
+          return location?.stateCode || 'DL';
+        })(),
+        lifeProfile: lifeProfile,
+        tenure: keepDuration,
+        fuelPref: fuelPref,
+        resaleImportance: resaleImportance,
+        monthlyOpexBand: monthlyMaintSpend,
+        nonNegotiables: nonNegotiables.map(chip => {
+          if (chip === '6+ airbags (safety first)') return 'airbags_6';
+          if (chip === 'Automatic transmission only') return 'automatic';
+          if (chip === 'EV / electric') return 'ev';
+          if (chip === '4WD / AWD') return 'awd_4wd';
+          if (chip === 'High ground clearance') return 'high_clearance';
+          if (chip === 'Low service cost') return 'low_service_cost';
+          if (chip === 'Strong resale value') return 'resale_value';
+          return chip;
+        })
+      };
 
-      const mappedTerrain = (nonNegotiables.includes('High ground clearance') || dailyReality.includes('Off-road / adventure')) ? 'Rough' : 'Smooth'
-      const mappedNonNegs = nonNegotiables.map(x => {
-        if (x === '6+ airbags (safety first)') return '6+ airbags'
-        if (x === 'Automatic transmission only') return 'Automatic only'
-        if (x === 'EV / electric') return 'EV'
-        if (x === '4WD / AWD') return '4WD/AWD'
-        return x
-      });
-      const finalCustomQuery = `EMI: ${emiComfort} | Maintenance: ${monthlyMaintSpend} | Tenure: ${keepDuration} | FuelPref: ${fuelPref} | Resale: ${resaleImportance} | NonNegotiables: ${mappedNonNegs.join(',')}`
-
-      const result = await api.getAiCarFinderRecommendations(
-        mappedBudget,
-        mappedSeating,
-        mappedUsage,
-        mappedTerrain,
-        mappedDriver,
-        city,
-        finalCustomQuery
-      )
+      const result = await api.getAiCarFinderRecommendations(payload);
       
       if (result && result.success) {
         const rawRecs = result.recommendations || []
@@ -1122,7 +1120,7 @@ const AiCarFinder = () => {
                               <h3 className="text-base font-bold text-slate-800 dark:text-white mt-0.5">{car.displayName || car.name}</h3>
                               <div className="mt-1 flex items-baseline gap-1 text-xs">
                                 <span className="text-yellow-500 font-bold">{car.priceRange}</span>
-                                <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">(Ex-Showroom Price)</span>
+                                <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">(Est. On-Road Price)</span>
                               </div>
                             </div>
                             

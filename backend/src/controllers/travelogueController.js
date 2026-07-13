@@ -146,11 +146,28 @@ exports.createTravelogue = async (req, res) => {
       seoDescription
     } = req.body;
 
-    // Generate unique slug from title
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+    // Use manual slug if provided, else generate unique slug from title
+    let slug = req.body.slug;
+    if (slug !== undefined && slug !== null && String(slug).trim()) {
+      slug = String(slug)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    } else {
+      slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    }
+
+    // Check if a travelogue with this slug already exists
+    const slugExists = await Travelogue.findOne({ slug });
+    if (slugExists) {
+      return res.status(400).json({
+        success: false,
+        message: `A travelogue with this slug already exists: "${slug}"`,
+      });
+    }
 
     // Process tags array
     const processedTags = Array.isArray(tags) 
@@ -221,13 +238,29 @@ exports.updateTravelogue = async (req, res) => {
       });
     }
 
-    // Generate slug from title if modified
+    // Use manual slug if provided, else generate slug from title if modified
     let slug = travelogue.slug;
-    if (title && title !== travelogue.title) {
+    if (req.body.slug !== undefined && req.body.slug !== null && String(req.body.slug).trim()) {
+      slug = String(req.body.slug)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    } else if (title && title !== travelogue.title) {
       slug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
+    }
+
+    // Check if the new slug is already taken by another travelogue
+    if (slug !== travelogue.slug) {
+      const slugExists = await Travelogue.findOne({ slug, _id: { $ne: id } });
+      if (slugExists) {
+        return res.status(400).json({
+          success: false,
+          message: `A travelogue with this slug already exists: "${slug}"`,
+        });
+      }
     }
 
     // Process tags array

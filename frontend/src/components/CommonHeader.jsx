@@ -12,7 +12,7 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from './ThemeToggle'
 import AuthModal from './AuthModal'
@@ -72,6 +72,7 @@ const NAV_LINKS = [
 ]
 
 const CommonHeader = () => {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
@@ -487,6 +488,12 @@ const CommonHeader = () => {
               </NavLink>
             ))}
             <CategoriesDropdown />
+            <button
+              onClick={() => navigate('/ai-car-finder')}
+              className="px-3.5 py-1.5 bg-[#f9bc16] hover:bg-[#ad820a] text-white font-bold rounded-lg text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-md flex items-center gap-1.5 cursor-pointer font-sans"
+            >
+              <span>Launch Car Finder</span>
+            </button>
           </div>
         </div>
 
@@ -533,6 +540,18 @@ const CommonHeader = () => {
                       {link.name}
                     </NavLink>
                   ))}
+
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        navigate('/ai-car-finder');
+                        closeMenu();
+                      }}
+                      className="w-full py-2.5 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold rounded-xl text-sm transition-all duration-300 shadow-md flex items-center justify-center gap-1.5 cursor-pointer font-sans"
+                    >
+                      <span>Launch Car Finder</span>
+                    </button>
+                  </div>
 
                   <div className="py-1 border-t border-gray-100 dark:border-dark-700 mt-2 pt-2">
                     <button

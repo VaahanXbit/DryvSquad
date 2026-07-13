@@ -212,6 +212,8 @@ exports.createArticle = async (req, res) => {
       excerpt,
       content,
       image,
+      thumbnail,
+      blocks,
       author,
       date,
       readTime,
@@ -232,16 +234,28 @@ exports.createArticle = async (req, res) => {
       });
     }
 
-    // Auto-generate slug from title
-    const slug = title
-      .toString()
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '');
+    // Use manual slug if provided, else auto-generate from title
+    let slug = req.body.slug;
+    if (slug !== undefined && slug !== null && String(slug).trim()) {
+      slug = String(slug)
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    } else {
+      slug = title
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    }
 
     // Check if slug already exists to prevent duplicate key error
     const existingArticle = await Article.findOne({ slug });
@@ -269,6 +283,8 @@ exports.createArticle = async (req, res) => {
       excerpt,
       content,
       image,
+      thumbnail: thumbnail || '',
+      blocks: blocks || undefined,
       author,
       date,
       readTime,
@@ -312,6 +328,8 @@ exports.updateArticle = async (req, res) => {
       excerpt,
       content,
       image,
+      thumbnail,
+      blocks,
       author,
       date,
       readTime,
@@ -332,13 +350,33 @@ exports.updateArticle = async (req, res) => {
       });
     }
 
-    // Generate slug from title if modified
+    // Use manual slug if provided, else generate slug from title if modified
     let slug = article.slug;
-    if (title && title !== article.title) {
+    if (req.body.slug !== undefined && req.body.slug !== null && String(req.body.slug).trim()) {
+      slug = String(req.body.slug)
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    } else if (title && title !== article.title) {
       slug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
+    }
+
+    // Check if the new slug is already taken by another article
+    if (slug !== article.slug) {
+      const slugExists = await Article.findOne({ slug, _id: { $ne: id } });
+      if (slugExists) {
+        return res.status(400).json({
+          success: false,
+          message: `An article with this slug already exists: "${slug}"`,
+        });
+      }
     }
 
     // Process keywords and tags arrays
@@ -358,6 +396,8 @@ exports.updateArticle = async (req, res) => {
       excerpt,
       content,
       image,
+      thumbnail: thumbnail !== undefined ? thumbnail : article.thumbnail,
+      blocks: blocks !== undefined ? blocks : article.blocks,
       author,
       date,
       readTime,
