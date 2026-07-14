@@ -18,8 +18,8 @@ const AdminPage = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
   const [contentType, setContentType] = useState('article') // 'article' or 'travelogue'
-  const [manageType, setManageType] = useState('article') // 'article' or 'travelogue'
   const [editorBlocks, setEditorBlocks] = useState([])
   const blockIdCounterRef = useRef(0)
 
@@ -367,32 +367,42 @@ const AdminPage = () => {
     }
   }
 
-  // Fetch travelogues for management tab
-  const fetchTraveloguesForManagement = async () => {
-    setIsLoadingList(true)
-    try {
-      const response = await api.getAllTravelogues()
-      if (response.success) {
-        setArticlesList(response.travelogues)
-      } else {
-        console.error('Failed to load travelogues list')
-      }
-    } catch (err) {
-      console.error('Error fetching travelogues list:', err)
-    } finally {
-      setIsLoadingList(false)
-    }
-  }
-
   useEffect(() => {
     if (token && activeTab === 'manage') {
-      if (manageType === 'article') {
-        fetchArticlesForManagement()
-      } else {
-        fetchTraveloguesForManagement()
-      }
+      fetchArticlesForManagement()
     }
-  }, [token, activeTab, manageType])
+  }, [token, activeTab])
+
+  // Categories derived from published articles (includes any newly used categories)
+  const manageCategories = [
+    ...new Set(
+      articlesList
+        .map((art) => (art.category || '').trim())
+        .filter(Boolean)
+    ),
+  ].sort((a, b) => a.localeCompare(b))
+
+  useEffect(() => {
+    if (selectedCategory === 'All') return
+    const categoryStillExists = articlesList.some(
+      (art) => (art.category || '').trim() === selectedCategory
+    )
+    if (!categoryStillExists) {
+      setSelectedCategory('All')
+    }
+  }, [articlesList, selectedCategory])
+
+  const filteredArticlesList = articlesList.filter((art) => {
+    const matchesCategory =
+      selectedCategory === 'All' || (art.category || '').trim() === selectedCategory
+    const query = searchQuery.toLowerCase()
+    const matchesSearch =
+      !query ||
+      (art.title || '').toLowerCase().includes(query) ||
+      (art.category || '').toLowerCase().includes(query) ||
+      (art.author || '').toLowerCase().includes(query)
+    return matchesCategory && matchesSearch
+  })
 
   // Change content type write mode
   const handleContentTypeChange = (type) => {
@@ -473,26 +483,20 @@ const AdminPage = () => {
     setMessage({ type: '', text: '' })
   }
 
-  // Delete article or travelogue
-  const handleDeleteClick = async (id, title, type = 'article') => {
-    if (!window.confirm(`Are you sure you want to delete this ${type}: "${title}"?`)) {
+  // Delete article
+  const handleDeleteClick = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete this article: "${title}"?`)) {
       return
     }
     
     try {
-      const response = type === 'article'
-        ? await api.deleteArticle(id, token)
-        : await api.deleteTravelogue(id, token)
+      const response = await api.deleteArticle(id, token)
       if (response.success) {
         setMessage({
           type: 'success',
-          text: `🗑️ ${type === 'article' ? 'Article' : 'Travelogue'} "${title}" deleted successfully!`
+          text: `🗑️ Article "${title}" deleted successfully!`
         })
-        if (type === 'article') {
-          fetchArticlesForManagement()
-        } else {
-          fetchTraveloguesForManagement()
-        }
+        fetchArticlesForManagement()
       } else {
         if (response.status === 401 || response.status === 403) {
           handleLogout()
@@ -500,7 +504,7 @@ const AdminPage = () => {
         } else {
           setMessage({
             type: 'error',
-            text: response.message || `Failed to delete ${type}.`
+            text: response.message || 'Failed to delete article.'
           })
         }
       }
@@ -508,7 +512,7 @@ const AdminPage = () => {
       console.error('Delete error:', err)
       setMessage({
         type: 'error',
-        text: `An error occurred while deleting the ${type}.`
+        text: 'An error occurred while deleting the article.'
       })
     }
   }
@@ -732,53 +736,51 @@ const AdminPage = () => {
         {/* Conditionally Render Tabs */}
         {activeTab === 'manage' ? (
           <div className="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-6 md:p-8 shadow-2xl">
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Published {manageType === 'article' ? 'Articles' : 'Travelogues'} ({articlesList.length})
+                <h3 className="text-lg font-semibold text-white mb-1">
+                  Published Articles ({filteredArticlesList.length}
+                  {selectedCategory !== 'All' || searchQuery
+                    ? ` of ${articlesList.length}`
+                    : ''}
+                  )
                 </h3>
-                
-                {/* Manage Type Toggle */}
-                <div className="flex gap-2 bg-slate-900/40 p-1 rounded-lg border border-slate-700/50 max-w-[200px]">
-                  <button
-                    onClick={() => setManageType('article')}
-                    className={`flex-1 py-1 rounded text-[10px] font-semibold transition-all ${
-                      manageType === 'article' ? 'bg-slate-750 text-yellow-500 font-bold' : 'text-slate-400'
-                    }`}
-                  >
-                    Articles
-                  </button>
-                  <button
-                    onClick={() => setManageType('travelogue')}
-                    className={`flex-1 py-1 rounded text-[10px] font-semibold transition-all ${
-                      manageType === 'travelogue' ? 'bg-slate-750 text-yellow-500 font-bold' : 'text-slate-400'
-                    }`}
-                  >
-                    Travelogues
-                  </button>
-                </div>
+                <p className="text-slate-400 text-xs">
+                  Filter by category to browse articles. New categories appear automatically when used.
+                </p>
               </div>
 
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by title, author, or category..."
-                className="w-full sm:max-w-md bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
-              />
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full sm:w-52 bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                >
+                  <option value="All">All Categories</option>
+                  {manageCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by title, author, or category..."
+                  className="w-full sm:max-w-md bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                />
+              </div>
             </div>
             
             {isLoadingList ? (
               <div className="flex justify-center items-center py-20">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500"></div>
               </div>
-            ) : articlesList.filter(art => 
-                (art.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (art.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (art.author || '').toLowerCase().includes(searchQuery.toLowerCase())
-              ).length === 0 ? (
+            ) : filteredArticlesList.length === 0 ? (
               <p className="text-slate-400 text-center py-8">
-                No {manageType === 'article' ? 'articles' : 'travelogues'} found matching search criteria.
+                No articles found matching your filters.
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -793,28 +795,21 @@ const AdminPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-slate-300">
-                    {articlesList.filter(art => 
-                      (art.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      (art.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      (art.author || '').toLowerCase().includes(searchQuery.toLowerCase())
-                    ).map(art => (
+                    {filteredArticlesList.map(art => (
                       <tr key={art._id} className="hover:bg-slate-850/50 transition-colors">
                         <td className="py-4 px-4 font-semibold text-white max-w-sm truncate">{art.title}</td>
                         <td className="py-4 px-4">{art.category}</td>
                         <td className="py-4 px-4">{art.date}</td>
                         <td className="py-4 px-4">{art.author}</td>
                         <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap">
-                          <span className="inline-block px-2.5 py-1 bg-slate-800 text-slate-450 rounded-lg text-[10px] font-bold uppercase tracking-wider mr-2">
-                            {art.category}
-                          </span>
                           <button
-                            onClick={() => handleEditClick(art, manageType)}
+                            onClick={() => handleEditClick(art, 'article')}
                             className="px-3 py-1.5 bg-yellow-500/10 hover:bg-yellow-500 text-yellow-500 hover:text-slate-950 rounded-lg text-xs font-semibold transition-all"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDeleteClick(art._id, art.title, manageType)}
+                            onClick={() => handleDeleteClick(art._id, art.title)}
                             className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 text-rose-450 hover:text-white rounded-lg text-xs font-semibold transition-all"
                           >
                             Delete
