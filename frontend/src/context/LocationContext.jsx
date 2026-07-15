@@ -7,15 +7,40 @@ Description : Single global location used by every page (Home, Car Detail,
               Selected once, persisted to localStorage (and to the user's
               MongoDB profile when logged in), and restored automatically
               on every future visit — no page ever asks for it twice.
+
+              PERMISSION FLOW (refactored):
+              On first load, this never opens the custom LocationModal by
+              itself. Instead it silently attempts the browser's NATIVE
+              geolocation permission first — exactly like Swiggy/Zomato/
+              Amazon, the OS-level "Allow this time / Allow while visiting
+              / Never allow" dialog is the first thing the user sees, not
+              our own UI. If the browser already remembers a "denied"
+              decision (checked via the Permissions API where supported),
+              we never re-ask.
+
+              The custom LocationModal is now purely on-demand: any
+              feature that actually needs a location calls
+              ensureLocationForFeature(), which opens the modal only if a
+              location genuinely isn't available yet. Today that's
+              Compare Cars; the same call is meant to be reused by future
+              features (AI Car Finder, Loan Calculator, Insurance, ...)
+              without any new location logic.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../services/api'
 
 const LOCATION_STORAGE_KEY = 'locationContext'
+// Fallback-only flag for browsers without the Permissions API (e.g. older
+// Safari), so we still only ever attempt the silent native prompt once,
+// even though we can't directly read the browser's remembered decision.
+// Browsers that DO support navigator.permissions are trusted as the
+// source of truth instead (they already remember "denied" forever) — see
+// the auto-detect effect below.
+const PERMISSION_ATTEMPTED_KEY = 'dsLocationPermissionAttempted'
 
 const LocationContext = createContext(undefined)
 
@@ -48,7 +73,14 @@ export const LocationProvider = ({ children }) => {
   const [location, setLocationState] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isRestoring, setIsRestoring] = useState(true)
+  // True while the silent, app-wide native-geolocation attempt (below) is
+  // in flight. Feature pages (Compare Cars, etc.) should wait for this to
+  // go false before deciding "no location exists, open the modal" — that
+  // way they don't flash the modal while the browser's own dialog is
+  // still about to appear.
+  const [isAutoDetecting, setIsAutoDetecting] = useState(true)
   const [outsideIndiaMessage, setOutsideIndiaMessage] = useState(null)
+  const autoDetectAttemptedRef = useRef(false)
 
   // Restore location once on app load: localStorage first (instant, works
   // logged-out), then reconcile with the MongoDB profile if logged in and
@@ -88,14 +120,6 @@ export const LocationProvider = ({ children }) => {
     return () => { cancelled = true }
   }, [])
 
-  // Show the "choose your location" modal on first-ever visit — once
-  // restoration has finished and there's genuinely no saved location.
-  useEffect(() => {
-    if (!isRestoring && !location) {
-      setIsModalOpen(true)
-    }
-  }, [isRestoring, location])
-
   const persistLocation = useCallback(async (loc) => {
     setLocationState(loc)
     writeStoredLocation(loc)
@@ -127,7 +151,10 @@ export const LocationProvider = ({ children }) => {
   const closeLocationModal = useCallback(() => setIsModalOpen(false), [])
 
   // "Use My Current Location" — browser geolocation -> backend reverse
-  // geocode (OpenCage) -> India-only enforcement.
+  // geocode (OpenCage) -> India-only enforcement. Used both by the modal's
+  // explicit button AND by the silent auto-detect effect below (calling
+  // this directly is what makes the browser's native dialog appear,
+  // without any custom UI of ours in front of it).
   const detectCurrentLocation = useCallback(() => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
@@ -167,26 +194,117 @@ export const LocationProvider = ({ children }) => {
     })
   }, [setLocation])
 
+  // ----------------------------------------------------------------------
+  // Silent, app-wide, native-geolocation-first attempt.
+  //
+  // Runs once, after restore, only if no location was already found.
+  // Never opens the custom modal. Sequence:
+  //   1. If the Permissions API is available, read the browser's own
+  //      remembered decision for this origin:
+  //        - 'denied'  -> stop. The browser already remembers "no" —
+  //                       asking again would violate "do not repeatedly
+  //                       ask" and browsers won't show the dialog anyway.
+  //        - 'granted' -> detectCurrentLocation() resolves silently, no
+  //                       dialog shown (permission already given).
+  //        - 'prompt'  -> detectCurrentLocation() triggers the browser's
+  //                       native "Allow this time / Allow while visiting /
+  //                       Never allow" dialog — the first thing the user
+  //                       sees, exactly as required.
+  //   2. If the Permissions API isn't available (older Safari), we can't
+  //      read the browser's memory directly, so we fall back to our own
+  //      one-time localStorage flag purely to avoid nagging on every
+  //      reload; the browser itself still won't re-show a dialog it
+  //      already has a permanent answer for.
+  // ----------------------------------------------------------------------
+  useEffect(() => {
+    if (isRestoring) return
+    if (location) { setIsAutoDetecting(false); return }
+    if (autoDetectAttemptedRef.current) return
+    autoDetectAttemptedRef.current = true
+
+    let cancelled = false
+
+    const run = async () => {
+      try {
+        if (!navigator.geolocation) return
+
+        let permissionState = 'unknown'
+        if (navigator.permissions?.query) {
+          try {
+            const status = await navigator.permissions.query({ name: 'geolocation' })
+            permissionState = status.state // 'granted' | 'prompt' | 'denied'
+          } catch {
+            permissionState = 'unknown'
+          }
+        }
+        if (cancelled) return
+
+        if (permissionState === 'denied') return // browser already remembers "no"
+
+        if (permissionState === 'unknown') {
+          // Permissions API unsupported — use our own one-time guard so we
+          // don't silently re-trigger geolocation on every page load.
+          let alreadyAttempted = false
+          try {
+            alreadyAttempted = localStorage.getItem(PERMISSION_ATTEMPTED_KEY) === 'true'
+          } catch { /* ignore */ }
+          if (alreadyAttempted) return
+          try { localStorage.setItem(PERMISSION_ATTEMPTED_KEY, 'true') } catch { /* ignore */ }
+        }
+
+        // 'granted' or 'prompt' (or unknown-but-not-yet-attempted): this is
+        // the call that surfaces the native browser dialog when needed.
+        await detectCurrentLocation()
+      } finally {
+        if (!cancelled) setIsAutoDetecting(false)
+      }
+    }
+
+    run()
+    return () => { cancelled = true }
+  }, [isRestoring, location, detectCurrentLocation])
+
+  // ----------------------------------------------------------------------
+  // Reusable, on-demand hook for any feature that needs a location.
+  // Compare Cars uses this today; AI Car Finder / Loan Calculator /
+  // Insurance / any future feature should call the exact same function —
+  // no new location logic needed anywhere else.
+  //
+  // Opens the EXISTING LocationModal only if a location genuinely isn't
+  // available. Returns true if a location was already present (caller can
+  // proceed immediately), false if it just opened the modal (caller
+  // should wait for `location` to become truthy before proceeding).
+  // ----------------------------------------------------------------------
+  const ensureLocationForFeature = useCallback(() => {
+    if (location) return true
+    openLocationModal()
+    return false
+  }, [location, openLocationModal])
+
   const value = useMemo(() => ({
     location,
     isModalOpen,
     isRestoring,
+    isAutoDetecting,
     outsideIndiaMessage,
     setLocation,
     clearLocation,
     openLocationModal,
     closeLocationModal,
     detectCurrentLocation,
+    ensureLocationForFeature,
   }), [
     location,
     isModalOpen,
     isRestoring,
+    isAutoDetecting,
     outsideIndiaMessage,
     setLocation,
     clearLocation,
     openLocationModal,
     closeLocationModal,
     detectCurrentLocation,
+    ensureLocationForFeature,
   ])
 
   return (
