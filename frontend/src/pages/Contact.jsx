@@ -1,4 +1,4 @@
-// src/pages/Contact.jsx - Updated with Bangalore Location & Google Map
+// src/pages/Contact.jsx - Updated with theme matching backgrounds
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -74,13 +74,19 @@ const Contact = () => {
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 bg-gradient-to-r from-gray-900 to-gray-800 text-white">
+      {/* Hero Section - THEME AWARE FIXED */}
+      <section className={`relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 transition-colors duration-300 ${
+        isDark ? 'bg-dark-950' : 'bg-white'
+      }`}>
         <div className="container-custom text-center">
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-white text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 ${
+            isDark ? 'text-white' : 'text-gray-900'
+          }`}>
             Get In Touch
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl mx-auto px-2">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className={`text-base sm:text-lg md:text-xl max-w-2xl mx-auto px-2 ${
+            isDark ? 'text-gray-300' : 'text-gray-600'
+          }`}>
             Have questions about automotive technology or suggestions for future guides? We'd love to hear from you.
           </motion.p>
         </div>

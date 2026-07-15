@@ -62,7 +62,7 @@ class AboutPage extends BasePage {
               <motion.div variants={this.fadeLeft} initial="hidden" whileInView="visible" viewport={{ once: true }} className={`rounded-2xl shadow-2xl p-5 sm:p-6 md:p-8 transform hover:-translate-y-2 transition-all duration-300 ${
                 isDark ? 'bg-dark-800' : 'bg-white'
               }`}>
-                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-3xl">🎯</span>
                 </div>
                 <h3 className={`text-xl sm:text-2xl font-bold mb-3 sm:mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Our Mission</h3>
@@ -72,7 +72,7 @@ class AboutPage extends BasePage {
               <motion.div variants={this.fadeRight} initial="hidden" whileInView="visible" viewport={{ once: true }} className={`rounded-2xl shadow-2xl p-5 sm:p-6 md:p-8 transform hover:-translate-y-2 transition-all duration-300 ${
                 isDark ? 'bg-dark-800' : 'bg-white'
               }`}>
-                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-dark-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-3xl">👁️</span>
                 </div>
                 <h3 className={`text-xl sm:text-2xl font-bold mb-3 sm:mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Our Vision</h3>
@@ -82,12 +82,14 @@ class AboutPage extends BasePage {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-gray-900 to-gray-800 relative overflow-hidden">
+        {/* Stats Section - THEME AWARE FIXED */}
+        <section className={`py-12 sm:py-16 md:py-20 relative overflow-hidden transition-colors duration-300 ${
+          isDark ? 'bg-dark-950' : 'bg-white'
+        }`}>
           <div className="container-custom relative z-10">
             <motion.div variants={this.fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-8 sm:mb-10 md:mb-12">
               <span className="text-yellow-500 font-semibold text-xs sm:text-sm tracking-wider uppercase">Our Achievements</span>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2">Numbers That Speak</h2>
+              <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Numbers That Speak</h2>
             </motion.div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
               {[
@@ -98,8 +100,8 @@ class AboutPage extends BasePage {
               ].map((stat, index) => (
                 <motion.div key={index} variants={this.fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="text-center">
                   <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-yellow-500 mb-1 sm:mb-2">{stat.number}</div>
-                  <div className="text-white font-semibold text-sm sm:text-base md:text-lg mb-0.5 sm:mb-1">{stat.label}</div>
-                  <div className="text-gray-400 text-xs sm:text-sm">{stat.description}</div>
+                  <div className={`font-semibold text-sm sm:text-base md:text-lg mb-0.5 sm:mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.label}</div>
+                  <div className={`text-xs sm:text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{stat.description}</div>
                 </motion.div>
               ))}
             </div>
