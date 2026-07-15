@@ -72,6 +72,11 @@ const writeStoredLocation = (location) => {
 export const LocationProvider = ({ children }) => {
   const [location, setLocationState] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  // Optional contextual message shown inside the modal explaining why it
+  // was opened (e.g. Compare Cars' "select your location to continue..."
+  // text). Cleared whenever the modal closes so a later generic open
+  // (header badge, etc.) doesn't show stale copy from a previous feature.
+  const [modalReason, setModalReason] = useState(null)
   const [isRestoring, setIsRestoring] = useState(true)
   // True while the silent, app-wide native-geolocation attempt (below) is
   // in flight. Feature pages (Compare Cars, etc.) should wait for this to
@@ -147,8 +152,14 @@ export const LocationProvider = ({ children }) => {
     writeStoredLocation(null)
   }, [])
 
-  const openLocationModal = useCallback(() => setIsModalOpen(true), [])
-  const closeLocationModal = useCallback(() => setIsModalOpen(false), [])
+  const openLocationModal = useCallback((reason) => {
+    setModalReason(reason || null)
+    setIsModalOpen(true)
+  }, [])
+  const closeLocationModal = useCallback(() => {
+    setIsModalOpen(false)
+    setModalReason(null)
+  }, [])
 
   // "Use My Current Location" — browser geolocation -> backend reverse
   // geocode (OpenCage) -> India-only enforcement. Used both by the modal's
@@ -275,15 +286,16 @@ export const LocationProvider = ({ children }) => {
   // proceed immediately), false if it just opened the modal (caller
   // should wait for `location` to become truthy before proceeding).
   // ----------------------------------------------------------------------
-  const ensureLocationForFeature = useCallback(() => {
+  const ensureLocationForFeature = useCallback((reason) => {
     if (location) return true
-    openLocationModal()
+    openLocationModal(reason)
     return false
   }, [location, openLocationModal])
 
   const value = useMemo(() => ({
     location,
     isModalOpen,
+    modalReason,
     isRestoring,
     isAutoDetecting,
     outsideIndiaMessage,
@@ -296,6 +308,7 @@ export const LocationProvider = ({ children }) => {
   }), [
     location,
     isModalOpen,
+    modalReason,
     isRestoring,
     isAutoDetecting,
     outsideIndiaMessage,

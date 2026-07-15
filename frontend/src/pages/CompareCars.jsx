@@ -782,23 +782,26 @@ const PopularComparisonCard = ({ comparison, onClick, isDark }) => {
 // ========================================
 const CompareCars = () => {
   const { isDark } = useTheme()
-  const { location, isRestoring, isAutoDetecting, ensureLocationForFeature } = useDsLocation()
+  const { location, isModalOpen, ensureLocationForFeature } = useDsLocation()
 
-  // Compare Cars needs a location to calculate on-road price. Per the
-  // required flow: Case 1 (location already exists) -> do nothing, price
-  // calculation just proceeds normally wherever it already happens.
-  // Case 2 (no location) -> open the existing, reusable LocationModal —
-  // but only once the app-wide silent native-permission attempt (see
-  // LocationContext) has finished, so we don't flash our modal in front
-  // of a browser dialog that might still be about to appear.
-  const compareLocationPromptRef = useRef(false)
+  // Compare Cars needs a location before it can show results, but only
+  // from the moment the user actually asks to compare — never on page
+  // load. `pendingCompareRef` remembers which cars were requested so that
+  // once a location is picked (via the modal opened below), the
+  // comparison that was waiting on it fires automatically.
+  const pendingCompareRef = useRef(null)
+  const wasModalOpenRef = useRef(false)
+
+  // If the user closes the modal without picking a location, drop the
+  // pending request — per spec, they must click "Compare Cars" again to
+  // re-trigger it, rather than having some unrelated later location pick
+  // silently kick off a comparison on this page.
   useEffect(() => {
-    if (isRestoring || isAutoDetecting) return
-    if (location) return
-    if (compareLocationPromptRef.current) return
-    compareLocationPromptRef.current = true
-    ensureLocationForFeature()
-  }, [isRestoring, isAutoDetecting, location, ensureLocationForFeature])
+    if (wasModalOpenRef.current && !isModalOpen && !location) {
+      pendingCompareRef.current = null
+    }
+    wasModalOpenRef.current = isModalOpen
+  }, [isModalOpen, location])
 
   const [carsData, setCarsData] = useState([])
   const [brandsData, setBrandsData] = useState([])
@@ -990,8 +993,35 @@ const CompareCars = () => {
     }
   }
 
+  // Single gated entry point every "compare" trigger goes through
+  // (the button, editing a car slot, and Popular Comparisons). A location
+  // is required before any comparison results are shown — if one isn't
+  // selected yet, this opens the existing location modal (with a message
+  // explaining why) and remembers the request; executeComparison only
+  // actually runs once a location becomes available.
+  const requestCompare = (id1, id2, id3 = null) => {
+    if (!id1 || !id2) return
+    if (!location) {
+      pendingCompareRef.current = { id1, id2, id3 }
+      ensureLocationForFeature('Select your location to continue with car comparison and view the accurate on-road price.')
+      return
+    }
+    executeComparison(id1, id2, id3)
+  }
+
+  // Once a location becomes available, automatically run whichever
+  // comparison was waiting on it (set by requestCompare above).
+  useEffect(() => {
+    if (location && pendingCompareRef.current) {
+      const { id1, id2, id3 } = pendingCompareRef.current
+      pendingCompareRef.current = null
+      executeComparison(id1, id2, id3)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location])
+
   const handleCompare = () => {
-    executeComparison(car1Id, car2Id, car3Id)
+    requestCompare(car1Id, car2Id, car3Id)
   }
 
   const handleCarSelect = (position, car) => {
@@ -1015,8 +1045,14 @@ const CompareCars = () => {
     setShowPopup3(false)
     setShowEditPopup(false)
     
-    if (newCar1Id && newCar2Id && (showComparison || editingCar !== null)) {
+    if (newCar1Id && newCar2Id && showComparison) {
+      // Results are already on screen, so a location was already required
+      // to get here — refresh directly, no need to re-gate.
       executeComparison(newCar1Id, newCar2Id, newCar3Id)
+    } else if (newCar1Id && newCar2Id && editingCar !== null) {
+      // Editing a slot from the pre-compare selection screen (via the ✎
+      // icon) behaves like clicking "Compare Cars" — same location gate.
+      requestCompare(newCar1Id, newCar2Id, newCar3Id)
     }
     
     setEditingCar(null)
@@ -1066,7 +1102,7 @@ const CompareCars = () => {
     setCar1Id(comparison.car1.id)
     setCar2Id(comparison.car2.id)
     setCar3Id(null)
-    setTimeout(() => executeComparison(comparison.car1.id, comparison.car2.id), 300)
+    setTimeout(() => requestCompare(comparison.car1.id, comparison.car2.id), 300)
   }
 
   if (loading) {
