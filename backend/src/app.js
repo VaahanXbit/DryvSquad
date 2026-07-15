@@ -149,6 +149,7 @@ const allowedOrigins = [
   "https://dryvsquad.com",
 
   // Current Production Frontend
+  "https://dryv-squad.vercel.app",
   "https://dryv-squad-bcgg9uant-vaahan-xbit-s-projects.vercel.app",
 
   // Environment Variable
