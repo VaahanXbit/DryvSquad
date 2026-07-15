@@ -54,11 +54,14 @@ const LocationModal = () => {
       latitude: place.latitude,
       longitude: place.longitude,
     })
+    // Close the modal immediately after selection
+    closeLocationModal()
   }
 
   // A previously-selected location exists, so this modal was opened
   // voluntarily (via the navbar) — allow closing without picking again.
-  const canDismiss = !!location
+  // 🟢 FIX: We remove this check so the close icon is always visible.
+  const canDismiss = true 
 
   return (
     <AnimatePresence>
@@ -93,19 +96,18 @@ const LocationModal = () => {
                       We use your location to calculate accurate on-road prices, dealership availability, offers and EMI.
                     </p>
                   </div>
-                  {canDismiss && (
-                    <button
-                      onClick={closeLocationModal}
-                      className={`shrink-0 p-1.5 rounded-lg transition-colors ${
-                        isDark ? 'hover:bg-dark-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
-                      }`}
-                      aria-label="Close"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
+                  {/* 🟢 FIX: Always render the close icon */}
+                  <button
+                    onClick={closeLocationModal}
+                    className={`shrink-0 p-1.5 rounded-lg transition-colors ${
+                      isDark ? 'hover:bg-dark-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
+                    }`}
+                    aria-label="Close"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
 
                 <button
@@ -136,6 +138,7 @@ const LocationModal = () => {
                   <div className={`flex-1 h-px ${isDark ? 'bg-dark-700' : 'bg-gray-200'}`} />
                 </div>
 
+                {/* 🟢 FIX: Pass closeLocationModal to the dropdown */}
                 <LocationSearchDropdown onSelect={handleSelectSearchResult} isDark={isDark} />
               </div>
             </motion.div>

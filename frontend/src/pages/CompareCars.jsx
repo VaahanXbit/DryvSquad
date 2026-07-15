@@ -782,7 +782,7 @@ const PopularComparisonCard = ({ comparison, onClick, isDark }) => {
 // ========================================
 const CompareCars = () => {
   const { isDark } = useTheme()
-  const { location } = useDsLocation()
+  const { location, openLocationModal } = useDsLocation()
 
   const [carsData, setCarsData] = useState([])
   const [brandsData, setBrandsData] = useState([])
@@ -804,6 +804,9 @@ const CompareCars = () => {
   const [editingCar, setEditingCar] = useState(null)
   const [showEditPopup, setShowEditPopup] = useState(false)
   const [editAnchorRef, setEditAnchorRef] = useState(null)
+
+  // Store pending compare arguments to run after location selection
+  const [pendingCompare, setPendingCompare] = useState(null)
 
   const [popularCardsData, setPopularCardsData] = useState([])
 
@@ -975,8 +978,26 @@ const CompareCars = () => {
   }
 
   const handleCompare = () => {
+    if (!location) {
+      // If location is missing, store the pending execution and open the modal.
+      setPendingCompare({ id1: car1Id, id2: car2Id, id3: car3Id })
+      openLocationModal()
+      return
+    }
     executeComparison(car1Id, car2Id, car3Id)
   }
+
+  // Handle location selection completion (triggers pending comparison if any)
+  useEffect(() => {
+    if (location && pendingCompare) {
+      const { id1, id2, id3 } = pendingCompare
+      setPendingCompare(null)
+      if (id1 && id2) {
+        executeComparison(id1, id2, id3)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, pendingCompare])
 
   const handleCarSelect = (position, car) => {
     let newCar1Id = car1Id
@@ -999,9 +1020,8 @@ const CompareCars = () => {
     setShowPopup3(false)
     setShowEditPopup(false)
     
-    if (newCar1Id && newCar2Id && (showComparison || editingCar !== null)) {
-      executeComparison(newCar1Id, newCar2Id, newCar3Id)
-    }
+    // ⚠️ REMOVED: We no longer auto-trigger comparison here.
+    // The user must explicitly click "Compare Now".
     
     setEditingCar(null)
     setEditAnchorRef(null)
@@ -1043,6 +1063,7 @@ const CompareCars = () => {
     setEditingCar(null)
     setShowEditPopup(false)
     setEditAnchorRef(null)
+    setPendingCompare(null)
     // window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -1050,7 +1071,15 @@ const CompareCars = () => {
     setCar1Id(comparison.car1.id)
     setCar2Id(comparison.car2.id)
     setCar3Id(null)
-    setTimeout(() => executeComparison(comparison.car1.id, comparison.car2.id), 300)
+    // We trigger the check immediately in the timeout to show the modal if needed
+    setTimeout(() => {
+      if (!location) {
+        setPendingCompare({ id1: comparison.car1.id, id2: comparison.car2.id, id3: null })
+        openLocationModal()
+        return
+      }
+      executeComparison(comparison.car1.id, comparison.car2.id)
+    }, 300)
   }
 
   if (loading) {
@@ -1059,25 +1088,25 @@ const CompareCars = () => {
         <SkeletonStyles />
 
         {/* Hero renders immediately — it's static content, no need to wait */}
-        <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-white dark:bg-dark-900 text-white transition-colors duration-300 overflow-hidden">
+        <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img
               src="./imageCompare.png"
               alt="Compare Cars"
-              className="w-full h-full object-cover opacity-30 dark:opacity-30"
+              className="w-full h-full object-cover opacity-30"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-transparent dark:from-dark-900/90 dark:via-dark-900/70 dark:to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent"></div>
           </div>
           <div className="container-custom relative z-10">
             <div className="max-w-3xl">
               <div className="inline-block px-3 sm:px-4 py-1.5 bg-[#fc641c] rounded-full text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-sm">
                 🚗 Car Comparison Tool
               </div>
-              <h1 className="text-gray-900 dark:text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
+              <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
                 Compare Cars{' '}
                 <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Side by Side</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg md:text-xl mb-6 sm:mb-8">
+              <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8">
                 Select two cars to compare their features, scores, and specifications
               </p>
             </div>
@@ -1123,16 +1152,15 @@ const CompareCars = () => {
     <div className={`min-h-screen ${isDark ? 'bg-dark-900' : 'bg-white'}`}>
       <SkeletonStyles />
       
-      {/* RESTORED HERO SECTION - FIXED THEME AWARE */}
-      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-white dark:bg-dark-900 transition-colors duration-300 overflow-hidden">
+      {/* RESTORED HERO SECTION */}
+      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src="./imageCompare.png"
             alt="Compare Cars"
             className="w-full h-full object-cover opacity-30"
           />
-          {/* Dynamic Light/Dark Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-transparent dark:from-dark-900/90 dark:via-dark-900/70 dark:to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent"></div>
         </div>
 
         <div className="container-custom relative z-10">
@@ -1155,7 +1183,7 @@ const CompareCars = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-gray-900 dark:text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6"
+              className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6"
             >
               Compare Cars{' '}
               <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Side by Side</span>
@@ -1165,7 +1193,7 @@ const CompareCars = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-gray-600 dark:text-gray-300 text-base sm:text-lg md:text-xl mb-6 sm:mb-8"
+              className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8"
             >
               Select two cars to compare their features, scores, and specifications
             </motion.p>

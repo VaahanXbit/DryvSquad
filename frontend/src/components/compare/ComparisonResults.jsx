@@ -841,10 +841,10 @@ const ComparisonResults = ({
                     >
                       <div className="px-3 sm:px-6 md:px-8 py-4 md:py-6 bg-yellow-50/30 dark:bg-yellow-900/5 border-t border-yellow-100 dark:border-yellow-900/20 theme-transition">
                         <div
-                          className={`grid ${mobileGridCols} ${desktopGridClass} gap-2 sm:gap-4 md:gap-6`}
+                          className={`grid grid-cols-1 ${columnCount === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} ${desktopGridClass} gap-2 sm:gap-4 md:gap-6`}
                           style={gridVars}
                         >
-                          {/* Spacer matching the Parameter column so explanations align under their car columns on desktop; collapses out of the grid below md so mobile/tablet layout (which uses mobileGridCols directly, same as the row/header) is unaffected */}
+                          {/* Spacer matching the Parameter column so explanations align under their car columns on desktop; collapses out of the grid below md so mobile/tablet layout is unaffected */}
                           <div className="hidden md:block" aria-hidden="true" />
                           {cars.map(({ car, position }) => {
                             const explanation = data.byPosition[position]?.explanation
