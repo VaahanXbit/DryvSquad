@@ -131,10 +131,6 @@ ArticleSchema.pre('save', function(next) {
   next();
 });
 
-// Update updatedAt on save
-ArticleSchema.pre('save', function() {
-  this.updatedAt = new Date();
-});
 // Indexes for search
 ArticleSchema.index({ title: 'text', excerpt: 'text', tags: 'text' });
 ArticleSchema.index({ slug: 1 });
