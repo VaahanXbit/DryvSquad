@@ -149,11 +149,11 @@ const allowedOrigins = [
   "https://dryvsquad.com",
 
   // Current Production Frontend
-  "https://vaahan-international-brl9.vercel.app",
+  "https://dryv-squad-bcgg9uant-vaahan-xbit-s-projects.vercel.app",
 
   // Environment Variable
   process.env.FRONTEND_URL,
-].filter(Boolean);
+]
 
 app.use(cors({
   origin: function (origin, callback) {
