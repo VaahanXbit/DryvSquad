@@ -45,10 +45,11 @@ const CommonFooter = () => {
   return (
     <footer className={`${footerBg} ${textColor} mt-auto transition-colors duration-300`}>
       <div className="container-custom py-6 sm:py-8 md:py-10">
-        {/* Grid is 4 cols on mobile */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-4 gap-6 sm:gap-6 md:gap-6">
+        {/* FIX: Changed to grid-cols-2 on mobile, and 4 columns on desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-4 sm:gap-6 md:gap-6">
           
-          <div className="col-span-1 sm:col-span-2 md:col-span-1">
+          {/* Logo Area - Spans 2 columns on mobile, 1 column on desktop */}
+          <div className="col-span-2 sm:col-span-2 md:col-span-1">
            <Link to="/" className="flex items-center group flex-shrink-0">
               <img
                 src={isDark ? "/DSLogo-Dark.png" : "/DSLogo-Light.png"}
@@ -62,12 +63,12 @@ const CommonFooter = () => {
             </p>
           </div>
 
-          {/* --- FIXED: 1 column each on mobile, and flex-wrap for the links --- */}
+          {/* Quick Links - Spans 1 column on mobile and desktop */}
           <div className="col-span-1">
             <h4 className={`text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3 border-b ${borderColor} pb-1.5 inline-block`}>Quick Links</h4>
-            <ul className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+            <ul className="space-y-1.5 mt-2">
               {quickLinks.map((link) => (
-                <li key={link.name} className="w-[calc(50%-0.375rem)]"> {/* 50% width minus gap adjustment */}
+                <li key={link.name}>
                   <Link to={link.path} className={`text-gray-400 ${hoverColor} transition-colors text-xs sm:text-sm flex items-center gap-2`}>
                     <span className="text-yellow-500">›</span>
                     {link.name}
@@ -77,12 +78,12 @@ const CommonFooter = () => {
             </ul>
           </div>
 
-          {/* --- FIXED: 1 column each on mobile, and flex-wrap for the links --- */}
+          {/* Resources - Spans 1 column on mobile and desktop */}
           <div className="col-span-1">
             <h4 className={`text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3 border-b ${borderColor} pb-1.5 inline-block`}>Resources</h4>
-            <ul className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+            <ul className="space-y-1.5 mt-2">
               {resources.map((resource) => (
-                <li key={resource.name} className="w-[calc(50%-0.375rem)]"> {/* 50% width minus gap adjustment */}
+                <li key={resource.name}>
                   <Link to={resource.path} className={`text-gray-400 ${hoverColor} transition-colors text-xs sm:text-sm flex items-center gap-2`}>
                     <span className="text-yellow-500">›</span>
                     {resource.name}
@@ -92,7 +93,8 @@ const CommonFooter = () => {
             </ul>
           </div>
 
-          <div className="col-span-1 sm:col-span-2 md:col-span-1">
+          {/* Connect With Us - Spans 2 columns on mobile, 1 column on desktop */}
+          <div className="col-span-2 sm:col-span-2 md:col-span-1">
             <h4 className={`text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3 border-b ${borderColor} pb-1.5 inline-block`}>Connect With Us</h4>
 
             <div className="flex flex-wrap gap-2 mb-4 mt-2">
