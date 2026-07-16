@@ -117,7 +117,7 @@ const contactRoutes = require('./routes/contactRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const pricingRoutes = require('./routes/pricingRoutes');
-
+const paymentRoutes = require('./routes/paymentRoutes');
 
 const connectDB = require('./config/database');
 
@@ -204,6 +204,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/pricing', pricingRoutes);
+app.use('/api/payment', paymentRoutes); 
 
 
 
