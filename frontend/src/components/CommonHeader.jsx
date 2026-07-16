@@ -489,11 +489,15 @@ const CommonHeader = () => {
             ))}
             <CategoriesDropdown />
             <button
-              onClick={() => navigate('/ai-car-finder')}
-              className="px-3.5 py-1.5 bg-[#f9bc16] hover:bg-[#ad820a] text-white font-bold rounded-lg text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-md flex items-center gap-1.5 cursor-pointer font-sans"
-            >
-              <span>Launch Car Finder</span>
-            </button>
+  onClick={() => navigate('/ai-car-finder')}
+  className={`px-3.5 py-1.5 font-bold rounded-lg text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-md flex items-center gap-1.5 cursor-pointer font-sans ${
+    isDark 
+      ? 'bg-yellow-500 hover:bg-yellow-600 text-black' 
+      : 'bg-white hover:bg-gray-400 text-black'
+  }`}
+>
+  <span>Launch Car Finder</span>
+</button>
           </div>
         </div>
 

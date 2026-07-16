@@ -814,8 +814,8 @@ const ComparisonResults = ({
                     className="w-full px-6 py-2.5 border-t border-gray-100 dark:border-dark-700 bg-gray-50/50 hover:bg-gray-100/80 dark:bg-dark-800 dark:hover:bg-dark-700/80 transition-colors duration-200 flex items-center justify-center gap-2 group theme-transition"
                     onClick={() => toggleExpand(key)}
                   >
-                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200 theme-transition">
-                      {isExpanded ? 'Hide details' : 'View details'}
+                    <span className="text-xs font-semibold text-gray-900 dark:text-green-400 uppercase tracking-wider group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-200 theme-transition">
+                      {isExpanded ? 'Hide details' : 'View Explanation Here'}
                     </span>
                     <svg
                       className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300 transition-transform duration-300 ${

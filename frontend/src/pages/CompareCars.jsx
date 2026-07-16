@@ -1319,21 +1319,40 @@ const CompareCars = () => {
       />
 
       {/* Loading Modal */}
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`rounded-2xl p-8 max-w-md w-full text-center shadow-2xl ${isDark ? 'bg-dark-800' : 'bg-white'}`}>
-              <div className="relative w-24 h-24 mx-auto mb-6">
-                <div className={`absolute inset-0 border-4 rounded-full ${isDark ? 'border-dark-600' : 'border-gray-200'}`} />
-                <div className="absolute inset-0 border-4 border-[#fc641c] rounded-full border-t-transparent animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center text-3xl">🚗</div>
-              </div>
-              <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Analyzing Cars</h3>
-              <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Comparing features and specifications...</p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+<AnimatePresence>
+  {isLoading && (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }} 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20 }} 
+        animate={{ scale: 1, y: 0 }} 
+        exit={{ scale: 0.9, y: 20 }} 
+        className={`rounded-2xl p-8 max-w-md w-full text-center shadow-2xl ${isDark ? 'bg-dark-800' : 'bg-white'}`}
+      >
+        <div className="relative w-24 h-24 mx-auto mb-6">
+          {/* Spinner ring */}
+          <div className={`absolute inset-0 border-4 rounded-full ${isDark ? 'border-dark-600' : 'border-gray-200'}`} />
+          <div className="absolute inset-0 border-4 border-[#fc641c] rounded-full border-t-transparent animate-spin" />
+          
+          {/* Logo centered in spinner */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img
+              src={isDark ? "/DSLogo-Dark.png" : "/DSLogo-Light.png"}
+              alt="DryvSquad"
+              className="h-12 w-12 object-contain"
+            />
+          </div>
+        </div>
+        <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Analyzing Cars</h3>
+        <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Comparing features and specifications...</p>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {showComparison && car1 && car2 && (
         <StickyComparisonHeader car1={car1} car2={car2} car3={car3} onEdit={handleEditCar} onClose={closeComparison} isDark={isDark} />

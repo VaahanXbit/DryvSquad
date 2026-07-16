@@ -11,8 +11,143 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 */
 
 import { motion } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
 import BasePage from './BasePage'
 import { useTheme } from '../context/ThemeContext'
+
+// ========================================
+// ANIMATED COUNTER COMPONENT - FIXED FOR 24/7
+// ========================================
+
+const AnimatedCounter = ({ target, duration = 2000 }) => {
+  const [count, setCount] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isVisible) return
+
+    // Check if the target is a special format like "24/7"
+    if (target === '24/7') {
+      // For 24/7, count to 24 then add "/7"
+      let startTime = null
+      const startValue = 0
+      const endValue = 24
+
+      const animate = (timestamp) => {
+        if (!startTime) startTime = timestamp
+        const progress = Math.min((timestamp - startTime) / duration, 1)
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4)
+        const currentValue = Math.floor(easeOutQuart * endValue)
+        
+        setCount(currentValue + '/7')
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          setCount('24/7')
+        }
+      }
+
+      requestAnimationFrame(animate)
+      return
+    }
+
+    // Parse the target number (remove any non-numeric characters like '+', ',')
+    const numericTarget = parseFloat(target.toString().replace(/[^0-9.]/g, ''))
+    if (isNaN(numericTarget)) {
+      setCount(target)
+      return
+    }
+
+    let startTime = null
+    const startValue = 0
+    const endValue = numericTarget
+
+    // For numbers with K (thousands), we want to count up to the actual number
+    // e.g., 5,000+ -> 5000
+    let finalValue = endValue
+    if (target.includes('K')) {
+      finalValue = endValue * 1000
+    }
+
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp
+      const progress = Math.min((timestamp - startTime) / duration, 1)
+      
+      // Easing function for smoother animation (ease out)
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4)
+      const currentValue = Math.floor(easeOutQuart * finalValue)
+      
+      // Format the number with K or + suffix
+      let displayValue = currentValue
+      if (target.includes('K') && currentValue >= 1000) {
+        const kValue = currentValue / 1000
+        if (kValue % 1 === 0) {
+          displayValue = Math.floor(kValue) + 'K'
+        } else {
+          displayValue = kValue.toFixed(1) + 'K'
+        }
+      } else if (target.includes('+')) {
+        displayValue = currentValue + '+'
+      } else if (target.includes(',')) {
+        // Format with commas for large numbers
+        displayValue = currentValue.toLocaleString()
+      } else {
+        displayValue = currentValue
+      }
+      
+      setCount(displayValue)
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        // Final value with proper formatting
+        let finalDisplay = finalValue
+        if (target.includes('K') && finalValue >= 1000) {
+          const kFinal = finalValue / 1000
+          if (kFinal % 1 === 0) {
+            finalDisplay = Math.floor(kFinal) + 'K'
+          } else {
+            finalDisplay = kFinal.toFixed(1) + 'K'
+          }
+        } else if (target.includes('+')) {
+          finalDisplay = finalValue + '+'
+        } else if (target.includes(',')) {
+          finalDisplay = finalValue.toLocaleString()
+        } else {
+          finalDisplay = finalValue
+        }
+        setCount(finalDisplay)
+      }
+    }
+
+    requestAnimationFrame(animate)
+  }, [isVisible, target, duration])
+
+  return <span ref={ref}>{isVisible ? count : '0'}</span>
+}
 
 class AboutPage extends BasePage {
   constructor(props) {
@@ -82,7 +217,7 @@ class AboutPage extends BasePage {
           </div>
         </section>
 
-        {/* Stats Section - THEME AWARE FIXED */}
+        {/* Stats Section - WITH ANIMATED COUNTERS */}
         <section className={`py-12 sm:py-16 md:py-20 relative overflow-hidden transition-colors duration-300 ${
           isDark ? 'bg-dark-950' : 'bg-white'
         }`}>
@@ -98,10 +233,24 @@ class AboutPage extends BasePage {
                 { number: '100%', label: 'Satisfaction Rate', description: 'Guaranteed quality' },
                 { number: '24/7', label: 'Support Available', description: 'Always here' }
               ].map((stat, index) => (
-                <motion.div key={index} variants={this.fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="text-center">
-                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-yellow-500 mb-1 sm:mb-2">{stat.number}</div>
-                  <div className={`font-semibold text-sm sm:text-base md:text-lg mb-0.5 sm:mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.label}</div>
-                  <div className={`text-xs sm:text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{stat.description}</div>
+                <motion.div 
+                  key={index} 
+                  variants={this.fadeUp} 
+                  initial="hidden" 
+                  whileInView="visible" 
+                  viewport={{ once: true }} 
+                  transition={{ delay: index * 0.1 }} 
+                  className="text-center"
+                >
+                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-yellow-500 mb-1 sm:mb-2">
+                    <AnimatedCounter target={stat.number} duration={2000 + index * 300} />
+                  </div>
+                  <div className={`font-semibold text-sm sm:text-base md:text-lg mb-0.5 sm:mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {stat.label}
+                  </div>
+                  <div className={`text-xs sm:text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {stat.description}
+                  </div>
                 </motion.div>
               ))}
             </div>

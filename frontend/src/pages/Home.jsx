@@ -10,7 +10,7 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTheme } from '../context/ThemeContext'
@@ -101,7 +101,107 @@ const TESTIMONIALS = [
   { quote: "As a first-time car buyer, I was overwhelmed by all the technical jargon. Vaahan made it clear.", name: "Amit Sharma", role: "First Time Buyer" }
 ]
 
+// ========================================
+// ANIMATED COUNTER COMPONENT - FIXED
+// ========================================
 
+const AnimatedCounter = ({ target, suffix = '', duration = 2000 }) => {
+  const [count, setCount] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isVisible) return
+
+    // Parse the target number (remove any non-numeric characters like '+')
+    const numericTarget = parseFloat(target.toString().replace(/[^0-9.]/g, ''))
+    if (isNaN(numericTarget)) {
+      setCount(target)
+      return
+    }
+
+    let startTime = null
+    const startValue = 0
+    const endValue = numericTarget
+
+    // For numbers with K (thousands), we want to count up to the actual number
+    // e.g., 10K -> 10000
+    let finalValue = endValue
+    if (target.includes('K')) {
+      finalValue = endValue * 1000
+    }
+
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp
+      const progress = Math.min((timestamp - startTime) / duration, 1)
+
+      // Easing function for smoother animation (ease out)
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4)
+      const currentValue = Math.floor(easeOutQuart * finalValue)
+
+      // Format the number with K or + suffix
+      let displayValue = currentValue
+      if (target.includes('K') && currentValue >= 1000) {
+        // Fix: Only show decimal if not a whole number
+        const kValue = currentValue / 1000
+        if (kValue % 1 === 0) {
+          displayValue = Math.floor(kValue) + 'K'
+        } else {
+          displayValue = kValue.toFixed(1) + 'K'
+        }
+      } else if (target.includes('+')) {
+        displayValue = currentValue + '+'
+      } else {
+        displayValue = currentValue
+      }
+
+      setCount(displayValue)
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        // Final value with proper formatting
+        let finalDisplay = finalValue
+        if (target.includes('K') && finalValue >= 1000) {
+          const kFinal = finalValue / 1000
+          if (kFinal % 1 === 0) {
+            finalDisplay = Math.floor(kFinal) + 'K'
+          } else {
+            finalDisplay = kFinal.toFixed(1) + 'K'
+          }
+        } else if (target.includes('+')) {
+          finalDisplay = finalValue + '+'
+        }
+        setCount(finalDisplay)
+      }
+    }
+
+    requestAnimationFrame(animate)
+  }, [isVisible, target, duration])
+
+  return <span ref={ref}>{isVisible ? count : '0'}</span>
+}
 
 // ========================================
 // HOME COMPONENT - Functional with Hooks
@@ -207,7 +307,7 @@ const Home = () => {
                   to={banner.link}
                   className="inline-block whitespace-nowrap px-3 py-1.5 xs:px-4 xs:py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-lg sm:rounded-xl font-semibold text-[11px] xs:text-xs sm:text-sm md:text-base transition-all duration-300 hover:scale-105 hover:shadow-xl text-black"
                   style={{
-                    background: '#EAB308',
+                    background: '#af860c',
                     border: '1px solid rgba(255, 255, 255, 0.3)',
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
                   }}
@@ -263,7 +363,6 @@ const Home = () => {
           ))}
         </div>
 
-
       </section>
     )
   }
@@ -314,7 +413,7 @@ const Home = () => {
   }
 
   // ========================================
-  // Stats Cards - Flat, Thin, Text-based
+  // Stats Cards - With Animated Counter
   // ========================================
   const renderStatsCards = () => {
     return (
@@ -327,11 +426,11 @@ const Home = () => {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.08 }}
+              transition={{ delay: idx * 0.10 }}
               className="text-center"
             >
-              <div className={`text-2xl md:text-3xl lg:text-4xl font-bold ${isDark ? 'text-yellow-400' : 'text-yellow-500'} mb-0.5`}>
-                {stat.number}
+              <div className={`text-2xl md:text-3xl lg:text-4xl font-bold ${isDark ? 'text-yellow-500' : 'text-yellow-500'} mb-0.5`}>
+                <AnimatedCounter target={stat.number} duration={2000 + idx * 300} />
               </div>
               <div className={`font-medium text-sm md:text-base ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 {stat.label}
@@ -371,12 +470,12 @@ const Home = () => {
             className="flex flex-wrap items-end justify-between gap-3 mb-5 md:mb-7"
           >
             <div>
-              <h2 className="text-yellow-500 font-bold text-xl md:text-base tracking-wider uppercase">
+              <h1 className={`text-yellow-500 font-bold text-3xl md:text-base tracking-wider uppercase ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`}>
                 Travelogue
-              </h2>
-              <h4 className={`text-l md:text-l font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              </h1>
+              <p className={`text-sm md:text-base font-medium mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Real Journeys Experiences.
-              </h4>
+              </p>
             </div>
             <Link
               to="/travelogues"
@@ -394,24 +493,24 @@ const Home = () => {
             </div>
           ) : (
             <FadeIn>
-            <Carousel ariaLabel="Travel Logs">
-              {travelogues.slice(0, 8).map((log, idx) => (
-                <CarouselCard
-                  key={log._id || idx}
-                  to={`/travelogue/${log.slug}`}
-                  image={log.thumbnail || log.image || '/images/travelogue/default.png'}
-                  fallbackImage="/images/travelogue/default.png"
-                  category={log.category || 'Travel'}
-                  readTime={log.readTime}
-                  title={log.title}
-                  excerpt={log.excerpt}
-                  isDark={isDark}
-                  cardBgClass={cardBgClass}
-                  cardShadowClass={cardShadowClass}
-                  delay={idx * 0.06}
-                />
-              ))}
-            </Carousel>
+              <Carousel ariaLabel="Travel Logs">
+                {travelogues.slice(0, 8).map((log, idx) => (
+                  <CarouselCard
+                    key={log._id || idx}
+                    to={`/travelogue/${log.slug}`}
+                    image={log.thumbnail || log.image || '/images/travelogue/default.png'}
+                    fallbackImage="/images/travelogue/default.png"
+                    category={log.category || 'Travel'}
+                    readTime={log.readTime}
+                    title={log.title}
+                    excerpt={log.excerpt}
+                    isDark={isDark}
+                    cardBgClass={cardBgClass}
+                    cardShadowClass={cardShadowClass}
+                    delay={idx * 0.06}
+                  />
+                ))}
+              </Carousel>
             </FadeIn>
           )}
         </div>
@@ -439,12 +538,12 @@ const Home = () => {
             className="flex flex-wrap items-end justify-between gap-3 mb-5 md:mb-7"
           >
             <div>
-              <span className="text-yellow-500 font-bold text-xl md:text-base tracking-wider uppercase">
+              <span className="text-yellow-500 font-bold text-2xl md:text-base tracking-wider uppercase">
                 Automotive Insights Hub
               </span>
-              <h4 className={`text-2xl md:text-l font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Featured Technology Guides
-              </h4>
+              <p className={`text-sm md:text-base font-medium mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Featured Technology Guides.
+              </p>
             </div>
             <Link
               to="/articles"
@@ -462,25 +561,25 @@ const Home = () => {
             </div>
           ) : (
             <FadeIn>
-            <Carousel ariaLabel="Technology Guides">
-              {featuredArticles.slice(0, 8).map((article, idx) => (
-                <CarouselCard
-                  key={article._id || idx}
-                  to={`/article/${article.slug}`}
-                  image={article.image || '/images/article/default.png'}
-                  fallbackImage="/images/article/default.png"
-                  category={article.category}
-                  readTime={article.readTime}
-                  title={article.title}
-                  excerpt={article.excerpt}
-                  ctaLabel="Read Article →"
-                  isDark={isDark}
-                  cardBgClass={cardBgClass}
-                  cardShadowClass={cardShadowClass}
-                  delay={idx * 0.06}
-                />
-              ))}
-            </Carousel>
+              <Carousel ariaLabel="Technology Guides">
+                {featuredArticles.slice(0, 8).map((article, idx) => (
+                  <CarouselCard
+                    key={article._id || idx}
+                    to={`/article/${article.slug}`}
+                    image={article.image || '/images/article/default.png'}
+                    fallbackImage="/images/article/default.png"
+                    category={article.category}
+                    readTime={article.readTime}
+                    title={article.title}
+                    excerpt={article.excerpt}
+                    ctaLabel="Read Article →"
+                    isDark={isDark}
+                    cardBgClass={cardBgClass}
+                    cardShadowClass={cardShadowClass}
+                    delay={idx * 0.06}
+                  />
+                ))}
+              </Carousel>
             </FadeIn>
           )}
         </div>
@@ -575,7 +674,7 @@ const Home = () => {
     <>
       <SkeletonStyles />
       {renderHero()}
-      
+
 
       <section className={`transition-colors duration-150 border-b ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-gray-50 border-gray-100'} pt-6 pb-6 md:pb-10`}>
         {/* {renderSearchSection()} */}
