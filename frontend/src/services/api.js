@@ -1814,7 +1814,8 @@ export const api = {
           'Authorization': `Bearer ${token}`,
         },
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Get all articles (admin) error:', error);
       return {
@@ -1839,7 +1840,8 @@ export const api = {
         headers,
         body: JSON.stringify(articleData),
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Create article error:', error);
       return {
@@ -1864,7 +1866,8 @@ export const api = {
         headers,
         body: JSON.stringify(articleData),
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Update article error:', error);
       return {
@@ -1887,7 +1890,8 @@ export const api = {
         method: 'DELETE',
         headers,
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Delete article error:', error);
       return {

@@ -15,7 +15,7 @@ const ArticleSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: true,
+    required: function() { return this.status === 'published'; },
   },
   subCategory: {
     type: String,
@@ -23,16 +23,16 @@ const ArticleSchema = new mongoose.Schema({
   },
   excerpt: {
     type: String,
-    required: true,
+    required: function() { return this.status === 'published'; },
     maxlength: 500,
   },
   content: {
     type: String,
-    required: true,
+    required: function() { return this.status === 'published'; },
   },
   image: {
     type: String,
-    required: true,
+    required: function() { return this.status === 'published'; },
   },
   thumbnail: {
     type: String,
@@ -44,15 +44,15 @@ const ArticleSchema = new mongoose.Schema({
   },
   author: {
     type: String,
-    required: true,
+    required: function() { return this.status === 'published'; },
   },
   date: {
     type: String,
-    required: true,
+    required: function() { return this.status === 'published'; },
   },
   readTime: {
     type: String,
-    required: true,
+    required: function() { return this.status === 'published'; },
   },
   tags: {
     type: [String],

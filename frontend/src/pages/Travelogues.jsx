@@ -176,7 +176,7 @@ const Travelogues = () => {
                   <Link to={`/travelogue/${log.slug}`}>
                     <div className="relative h-40 sm:h-44 md:h-48 lg:h-52 overflow-hidden">
                       <img
-                        src={log.image || '/images/travelogue/default.png'}
+                        src={log.thumbnail || log.image || '/images/travelogue/default.png'}
                         alt={log.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => {

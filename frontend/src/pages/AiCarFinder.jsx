@@ -26,6 +26,8 @@ import {
   AlertCircle,
   MapPin
 } from 'lucide-react'
+import AuthModal from '../components/AuthModal'
+import PaymentButton from '../components/PaymentButton'
 
 const getBaseModelName = (name, brand) => {
   if (!name) return ''
@@ -48,7 +50,8 @@ const getBaseModelName = (name, brand) => {
 const AiCarFinder = () => {
   const { isDark } = useTheme()
   const navigate = useNavigate()
-  const { location } = useDsLocation()
+  const { location, ensureLocationForFeature } = useDsLocation()
+  const [pendingSearch, setPendingSearch] = useState(false)
 
   // --- WIZARD STATES ---
   const [currentStep, setCurrentStep] = useState(1)
@@ -79,7 +82,11 @@ const AiCarFinder = () => {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
   const [pdfSuccess, setPdfSuccess] = useState(false)
   const [showPremiumModal, setShowPremiumModal] = useState(false)
-  const [premiumUnlocked, setPremiumUnlocked] = useState(false)
+  const [premiumUnlocked, setPremiumUnlocked] = useState(() => {
+    return localStorage.getItem('dryvsquad_pdf_unlocked') === 'true'
+  })
+  const [token, setToken] = useState(localStorage.getItem('token') || null)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   // --- RESULTS STATES ---
   const [loading, setLoading] = useState(false)
@@ -119,11 +126,14 @@ const AiCarFinder = () => {
     }
   }, [])
 
-  // Automatically unlock premium features if the user is logged in
+  // Synchronize token state on mount
   useEffect(() => {
-    if (localStorage.getItem('token')) {
-      setPremiumUnlocked(true)
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem('token'))
+      setPremiumUnlocked(localStorage.getItem('dryvsquad_pdf_unlocked') === 'true')
     }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   // Auto-save finder state to sessionStorage on any state change (only after load)
@@ -189,8 +199,7 @@ const AiCarFinder = () => {
   }
 
   const handleLockClick = () => {
-    alert("Login to access")
-    navigate('/ai-car-finder')
+    setIsAuthModalOpen(true)
   }
 
   const handleReset = () => {
@@ -217,6 +226,12 @@ const AiCarFinder = () => {
   }
 
   const handleSearch = async () => {
+    if (!location) {
+      setPendingSearch(true)
+      ensureLocationForFeature()
+      return
+    }
+
     setLoading(true)
     setError('')
     setSearched(true)
@@ -294,6 +309,14 @@ const AiCarFinder = () => {
       setLoading(false)
     }
   }
+
+  // Trigger search automatically once location is selected
+  useEffect(() => {
+    if (location && pendingSearch) {
+      setPendingSearch(false)
+      handleSearch()
+    }
+  }, [location, pendingSearch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const scrollRight = () => {
     scrollContainerRef.current?.scrollBy({ left: 340, behavior: 'smooth' })
@@ -1178,22 +1201,36 @@ const AiCarFinder = () => {
 
                 {/* Premium Banner at the bottom of results */}
                 <div className="flex flex-col md:flex-row items-center justify-between">
-                  {premiumUnlocked ? (
+                  {!token ? (
+                    <button
+                      onClick={handleLockClick}
+                      className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all hover:scale-[1.02] shrink-0 flex items-center gap-2 cursor-pointer shadow-md"
+                    >
+                      <Lock className="w-4 h-4 text-yellow-500" />
+                      <span>Login to Download PDF Guide</span>
+                    </button>
+                  ) : premiumUnlocked ? (
                     <button
                       onClick={() => setShowPremiumModal(true)}
-                      className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold rounded-xl text-xs sm:text-sm transition-all hover:scale-[1.02] shrink-0 flex items-center gap-2 cursor-pointer"
+                      className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold rounded-xl text-xs sm:text-sm transition-all hover:scale-[1.02] shrink-0 flex items-center gap-2 cursor-pointer shadow-md"
                     >
                       <FileText className="w-4 h-4" />
                       <span>Download Premium PDF Guide</span>
                     </button>
                   ) : (
-                    <button
-                      onClick={handleLockClick}
-                      className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all hover:scale-[1.02] shrink-0 flex items-center gap-2 cursor-pointer"
-                    >
-                      <Lock className="w-4 h-4 text-yellow-500" />
-                      <span>Login to Download PDF Guide</span>
-                    </button>
+                    <PaymentButton
+                      resourceType="PDF"
+                      resourceId="pdf-guide"
+                      resourceName="Premium PDF Guide"
+                      amount={99}
+                      label="Pay 99 to unlock PDF guide"
+                      className="px-6 py-3 bg-[#C69327] hover:bg-[#A87B1F] text-white font-bold rounded-xl text-xs sm:text-sm transition-all hover:scale-[1.02] shrink-0 flex items-center gap-2 cursor-pointer shadow-md font-sans"
+                      onSuccess={(payment) => {
+                        localStorage.setItem('dryvsquad_pdf_unlocked', 'true');
+                        setPremiumUnlocked(true);
+                        setShowPremiumModal(true);
+                      }}
+                    />
                   )}
                 </div>
 
@@ -1433,6 +1470,17 @@ const AiCarFinder = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => {
+          setIsAuthModalOpen(false)
+          setToken(localStorage.getItem('token'))
+          if (localStorage.getItem('dryvsquad_pdf_unlocked') === 'true') {
+            setPremiumUnlocked(true)
+          }
+        }}
+      />
 
     </div>
   )

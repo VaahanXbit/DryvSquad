@@ -454,6 +454,14 @@ const CommonHeader = () => {
                   <LocationBadge isDark={isDark} variant="desktop" />
                 </div>
                 
+                {/* Mobile Launch Car Finder Button */}
+                <button
+                  onClick={() => navigate('/ai-car-finder')}
+                  className="lg:hidden flex items-center gap-1 px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg text-[10px] sm:text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm cursor-pointer font-sans mr-1"
+                >
+                  <span>✨ Car Finder</span>
+                </button>
+
                 <ThemeToggle />
 
                 {/* Mobile Menu Button */}
@@ -489,15 +497,11 @@ const CommonHeader = () => {
             ))}
             <CategoriesDropdown />
             <button
-  onClick={() => navigate('/ai-car-finder')}
-  className={`px-3.5 py-1.5 font-bold rounded-lg text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-md flex items-center gap-1.5 cursor-pointer font-sans ${
-    isDark 
-      ? 'bg-yellow-500 hover:bg-yellow-600 text-black' 
-      : 'bg-white hover:bg-gray-400 text-black'
-  }`}
->
-  <span>Launch Car Finder</span>
-</button>
+              onClick={() => navigate('/ai-car-finder')}
+              className="px-3.5 py-1.5 bg-[#C69327] hover:bg-[#A87B1F] text-white font-bold rounded-lg text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-md flex items-center gap-1.5 cursor-pointer font-sans"
+            >
+              <span>Launch Car Finder</span>
+            </button>
           </div>
         </div>
 
@@ -545,17 +549,6 @@ const CommonHeader = () => {
                     </NavLink>
                   ))}
 
-                  <div className="py-2">
-                    <button
-                      onClick={() => {
-                        navigate('/ai-car-finder');
-                        closeMenu();
-                      }}
-                      className="w-full py-2.5 bg-[#C69327] hover:bg-[#A87B1F] text-white font-bold rounded-xl text-sm transition-all duration-300 shadow-md flex items-center justify-center gap-1.5 cursor-pointer font-sans"
-                    >
-                      <span>Launch Car Finder</span>
-                    </button>
-                  </div>
 
                   <div className="py-1 border-t border-gray-100 dark:border-dark-700 mt-2 pt-2">
                     <button

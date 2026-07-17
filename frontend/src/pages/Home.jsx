@@ -566,7 +566,7 @@ const Home = () => {
                   <CarouselCard
                     key={article._id || idx}
                     to={`/article/${article.slug}`}
-                    image={article.image || '/images/article/default.png'}
+                    image={article.thumbnail || article.image || '/images/article/default.png'}
                     fallbackImage="/images/article/default.png"
                     category={article.category}
                     readTime={article.readTime}
