@@ -28,6 +28,7 @@ const AdminPage = () => {
   // Loading & Message State for publishing
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [selectedFiles, setSelectedFiles] = useState({ image: null, thumbnail: null })
   
   // Form State
   const [formData, setFormData] = useState({
@@ -97,10 +98,12 @@ const AdminPage = () => {
     const file = e.target.files[0]
     if (!file) return
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File size exceeds the 2MB limit. Please upload a smaller image.')
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds the 10MB limit. Please upload a smaller image.')
       return
     }
+
+    setSelectedFiles((prev) => ({ ...prev, image: file }))
 
     const reader = new FileReader()
     reader.onloadend = () => {
@@ -116,10 +119,12 @@ const AdminPage = () => {
     const file = e.target.files[0]
     if (!file) return
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File size exceeds the 2MB limit. Please upload a smaller image.')
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds the 10MB limit. Please upload a smaller image.')
       return
     }
+
+    setSelectedFiles((prev) => ({ ...prev, thumbnail: file }))
 
     const reader = new FileReader()
     reader.onloadend = () => {
@@ -475,6 +480,7 @@ const AdminPage = () => {
   const handleCancelEdit = () => {
     setIsEditing(false)
     setEditingId(null)
+    setSelectedFiles({ image: null, thumbnail: null })
     setFormData({
       title: '',
       slug: '',
@@ -571,6 +577,35 @@ const AdminPage = () => {
         response = contentType === 'article'
           ? await api.createArticle(payload, token)
           : await api.createTravelogue(payload, token)
+      }
+      // Fallback check: if submission failed, try uploading any Base64 images to Cloudinary and retrying
+      if (!response.success && (selectedFiles.image || selectedFiles.thumbnail)) {
+        const uploadIfBase64 = async (fieldValue, file) => {
+          if (fieldValue && fieldValue.startsWith('data:') && file) {
+            const res = await api.uploadImage(file, token)
+            if (res.success) return res.url
+            throw new Error(res.message || 'Upload failed')
+          }
+          return fieldValue
+        }
+
+        try {
+          const imageUrl = await uploadIfBase64(payload.image, selectedFiles.image)
+          const thumbnailUrl = await uploadIfBase64(payload.thumbnail, selectedFiles.thumbnail)
+          
+          if (imageUrl !== payload.image || thumbnailUrl !== payload.thumbnail) {
+            payload.image = imageUrl
+            payload.thumbnail = thumbnailUrl
+            setFormData(prev => ({ ...prev, image: imageUrl, thumbnail: thumbnailUrl }))
+            
+            // Retry the submission with the Cloudinary URLs
+            response = isEditing
+              ? (contentType === 'article' ? await api.updateArticle(editingId, payload, token) : await api.updateTravelogue(editingId, payload, token))
+              : (contentType === 'article' ? await api.createArticle(payload, token) : await api.createTravelogue(payload, token))
+          }
+        } catch (err) {
+          response = { success: false, message: err.message }
+        }
       }
 
       if (response.success) {
