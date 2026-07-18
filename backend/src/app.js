@@ -118,6 +118,7 @@ const leadRoutes = require('./routes/leadRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const pricingRoutes = require('./routes/pricingRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 const connectDB = require('./config/database');
 
@@ -190,8 +191,8 @@ app.use(cors({
 }));
 
 // Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -205,6 +206,7 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/payment', paymentRoutes); 
+app.use('/api/uploads', uploadRoutes);
 
 
 
@@ -217,6 +219,15 @@ app.get('/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('❌ Error:', err.stack);
+  if (err.type === 'entity.too.large' || err.status === 413) {
+    return res.status(413).json({ success: false, message: 'Request is too large. Upload images separately or reduce the article content size.' });
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ success: false, message: 'Image is too large. The maximum upload size is 10MB.' });
+  }
+  if (err instanceof require('multer').MulterError) {
+    return res.status(400).json({ success: false, message: 'Please upload a valid image file.' });
+  }
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',

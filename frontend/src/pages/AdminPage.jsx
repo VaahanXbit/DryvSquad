@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
+import { useTheme } from '../context/ThemeContext'
 
 const AdminPage = () => {
   const navigate = useNavigate()
+  const { isDark } = useTheme()
   
   // Auth State
   const [token, setToken] = useState(localStorage.getItem('admin_token') || null)
@@ -26,6 +28,7 @@ const AdminPage = () => {
   // Loading & Message State for publishing
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [selectedFiles, setSelectedFiles] = useState({ image: null, thumbnail: null })
   
   // Form State
   const [formData, setFormData] = useState({
@@ -41,6 +44,7 @@ const AdminPage = () => {
     date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
     readTime: '5 min read',
     tags: '',
+    status: 'draft', // Added for draft support
     seoTitle: '',
     seoDescription: '',
     seoKeywords: '',
@@ -49,6 +53,7 @@ const AdminPage = () => {
   })
 
   const [showSeo, setShowSeo] = useState(false)
+  const [manageSubTab, setManageSubTab] = useState('published') // 'published' | 'draft'
 
   const generateBlockId = () => {
     blockIdCounterRef.current += 1
@@ -93,10 +98,12 @@ const AdminPage = () => {
     const file = e.target.files[0]
     if (!file) return
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File size exceeds the 2MB limit. Please upload a smaller image.')
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds the 10MB limit. Please upload a smaller image.')
       return
     }
+
+    setSelectedFiles((prev) => ({ ...prev, image: file }))
 
     const reader = new FileReader()
     reader.onloadend = () => {
@@ -112,10 +119,12 @@ const AdminPage = () => {
     const file = e.target.files[0]
     if (!file) return
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File size exceeds the 2MB limit. Please upload a smaller image.')
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds the 10MB limit. Please upload a smaller image.')
       return
     }
+
+    setSelectedFiles((prev) => ({ ...prev, thumbnail: file }))
 
     const reader = new FileReader()
     reader.onloadend = () => {
@@ -354,11 +363,15 @@ const AdminPage = () => {
   const fetchArticlesForManagement = async () => {
     setIsLoadingList(true)
     try {
-      const response = await api.getAllArticles()
+      const response = await api.getAllArticlesAdmin(token)
       if (response.success) {
         setArticlesList(response.articles)
       } else {
         console.error('Failed to load articles list')
+        if (response.status === 401 || response.status === 403) {
+          handleLogout()
+          setLoginError('Session expired. Please log in again.')
+        }
       }
     } catch (err) {
       console.error('Error fetching articles list:', err)
@@ -392,7 +405,13 @@ const AdminPage = () => {
     }
   }, [articlesList, selectedCategory])
 
+  const publishedCount = articlesList.filter(art => (art.status || 'published') !== 'draft').length
+  const draftsCount = articlesList.filter(art => (art.status || 'published') === 'draft').length
+
   const filteredArticlesList = articlesList.filter((art) => {
+    const matchesStatus = manageSubTab === 'draft' 
+      ? (art.status || 'published') === 'draft' 
+      : (art.status || 'published') !== 'draft'
     const matchesCategory =
       selectedCategory === 'All' || (art.category || '').trim() === selectedCategory
     const query = searchQuery.toLowerCase()
@@ -401,7 +420,7 @@ const AdminPage = () => {
       (art.title || '').toLowerCase().includes(query) ||
       (art.category || '').toLowerCase().includes(query) ||
       (art.author || '').toLowerCase().includes(query)
-    return matchesCategory && matchesSearch
+    return matchesStatus && matchesCategory && matchesSearch
   })
 
   // Change content type write mode
@@ -431,6 +450,7 @@ const AdminPage = () => {
       date: item.date || '',
       readTime: item.readTime || '5 min read',
       tags: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tags || ''),
+      status: item.status || 'published',
       seoTitle: item.seoTitle || '',
       seoDescription: item.seoDescription || '',
       seoKeywords: Array.isArray(item.seoKeywords) ? item.seoKeywords.join(', ') : (item.seoKeywords || ''),
@@ -460,6 +480,7 @@ const AdminPage = () => {
   const handleCancelEdit = () => {
     setIsEditing(false)
     setEditingId(null)
+    setSelectedFiles({ image: null, thumbnail: null })
     setFormData({
       title: '',
       slug: '',
@@ -473,6 +494,7 @@ const AdminPage = () => {
       date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
       readTime: '5 min read',
       tags: '',
+      status: 'draft',
       seoTitle: '',
       seoDescription: '',
       seoKeywords: '',
@@ -517,29 +539,34 @@ const AdminPage = () => {
     }
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (e, statusOverride = null) => {
+    if (e && e.preventDefault) e.preventDefault()
     setIsLoading(true)
     setMessage({ type: '', text: '' })
 
-    // Validations
-    const requiredFields = ['title', 'category', 'excerpt', 'content', 'image', 'author', 'date', 'readTime']
-    const missingFields = requiredFields.filter(f => !formData[f].trim())
-    
-    if (missingFields.length > 0) {
-      setMessage({
-        type: 'error',
-        text: `Please fill in all required fields: ${missingFields.join(', ')}`
-      })
-      setIsLoading(false)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+    const activeStatus = statusOverride || formData.status || 'draft'
+
+    // Validations (only required if status is published)
+    if (activeStatus === 'published') {
+      const requiredFields = ['title', 'category', 'excerpt', 'content', 'image', 'author', 'date', 'readTime']
+      const missingFields = requiredFields.filter(f => !formData[f].trim())
+      
+      if (missingFields.length > 0) {
+        setMessage({
+          type: 'error',
+          text: `Please fill in all required fields to publish: ${missingFields.join(', ')}`
+        })
+        setIsLoading(false)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        return
+      }
     }
 
     try {
       let response
       const payload = {
         ...formData,
+        status: activeStatus,
         blocks: editorBlocks
       }
       if (isEditing) {
@@ -550,6 +577,35 @@ const AdminPage = () => {
         response = contentType === 'article'
           ? await api.createArticle(payload, token)
           : await api.createTravelogue(payload, token)
+      }
+      // Fallback check: if submission failed, try uploading any Base64 images to Cloudinary and retrying
+      if (!response.success && (selectedFiles.image || selectedFiles.thumbnail)) {
+        const uploadIfBase64 = async (fieldValue, file) => {
+          if (fieldValue && fieldValue.startsWith('data:') && file) {
+            const res = await api.uploadImage(file, token)
+            if (res.success) return res.url
+            throw new Error(res.message || 'Upload failed')
+          }
+          return fieldValue
+        }
+
+        try {
+          const imageUrl = await uploadIfBase64(payload.image, selectedFiles.image)
+          const thumbnailUrl = await uploadIfBase64(payload.thumbnail, selectedFiles.thumbnail)
+          
+          if (imageUrl !== payload.image || thumbnailUrl !== payload.thumbnail) {
+            payload.image = imageUrl
+            payload.thumbnail = thumbnailUrl
+            setFormData(prev => ({ ...prev, image: imageUrl, thumbnail: thumbnailUrl }))
+            
+            // Retry the submission with the Cloudinary URLs
+            response = isEditing
+              ? (contentType === 'article' ? await api.updateArticle(editingId, payload, token) : await api.updateTravelogue(editingId, payload, token))
+              : (contentType === 'article' ? await api.createArticle(payload, token) : await api.createTravelogue(payload, token))
+          }
+        } catch (err) {
+          response = { success: false, message: err.message }
+        }
       }
 
       if (response.success) {
@@ -736,12 +792,40 @@ const AdminPage = () => {
         {/* Conditionally Render Tabs */}
         {activeTab === 'manage' ? (
           <div className="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-6 md:p-8 shadow-2xl">
+            {/* Sub Tabs */}
+            <div className="flex gap-6 border-b border-slate-700/50 pb-4 mb-6">
+              <button
+                type="button"
+                onClick={() => setManageSubTab('published')}
+                className={`pb-2 text-sm font-semibold transition-all relative ${
+                  manageSubTab === 'published' ? 'text-yellow-500 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Published ({publishedCount})
+                {manageSubTab === 'published' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500 rounded-full" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setManageSubTab('draft')}
+                className={`pb-2 text-sm font-semibold transition-all relative ${
+                  manageSubTab === 'draft' ? 'text-yellow-500 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Drafts ({draftsCount})
+                {manageSubTab === 'draft' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500 rounded-full" />
+                )}
+              </button>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1">
-                  Published Articles ({filteredArticlesList.length}
+                  {manageSubTab === 'published' ? 'Published Articles' : 'Draft Articles'} ({filteredArticlesList.length}
                   {selectedCategory !== 'All' || searchQuery
-                    ? ` of ${articlesList.length}`
+                    ? ` of ${manageSubTab === 'published' ? publishedCount : draftsCount}`
                     : ''}
                   )
                 </h3>
@@ -789,6 +873,7 @@ const AdminPage = () => {
                     <tr className="border-b border-slate-700 text-slate-400 font-semibold uppercase text-xs tracking-wider">
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Category</th>
+                      <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4">Date</th>
                       <th className="py-3 px-4">Author</th>
                       <th className="py-3 px-4 text-right">Actions</th>
@@ -799,6 +884,15 @@ const AdminPage = () => {
                       <tr key={art._id} className="hover:bg-slate-850/50 transition-colors">
                         <td className="py-4 px-4 font-semibold text-white max-w-sm truncate">{art.title}</td>
                         <td className="py-4 px-4">{art.category}</td>
+                        <td className="py-4 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                            (art.status || 'published') === 'published' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                            (art.status || 'published') === 'draft' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                            'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                          }`}>
+                            {art.status || 'published'}
+                          </span>
+                        </td>
                         <td className="py-4 px-4">{art.date}</td>
                         <td className="py-4 px-4">{art.author}</td>
                         <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap">
@@ -1421,43 +1515,78 @@ const AdminPage = () => {
               <button
                 type="button"
                 onClick={isEditing ? handleCancelEdit : () => navigate('/articles')}
-                className="px-6 py-3.5 border border-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors"
+                className="px-6 py-3.5 border border-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 {isEditing ? 'Cancel Edit' : 'Cancel'}
               </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`flex-1 flex items-center justify-center gap-2 px-8 py-3.5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 rounded-xl font-bold transition-all shadow-lg hover:shadow-yellow-500/20 ${
-                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-950 border-t-transparent" />
-                    <span>{isEditing ? `Updating ${contentType === 'article' ? 'Article' : 'Travelogue'}...` : `Publishing ${contentType === 'article' ? 'Article' : 'Travelogue'}...`}</span>
-                  </>
-                ) : (
-                  <>
-                    <span>{isEditing ? `Update ${contentType === 'article' ? 'Article' : 'Travelogue'}` : `Publish ${contentType === 'article' ? 'Article' : 'Travelogue'}`}</span>
-                  </>
-                )}
-              </button>
+              
+              {isEditing && formData.status === 'published' ? (
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`flex-1 flex items-center justify-center gap-2 px-8 py-3.5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 rounded-xl font-bold transition-all shadow-lg hover:shadow-yellow-500/20 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer`}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-950 border-t-transparent" />
+                      <span>Updating Article...</span>
+                    </>
+                  ) : (
+                    <span>Update Article</span>
+                  )}
+                </button>
+              ) : (
+                <div className="flex-1 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit(e, 'draft')}
+                    disabled={isLoading}
+                    className="px-6 py-3.5 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    Save Draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit(e, 'published')}
+                    disabled={isLoading}
+                    className={`flex-1 flex items-center justify-center gap-2 px-8 py-3.5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 rounded-xl font-bold transition-all shadow-lg hover:shadow-yellow-500/20 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-950 border-t-transparent" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <span>Publish Article</span>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
 
           </form>
 
           {/* --- RIGHT COLUMN: LIVE STICKY PREVIEW --- */}
-          <div className="lg:sticky lg:top-28 space-y-6 bg-slate-800/20 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+          <div className={`lg:sticky lg:top-28 space-y-6 border rounded-2xl overflow-hidden shadow-2xl transition-colors duration-200 ${
+            isDark ? 'bg-slate-800/20 border-slate-700/50' : 'bg-white border-gray-200 shadow-md'
+          }`}>
             {/* Header */}
-            <div className="bg-slate-900/65 border-b border-slate-700/50 px-6 py-3 flex items-center gap-2 text-slate-400 text-xs">
+            <div className={`border-b px-6 py-3 flex items-center gap-2 text-xs transition-colors duration-200 ${
+              isDark ? 'bg-slate-900/65 border-slate-700/50 text-slate-400' : 'bg-gray-50 border-gray-200 text-gray-500'
+            }`}>
               <span>Live Article Preview</span>
             </div>
 
             {/* Full Height Preview Area */}
-            <div className="bg-slate-950 text-white pb-8">
+            <div className={`transition-colors duration-200 pb-8 ${
+              isDark ? 'bg-slate-950 text-white' : 'bg-white text-gray-900'
+            }`}>
               {/* Cover Banner (Hero) */}
-              <div className="relative overflow-hidden pt-10 pb-8 bg-gradient-to-r from-dark-950 via-slate-900 to-slate-800 border-b border-slate-800"> 
+              <div className={`relative overflow-hidden pt-10 pb-8 border-b transition-colors duration-200 ${
+                isDark 
+                  ? 'bg-gradient-to-r from-dark-950 via-slate-900 to-slate-800 border-slate-800' 
+                  : 'bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 border-gray-200'
+              }`}> 
                 <div className="px-6 max-w-2xl mx-auto">
                   {/* Category & Read Time */}
                   <div className="flex flex-wrap gap-2 mb-3">
@@ -1465,19 +1594,25 @@ const AdminPage = () => {
                       {formData.category || 'Tech Insights'}
                     </span>
                     {formData.readTime && (
-                      <span className="px-2.5 py-0.5 bg-white/10 border border-white/20 text-gray-200 text-[10px] font-semibold rounded-full">
+                      <span className={`px-2.5 py-0.5 border text-[10px] font-semibold rounded-full ${
+                        isDark ? 'bg-white/10 border-white/20 text-gray-200' : 'bg-gray-100 border-gray-200 text-gray-700'
+                      }`}>
                         {formData.readTime}
                       </span>
                     )}
                   </div>
 
                   {/* Title */}
-                  <h1 className="text-xl sm:text-2xl font-extrabold leading-tight text-white mb-3">
+                  <h1 className={`text-xl sm:text-2xl font-extrabold leading-tight mb-3 ${
+                    isDark ? 'text-white' : 'text-gray-900'
+                  }`}>
                     {formData.title || 'Untitled Article'}
                   </h1>
 
                   {/* Author & Date */}
-                  <div className="flex items-center gap-2 text-slate-450 text-xs">
+                  <div className={`flex items-center gap-2 text-xs ${
+                    isDark ? 'text-slate-450' : 'text-gray-500'
+                  }`}>
                     <span>By {formData.author || 'DryvSquad Editorial'}</span>
                     <span>•</span>
                     <span>{formData.date || 'Today'}</span>
@@ -1492,37 +1627,47 @@ const AdminPage = () => {
                   <img
                     src={formData.image}
                     alt={formData.title}
-                    className="w-full rounded-xl object-cover shadow-lg max-h-64 border border-slate-850"
+                    className={`w-full rounded-xl object-cover shadow-lg max-h-64 border ${
+                      isDark ? 'border-slate-850' : 'border-gray-200'
+                    }`}
                     onError={(e) => {
                       e.target.src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800';
                     }}
                   />
                 ) : (
-                  <div className="w-full h-40 rounded-xl bg-slate-900/60 border border-dashed border-slate-800 flex items-center justify-center text-slate-550 text-xs">
+                  <div className={`w-full h-40 rounded-xl border border-dashed flex items-center justify-center text-xs ${
+                    isDark ? 'bg-slate-900/60 border-slate-800 text-slate-550' : 'bg-gray-50 border-gray-300 text-gray-400'
+                  }`}>
                     No image URL specified
                   </div>
                 )}
 
                 {/* Excerpt */}
                 {formData.excerpt && (
-                  <div className="border-l-4 border-yellow-500 pl-4 py-1 italic text-slate-350 text-sm md:text-base bg-slate-900/30 rounded-r-lg">
+                  <div className={`border-l-4 border-yellow-500 pl-4 py-1 italic text-sm md:text-base rounded-r-lg ${
+                    isDark ? 'text-slate-350 bg-slate-900/30' : 'text-gray-600 bg-gray-50'
+                  }`}>
                     {formData.excerpt}
                   </div>
                 )}
 
                 {/* Main Article Body Render */}
                 <div 
-                  className="prose prose-invert max-w-none text-slate-200 text-sm md:text-base"
+                  className={`prose max-w-none text-sm md:text-base ${
+                    isDark ? 'prose-invert text-slate-200' : 'text-gray-800'
+                  }`}
                   dangerouslySetInnerHTML={getFormattedPreviewContent()}
                 />
 
                 {/* Tags */}
                 {getTagsArray().length > 0 && (
-                  <div className="pt-6 border-t border-slate-850">
-                    <h4 className="font-semibold text-xs text-white mb-2">Tags:</h4>
+                  <div className={`pt-6 border-t ${isDark ? 'border-slate-850' : 'border-gray-200'}`}>
+                    <h4 className={`font-semibold text-xs mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tags:</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {getTagsArray().map((tag, idx) => (
-                        <span key={idx} className="px-2.5 py-0.5 text-[10px] rounded-full bg-slate-900 text-slate-450 border border-slate-800 font-medium">
+                        <span key={idx} className={`px-2.5 py-0.5 text-[10px] rounded-full border font-medium ${
+                          isDark ? 'bg-slate-900 text-slate-450 border-slate-800' : 'bg-gray-50 text-gray-600 border-gray-200'
+                        }`}>
                           #{tag}
                         </span>
                       ))}

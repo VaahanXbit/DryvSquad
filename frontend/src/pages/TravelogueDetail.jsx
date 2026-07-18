@@ -217,7 +217,7 @@ const TravelogueDetail = () => {
                 >
                   <div className="relative h-40 sm:h-48 overflow-hidden">
                     <img
-                      src={related.image || '/images/travelogue/default.png'}
+                      src={related.thumbnail || related.image || '/images/travelogue/default.png'}
                       alt={related.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {

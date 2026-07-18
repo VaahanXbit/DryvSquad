@@ -39,7 +39,7 @@ exports.getAllArticles = async (req, res) => {
 };
 
 // ========================================
-// GET /api/articles/:slug - Get article by slug
+// GET /api/articles/:slug - Get article by slug (Only published articles)
 // ========================================
 exports.getArticleBySlug = async (req, res) => {
   try {
@@ -47,7 +47,7 @@ exports.getArticleBySlug = async (req, res) => {
     
     // Increment views and weeklyViews counters in MongoDB on retrieval
     const article = await Article.findOneAndUpdate(
-      { slug },
+      { slug, status: 'published' },
       { $inc: { views: 1, weeklyViews: 1 } },
       { new: true }
     );
@@ -68,6 +68,28 @@ exports.getArticleBySlug = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch article',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+// ========================================
+// GET /api/articles/admin/all - Get all articles (both published and drafts) for Admin
+// ========================================
+exports.getAllArticlesAdmin = async (req, res) => {
+  try {
+    const articles = await Article.find({}).sort({ createdAt: -1 });
+    
+    res.status(200).json({
+      success: true,
+      count: articles.length,
+      articles,
+    });
+  } catch (error) {
+    console.error('❌ Get all articles (admin) error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch articles for admin',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -232,7 +254,6 @@ exports.getRecentArticles = async (req, res) => {
 exports.createArticle = async (req, res) => {
   try {
     const {
-      title,
       category,
       subCategory,
       excerpt,
@@ -252,15 +273,13 @@ exports.createArticle = async (req, res) => {
       showInsuranceCTA,
     } = req.body;
 
-    // Validate required fields
-    if (!title || !category || !excerpt || !content || !image || !author || !date || !readTime) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide all required fields (title, category, excerpt, content, image, author, date, readTime)',
-      });
+    // Default title if missing or empty
+    let title = req.body.title;
+    if (!title || !String(title).trim()) {
+      title = "Untitled Draft";
     }
 
-    // Use manual slug if provided, else auto-generate from title
+    // Use manual slug if provided, else auto-generate from title/draft fallback
     let slug = req.body.slug;
     if (slug !== undefined && slug !== null && String(slug).trim()) {
       slug = String(slug)
@@ -272,15 +291,23 @@ exports.createArticle = async (req, res) => {
         .replace(/^-+/, '')
         .replace(/-+$/, '');
     } else {
-      slug = title
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
+      if (title === "Untitled Draft") {
+        slug = `draft-${Date.now()}`;
+      } else {
+        slug = title
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]+/g, '')
+          .replace(/\-\-+/g, '-')
+          .replace(/^-+/, '')
+          .replace(/-+$/, '');
+      }
+    }
+
+    if (!slug || !slug.trim()) {
+      slug = `draft-${Date.now()}`;
     }
 
     // Check if slug already exists to prevent duplicate key error
@@ -315,13 +342,13 @@ exports.createArticle = async (req, res) => {
       date,
       readTime,
       tags: processedTags,
-      status: status || 'published',
+      status: status || 'draft',
       seoTitle: seoTitle || title,
       seoDescription: seoDescription || excerpt,
       seoKeywords: processedKeywords,
       showLoanCTA: showLoanCTA === true,
       showInsuranceCTA: showInsuranceCTA === true,
-      publishedAt: new Date(),
+      publishedAt: status === 'published' ? new Date() : undefined,
     });
 
     await newArticle.save();
@@ -333,6 +360,13 @@ exports.createArticle = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Create article error:', error);
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', '),
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Failed to create article',
@@ -376,10 +410,16 @@ exports.updateArticle = async (req, res) => {
       });
     }
 
-    // Use manual slug if provided, else generate slug from title if modified
-    let slug = article.slug;
+    // Default/normalize title if modified to be empty
+    let normalizedTitle = title;
+    if (title !== undefined && (!title || !String(title).trim())) {
+      normalizedTitle = "Untitled Draft";
+    }
+
+    // Use manual slug if provided, else generate slug from title if modified or transitioning
+    let newSlug = article.slug;
     if (req.body.slug !== undefined && req.body.slug !== null && String(req.body.slug).trim()) {
-      slug = String(req.body.slug)
+      newSlug = String(req.body.slug)
         .toLowerCase()
         .trim()
         .replace(/\s+/g, '-')
@@ -387,20 +427,46 @@ exports.updateArticle = async (req, res) => {
         .replace(/\-\-+/g, '-')
         .replace(/^-+/, '')
         .replace(/-+$/, '');
-    } else if (title && title !== article.title) {
-      slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+    } else {
+      const targetStatus = status || article.status;
+      const isTransitioningToPublished = article.status === 'draft' && targetStatus === 'published';
+      const isPlaceholderSlug = article.slug.startsWith('draft-');
+      
+      if (isTransitioningToPublished && isPlaceholderSlug) {
+        const activeTitle = normalizedTitle || article.title;
+        newSlug = activeTitle
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]+/g, '')
+          .replace(/\-\-+/g, '-')
+          .replace(/^-+/, '')
+          .replace(/-+$/, '');
+      } else if (normalizedTitle && normalizedTitle !== article.title) {
+        newSlug = normalizedTitle
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]+/g, '')
+          .replace(/\-\-+/g, '-')
+          .replace(/^-+/, '')
+          .replace(/-+$/, '');
+      }
+    }
+
+    if (!newSlug || !newSlug.trim()) {
+      newSlug = `draft-${Date.now()}`;
     }
 
     // Check if the new slug is already taken by another article
-    if (slug !== article.slug) {
-      const slugExists = await Article.findOne({ slug, _id: { $ne: id } });
+    if (newSlug !== article.slug) {
+      const slugExists = await Article.findOne({ slug: newSlug, _id: { $ne: id } });
       if (slugExists) {
         return res.status(400).json({
           success: false,
-          message: `An article with this slug already exists: "${slug}"`,
+          message: `An article with this slug already exists: "${newSlug}"`,
         });
       }
     }
@@ -415,18 +481,18 @@ exports.updateArticle = async (req, res) => {
       : (seoKeywords ? seoKeywords.split(',').map(k => k.trim()) : article.seoKeywords);
 
     const updatedFields = {
-      title,
-      slug,
-      category,
+      title: normalizedTitle !== undefined ? normalizedTitle : article.title,
+      slug: newSlug,
+      category: category !== undefined ? category : article.category,
       subCategory: subCategory !== undefined ? subCategory : article.subCategory,
-      excerpt,
-      content,
-      image,
+      excerpt: excerpt !== undefined ? excerpt : article.excerpt,
+      content: content !== undefined ? content : article.content,
+      image: image !== undefined ? image : article.image,
       thumbnail: thumbnail !== undefined ? thumbnail : article.thumbnail,
       blocks: blocks !== undefined ? blocks : article.blocks,
-      author,
-      date,
-      readTime,
+      author: author !== undefined ? author : article.author,
+      date: date !== undefined ? date : article.date,
+      readTime: readTime !== undefined ? readTime : article.readTime,
       tags: processedTags,
       status: status || article.status,
       seoTitle: seoTitle || title || article.seoTitle,
@@ -434,10 +500,12 @@ exports.updateArticle = async (req, res) => {
       seoKeywords: processedKeywords,
       showLoanCTA: showLoanCTA !== undefined ? showLoanCTA : article.showLoanCTA,
       showInsuranceCTA: showInsuranceCTA !== undefined ? showInsuranceCTA : article.showInsuranceCTA,
+      publishedAt: (article.status === 'draft' && status === 'published') ? new Date() : article.publishedAt,
       updatedAt: new Date()
     };
 
-    const updatedArticle = await Article.findByIdAndUpdate(id, updatedFields, { new: true });
+    // runValidators: true is required to run the conditional validation functions on update!
+    const updatedArticle = await Article.findByIdAndUpdate(id, updatedFields, { runValidators: true, new: true });
 
     res.status(200).json({
       success: true,
@@ -446,6 +514,13 @@ exports.updateArticle = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Update article error:', error);
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', '),
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Failed to update article',
