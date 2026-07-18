@@ -158,12 +158,9 @@ exports.sendOTP = async (req, res) => {
     }
 
     if (!result || !result.success) {
-      console.warn(`⚠️ Failed to send OTP via ${isEmail ? 'email' : 'SMS'} but proceeding anyway for local testing. Use OTP: ${otp}`);
-      return res.status(200).json({
-        success: true,
-        message: `Failed to send OTP via network, but proceeding in local test mode. Check terminal console for OTP: ${otp}`,
-        type: isEmail ? 'email' : 'phone',
-        otp: otp
+      return res.status(500).json({
+        success: false,
+        message: `Failed to send OTP via ${isEmail ? 'email' : 'SMS'}. Please try again.`,
       });
     }
 
