@@ -139,6 +139,7 @@ import AdminPage from './pages/AdminPage'
 import LeadFormPage from './pages/LeadFormPage'
 import AiCarFinder from './pages/AiCarFinder'
 import ModelVariants from './pages/ModelVariants'
+import PaymentTest from './pages/PaymentTest' 
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -189,6 +190,7 @@ function App() {
               <Route path="/lead-insurance" element={<LeadFormPage type="insurance" />} />
               <Route path="/ai-car-finder" element={<AiCarFinder />} />
               <Route path="/model-variants/:slug" element={<ModelVariants />} />
+              <Route path="/payment-test" element={<PaymentTest />} /> 
             </Routes>
           </main>
           {!isAiModePage && <CommonFooter />}
