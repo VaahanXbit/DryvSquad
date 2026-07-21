@@ -152,6 +152,7 @@ const allowedOrigins = [
   // Current Production Frontend
   "https://dryv-squad.vercel.app",
   "https://dryv-squad-bcgg9uant-vaahan-xbit-s-projects.vercel.app",
+  "https://dryvsquad.vaahanxbit.workers.dev",
 
   // Environment Variable
   process.env.FRONTEND_URL,
@@ -165,9 +166,9 @@ app.use(cors({
     const isAllowed =
       allowedOrigins.includes(origin) ||
 
-      // Allow all future Vercel preview deployments
-      (origin.endsWith(".vercel.app") &&
-        origin.includes("vaahan-international")) ||
+      // Allow all future Vercel preview & Cloudflare Workers deployments
+      ((origin.endsWith(".vercel.app") || origin.endsWith(".workers.dev")) &&
+        (origin.includes("vaahan") || origin.includes("dryvsquad"))) ||
 
       // Allow localhost on any port
       /^https?:\/\/localhost:\d+$/.test(origin);
