@@ -5,8 +5,8 @@ import {
   Mic, 
   Sparkles, 
   ArrowRight, 
-  Loader2, 
   Globe,
+  Loader2,
   ExternalLink,
   ChevronRight,
   Trash2,
@@ -18,39 +18,46 @@ import {
   CreditCard
 } from 'lucide-react'
 import AuthModal from '../components/AuthModal'
+import { useTheme } from '../context/ThemeContext'
+import PaymentButton from '../components/PaymentButton'
 
 const API_URL = import.meta.env.VITE_AI_API_URL || 'http://127.0.0.1:8002'
 const AI_QUERY_COUNT_KEY = 'dryvsquad_ai_query_count'
-const FREE_GUEST_LIMIT = 3
-const LOGGED_IN_LIMIT = 10
+const FREE_GUEST_LIMIT = 5
+const LOGGED_IN_LIMIT = 15
 const QUERY_WINDOW_MS = 24 * 60 * 60 * 1000 // reset every 24 hours
+
+const getUniqueSources = (sources) => {
+  if (!sources || !Array.isArray(sources)) return []
+  return [...new Map(sources.map(s => [s.title || s.slug, s])).values()]
+}
 
 const readAiQueryUsage = () => {
   try {
     const raw = localStorage.getItem(AI_QUERY_COUNT_KEY)
-    if (!raw) return { count: 0, startedAt: Date.now() }
+    if (!raw) return { count: 0, startedAt: null }
 
     // Migrate legacy plain-number storage
     if (/^\d+$/.test(raw)) {
-      return { count: Number(raw), startedAt: Date.now() }
+      return { count: Number(raw), startedAt: null }
     }
 
     const parsed = JSON.parse(raw)
     const count = Number(parsed?.count)
-    const startedAt = Number(parsed?.startedAt)
+    const startedAt = parsed?.startedAt ? Number(parsed.startedAt) : null
 
-    if (!Number.isFinite(count) || count < 0 || !Number.isFinite(startedAt)) {
-      return { count: 0, startedAt: Date.now() }
+    if (!Number.isFinite(count) || count < 0) {
+      return { count: 0, startedAt: null }
     }
 
     // Window expired → reset
-    if (Date.now() - startedAt >= QUERY_WINDOW_MS) {
-      return { count: 0, startedAt: Date.now() }
+    if (startedAt && (Date.now() - startedAt >= QUERY_WINDOW_MS)) {
+      return { count: 0, startedAt: null }
     }
 
     return { count, startedAt }
   } catch {
-    return { count: 0, startedAt: Date.now() }
+    return { count: 0, startedAt: null }
   }
 }
 
@@ -71,13 +78,28 @@ const getAiQueryCount = () => {
 
 const incrementAiQueryCount = () => {
   const usage = readAiQueryUsage()
+  const nextCount = usage.count + 1
+  
+  const token = localStorage.getItem('token')
+  const limit = token ? LOGGED_IN_LIMIT : FREE_GUEST_LIMIT
+  
+  let startedAt = usage.startedAt
+  if (nextCount >= limit) {
+    if (!startedAt) {
+      startedAt = Date.now()
+    }
+  } else {
+    // If user expands quota (e.g. logs in), clear active timer
+    startedAt = null
+  }
+
   const next = {
-    count: usage.count + 1,
-    startedAt: usage.startedAt || Date.now(),
+    count: nextCount,
+    startedAt,
   }
   writeAiQueryUsage(next)
   return next.count
-};
+}
 
 const parseTextLinks = (text) => {
   if (!text) return "";
@@ -136,6 +158,7 @@ const parseTextLinks = (text) => {
 const AiModePage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { isDark } = useTheme()
   
   const queryParam = searchParams.get('q') || ''
   
@@ -189,11 +212,11 @@ const AiModePage = () => {
     if (!loading) return
 
     const steps = [
-      "Analyzing your query...",
-      "Searching DryvSquad's knowledge base...",
-      "Retrieving automotive articles...",
-      "Synthesizing specifications...",
-      "Formulating verdict..."
+      "Got it! Let me check...",
+      "Looking through our articles...",
+      "Finding the most relevant details...",
+      "Putting it all together...",
+      "Your answer is almost ready..."
     ]
     
     let index = 0
@@ -236,9 +259,11 @@ const AiModePage = () => {
     setToken(nextToken)
 
     // After login, resume the blocked query if they still have quota left
+    // After login, resume the blocked query if they still have quota left
     if (nextToken && pendingQuery) {
       const count = getAiQueryCount()
-      if (count >= LOGGED_IN_LIMIT) {
+      const isUpgraded = localStorage.getItem('dryvsquad_ai_upgrade_unlocked') === 'true'
+      if (count >= LOGGED_IN_LIMIT && !isUpgraded) {
         setPendingQuery(null)
         setShowPaywallModal(true)
         return
@@ -255,9 +280,10 @@ const AiModePage = () => {
     const trimmed = text.trim()
     const currentToken = localStorage.getItem('token')
     const count = getAiQueryCount()
+    const isUpgraded = localStorage.getItem('dryvsquad_ai_upgrade_unlocked') === 'true'
 
     // After 10 queries → paywall
-    if (count >= LOGGED_IN_LIMIT) {
+    if (count >= LOGGED_IN_LIMIT && !isUpgraded) {
       setShowPaywallModal(true)
       return
     }
@@ -332,12 +358,15 @@ const AiModePage = () => {
     localStorage.removeItem('dryvsquad_chat_history')
   }
 
+  const isUpgraded = localStorage.getItem('dryvsquad_ai_upgrade_unlocked') === 'true'
   const remainingQueries = Math.max(0, (token ? LOGGED_IN_LIMIT : FREE_GUEST_LIMIT) - queryCount)
-  const quotaLabel = token
-    ? `${remainingQueries} of ${LOGGED_IN_LIMIT} questions left`
-    : queryCount >= FREE_GUEST_LIMIT
-      ? 'Login required for more questions'
-      : `${remainingQueries} of ${FREE_GUEST_LIMIT} free questions left`
+  const quotaLabel = isUpgraded
+    ? 'Unlimited questions unlocked'
+    : token
+      ? `${remainingQueries} of ${LOGGED_IN_LIMIT} questions left`
+      : queryCount >= FREE_GUEST_LIMIT
+        ? 'Login required for more questions'
+        : `${remainingQueries} of ${FREE_GUEST_LIMIT} free questions left`
 
   const latestUserMsg = [...messages].reverse().find(msg => msg.sender === 'user')
   const currentQuery = latestUserMsg?.text || ''
@@ -345,9 +374,7 @@ const AiModePage = () => {
   const latestAiMessage = [...messages].reverse().find(msg => msg.sender === 'ai')
   const latestResult = latestAiMessage?.result || null
 
-  const uniqueSources = latestResult?.sources 
-    ? [...new Map(latestResult.sources.map(s => [s.title, s])).values()]
-    : []
+  const uniqueSources = getUniqueSources(latestResult?.sources)
 
   const isRelevant = latestResult && latestResult.has_answer !== false && 
     !latestResult.verdict?.toLowerCase().includes("couldn't find relevant") &&
@@ -355,17 +382,21 @@ const AiModePage = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-slate-700 dark:text-[#e3e3e3] font-sans pt-28 pb-32 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 flex gap-6 relative items-start">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 flex gap-6 relative items-start justify-center">
         
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col space-y-6">
+        <main className="flex-grow max-w-3xl w-full flex flex-col space-y-6">
           
           {/* Empty state (No chat history) */}
           {messages.length === 0 && !loading && (
-            <div className="max-w-2xl mx-auto w-full my-auto text-center space-y-8 py-12">
+            <div className="w-full my-auto text-center space-y-8 py-12">
               <div className="space-y-3">
-                <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center justify-center gap-2">
-                  <Sparkles className="w-8 h-8 text-yellow-600 dark:text-yellow-500 animate-pulse" />
+                <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center justify-center gap-3">
+                  <img
+                    src="/DSLogo-Square.png"
+                    alt="DryvSquad Logo"
+                    className="w-16 h-16 object-contain transition-transform duration-300 hover:scale-105"
+                  />
                   DryvSquad AI
                 </h2>
                 <p className="text-slate-500 dark:text-[#9ca3af] text-sm max-w-md mx-auto leading-relaxed">
@@ -390,10 +421,13 @@ const AiModePage = () => {
 
           {/* Chat Messages */}
           {messages.length > 0 && (
-            <div className="max-w-3xl mx-auto w-full flex flex-col space-y-6">
+            <div className="w-full flex flex-col space-y-6">
               
               {/* Clear History Button (Sticky Header) */}
-              <div className="sticky top-[88px] z-10 flex justify-between items-center bg-white/90 dark:bg-black/90 backdrop-blur-sm pb-2.5 border-b border-slate-200 dark:border-dark-700/40 pt-2.5 transition-colors duration-200">
+              <div 
+                className="sticky z-20 flex justify-between items-center bg-white/95 dark:bg-black/95 backdrop-blur-sm pb-2.5 border-b border-slate-200 dark:border-dark-700/40 pt-2.5 transition-colors duration-200"
+                style={{ top: 'var(--header-height, 72px)' }}
+              >
                 <span className="text-[10px] text-slate-400 dark:text-gray-500 font-bold uppercase tracking-wider">Conversation History</span>
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] text-slate-500 dark:text-gray-400 font-medium">
@@ -511,6 +545,28 @@ const AiModePage = () => {
                         </div>
                       )}
 
+                      {/* Sources / Related Articles */}
+                      {msgRelevant && result.sources && result.sources.length > 0 && (
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/40">
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest block mb-2">
+                            Sources & Related Articles
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {getUniqueSources(result.sources).map((source, idx) => (
+                              <Link
+                                key={idx}
+                                to={`/article/${source.slug}`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-dark-700 border border-slate-200 dark:border-dark-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl transition-all cursor-pointer shadow-sm"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+                                <span>{source.title}</span>
+                                <ExternalLink className="w-3 h-3 text-slate-400" />
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Dynamic CTA Buttons for Loan / Insurance */}
                       {msgRelevant && (result.suggest_loan || result.suggest_insurance) && (
                         <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/40">
@@ -568,7 +624,10 @@ const AiModePage = () => {
 
         {/* Right Sidebar (Related Articles)*/}
         {currentQuery && !loading && isRelevant && uniqueSources.length > 0 && (
-          <aside className="w-[320px] bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-2xl p-5 flex flex-col space-y-4 shrink-0 hidden lg:flex sticky top-28 h-fit max-h-[calc(100vh-160px)] overflow-y-auto shadow-md dark:shadow-sm">
+          <aside 
+            className="w-[320px] bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-2xl p-5 flex flex-col space-y-4 shrink-0 hidden lg:flex sticky h-fit max-h-[calc(100vh-160px)] overflow-y-auto shadow-md dark:shadow-sm"
+            style={{ top: 'calc(var(--header-height, 72px) + 165px)' }}
+          >
             <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-dark-700">
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-yellow-600 dark:text-yellow-500" />
@@ -625,14 +684,15 @@ const AiModePage = () => {
         <form onSubmit={handleSearchSubmit} className="max-w-2xl w-full">
           <div className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-2xl flex items-center px-4 py-2.5 shadow-lg focus-within:ring-1 focus-within:ring-yellow-500/50">
             
-            <button 
+            {/* <button 
               type="button"
               onClick={handleNewChat}
               className="w-9 h-9 rounded-full bg-slate-100 dark:bg-dark-700 hover:bg-slate-200 dark:hover:bg-dark-600 text-slate-500 dark:text-[#c4c7c5] hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors shadow-sm shrink-0"
               title="Start New Chat / Clear History"
             >
               <Plus className="w-5 h-5" />
-            </button>
+            </button> */}
+            
 
             {/* Input Element */}
             <input
@@ -641,14 +701,14 @@ const AiModePage = () => {
               onChange={(e) => setInputVal(e.target.value)}
               placeholder="Ask anything..."
               disabled={loading}
-              className="flex-grow bg-transparent text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none px-4 py-2 disabled:opacity-50"
+              className="flex-grow bg-transparent text-sm text-slate-800 dark:text-white placeholder-slate-600 dark:placeholder-gray-500 focus:outline-none px-4 py-2 disabled:opacity-50"
             />
 
             {/* Send Button */}
             <button 
               type="submit"
               disabled={loading || !inputVal.trim()}
-              className="w-9 h-9 rounded-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-slate-100 dark:disabled:bg-[#2f3032] text-white disabled:text-slate-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md shrink-0 disabled:shadow-none disabled:cursor-not-allowed ml-2"
+              className="w-9 h-9 rounded-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-slate-400 dark:disabled:bg-[#2f3032] text-white disabled:text-slate-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md shrink-0 disabled:shadow-none disabled:cursor-not-allowed ml-2"
               title="Send Message"
             >
               <Send className="w-4 h-4" />
@@ -698,16 +758,19 @@ const AiModePage = () => {
                   You've used all {LOGGED_IN_LIMIT} AI questions. Upgrade to continue getting automotive answers from DryvSquad AI.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowPaywallModal(false)
-                  navigate('/contact')
+              <PaymentButton
+                resourceType="AI_CHAT"
+                resourceId="ai-chat-upgrade"
+                resourceName="AI Assistant Upgrade"
+                amount={49}
+                label="Pay 49 to unlock unlimited questions"
+                className="w-full py-3.5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-sm shadow-lg shadow-yellow-500/20 transition-all font-sans cursor-pointer"
+                onSuccess={(payment) => {
+                  localStorage.setItem('dryvsquad_ai_upgrade_unlocked', 'true');
+                  setShowPaywallModal(false);
+                  alert('Congratulations! Unlimited AI questions unlocked!');
                 }}
-                className="w-full py-3.5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-sm shadow-lg shadow-yellow-500/20 transition-all"
-              >
-                Pay Now
-              </button>
+              />
               <button
                 type="button"
                 onClick={() => setShowPaywallModal(false)}

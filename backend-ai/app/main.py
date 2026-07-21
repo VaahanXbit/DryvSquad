@@ -294,7 +294,7 @@ async def ai_mode(request: QueryRequest):
 
 def watch_mongodb_changes():
     import time
-    from app.scripts.ingest_articles import ingest
+    from app.scripts.ingest_articles import delete_chunks_for_source, ingest
     
     print("[CHANGESTREAM] Starting background MongoDB change stream listener...")
     while True:
@@ -310,6 +310,15 @@ def watch_mongodb_changes():
                             print("[CHANGESTREAM] Auto-ingestion complete.")
                         except Exception as e:
                             print(f"[CHANGESTREAM ERROR] Failed during auto-ingestion: {e}")
+                    elif op_type == "delete":
+                        article_id = change.get("documentKey", {}).get("_id")
+                        if article_id:
+                            print(f"[CHANGESTREAM] Detected article deletion. Removing chunks for {article_id}...")
+                            try:
+                                delete_chunks_for_source(article_id)
+                                print("[CHANGESTREAM] Deleted article chunks and vectors.")
+                            except Exception as e:
+                                print(f"[CHANGESTREAM ERROR] Failed to delete article chunks: {e}")
         except Exception as e:
             # Sleep 10s and retry (graceful fallback if MongoDB is not running as a replica set)
             print(f"[CHANGESTREAM WARNING] Connection lost or not a replica set: {e}. Retrying in 10 seconds...")

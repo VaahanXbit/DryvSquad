@@ -1,22 +1,35 @@
+import os
+import json
+import urllib.request
 import numpy as np
 
-# Lazy-load model on first use to reduce startup memory (critical for
-# hosting platforms with tight RAM limits like Render's 512 MB free tier).
-# model used :- all-MiniLM-L6-v2
-
-MODEL_NAME = "all-MiniLM-L6-v2"
-_model = None
+API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
+HF_TOKEN = os.getenv("HF_API_TOKEN")
 
 
-def _get_model():
-    """Return the SentenceTransformer model, loading it on first call."""
-    global _model
-    if _model is None:
-        print(f"[INFO] Lazy-loading SentenceTransformer model '{MODEL_NAME}'...")
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(MODEL_NAME)
-        print(f"[SUCCESS] SentenceTransformer model loaded.")
-    return _model
+def _query_hf_api(texts: list[str]) -> list:
+    """Send requests to Hugging Face serverless inference API."""
+    payload = {"inputs": texts}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {HF_TOKEN}" if HF_TOKEN else ""
+    }
+    
+    req = urllib.request.Request(
+        API_URL, 
+        data=json.dumps(payload).encode("utf-8"), 
+        headers=headers, 
+        method="POST"
+    )
+    
+    try:
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            return result
+    except Exception as e:
+        print(f"[ERROR] Hugging Face API call failed: {e}")
+        # Return dummy zero-vectors as a fallback to prevent app crashing
+        return [[0.0] * 384 for _ in texts]
 
 
 def embed_texts(texts: list[str]) -> np.ndarray:
@@ -25,13 +38,8 @@ def embed_texts(texts: list[str]) -> np.ndarray:
     Returns a numpy array of shape (len(texts), 384)
     384 is the vector dimension for all-MiniLM-L6-v2
     """
-    embeddings = _get_model().encode(
-        texts,
-        show_progress_bar=True,
-        batch_size=32,
-        convert_to_numpy=True
-    )
-    return embeddings
+    embeddings = _query_hf_api(texts)
+    return np.array(embeddings)
 
 
 def embed_query(query: str) -> np.ndarray:
@@ -39,8 +47,8 @@ def embed_query(query: str) -> np.ndarray:
     Embed a single user query for similarity search.
     Returns a numpy array of shape (1, 384)
     """
-    embedding = _get_model().encode([query], convert_to_numpy=True)
-    return embedding
+    embedding = _query_hf_api([query])
+    return np.array(embedding)
 
 
 if __name__ == "__main__":

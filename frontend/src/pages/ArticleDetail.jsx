@@ -840,7 +840,7 @@ const ArticleDetail = () => {
                 >
                   <div className="relative h-40 sm:h-48 overflow-hidden">
                     <img
-                      src={related.image}
+                      src={related.thumbnail || related.image}
                       alt={related.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

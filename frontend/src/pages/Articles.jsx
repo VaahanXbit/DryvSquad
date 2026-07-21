@@ -173,7 +173,7 @@ const Articles = () => {
                   <Link to={`/article/${article.slug}`}>
                     <div className="relative h-40 sm:h-44 md:h-48 lg:h-52 overflow-hidden">
                       <img
-                        src={article.image}
+                        src={article.thumbnail || article.image}
                         alt={article.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />

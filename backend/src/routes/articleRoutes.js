@@ -24,6 +24,7 @@ const {
   updateArticle,
   deleteArticle,
   upvoteArticle,
+  getAllArticlesAdmin,
 } = require('../controllers/articleController');
 
 const {
@@ -63,6 +64,9 @@ router.get('/category/:category', getArticlesByCategory);
 
 // Search articles
 router.get('/search/:query', searchArticles);
+
+// Get all articles (both published and drafts) for admin management
+router.get('/admin/all', protect, admin, getAllArticlesAdmin);
 
 // Get article by slug
 router.get('/:slug', getArticleBySlug);

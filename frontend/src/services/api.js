@@ -103,6 +103,35 @@ export const api = {
   // AUTH API
   // ========================================
 
+  // Upload image to Cloudinary
+  uploadImage: async (file, token = null) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_URL}/uploads/image`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
+    } catch (error) {
+      console.error('❌ Upload image API error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection.',
+      };
+    }
+  },
+
+  // Admin login
   adminLogin: async (password) => {
     try {
       const response = await fetch(`${API_URL}/auth/admin-login`, {
@@ -523,7 +552,8 @@ export const api = {
           'Authorization': `Bearer ${token}`,
         },
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Get all articles (admin) error:', error);
       return {
@@ -547,7 +577,8 @@ export const api = {
         headers,
         body: JSON.stringify(articleData),
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Create article error:', error);
       return {
@@ -571,7 +602,8 @@ export const api = {
         headers,
         body: JSON.stringify(articleData),
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Update article error:', error);
       return {
@@ -593,7 +625,8 @@ export const api = {
         method: 'DELETE',
         headers,
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Delete article error:', error);
       return {
@@ -725,7 +758,8 @@ export const api = {
         headers,
         body: JSON.stringify(travelogueData),
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Create travelogue error:', error);
       return {
@@ -749,7 +783,8 @@ export const api = {
         headers,
         body: JSON.stringify(travelogueData),
       });
-      return await handleResponse(response);
+      const data = await handleResponse(response);
+      return { ...data, status: response.status };
     } catch (error) {
       console.error('❌ Update travelogue error:', error);
       return {
