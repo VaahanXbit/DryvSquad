@@ -17,34 +17,41 @@ import { useTheme } from '../context/ThemeContext'
 import SearchBar from '../components/SearchBar'
 import Carousel from '../components/Carousel'
 import CarouselCard from '../components/CarouselCard'
-import { getFeaturedTravelogues } from '../data/traveloguesData'
-import { getFeaturedArticles } from '../data/articlesData'
+import HeroSlider from '../components/HeroSlider'
+import { getAllTravelogues } from '../data/traveloguesData'
+import { getHomeCategories } from '../data/articlesData'
+import { getActiveHeroBanners } from '../data/heroBannersData'
 import { SkeletonStyles, CarouselSkeleton, FadeIn } from '../components/skeletons/Skeletons'
 
 // ========================================
 // STATIC DATA
 // ========================================
 
-const BANNERS = [
+// Hero banners come from the backend (/api/hero-banners) via
+// fetchHomeData below — this array is ONLY a fallback, used if that fetch
+// is still in flight, fails, or the backend has no banners published yet,
+// so the Hero never renders blank. Once real banners load, these are
+// replaced entirely.
+const FALLBACK_BANNERS = [
   {
-    id: 1,
-    image: "/Hero1.png",
+    id: 'fallback-1',
+    desktopImage: "/Hero1.png",
     mobileImage: "/Hero1-mobile.png",
-    link: "/articles",
+    buttonLink: "/articles",
     buttonText: "Explore Articles →"
   },
   {
-    id: 2,
-    image: "/Hero2.png",
+    id: 'fallback-2',
+    desktopImage: "/Hero2.png",
     mobileImage: "/Hero2-mobile.png",
-    link: "/travelogues",
+    buttonLink: "/travelogues",
     buttonText: "Read Travel Stories →"
   },
   {
-    id: 3,
-    image: "/Hero3.png",
+    id: 'fallback-3',
+    desktopImage: "/Hero3.png",
     mobileImage: "/Hero3-mobile2.png",
-    link: "/compare-cars",
+    buttonLink: "/compare-cars",
     buttonText: "Compare Cars →"
   }
 ];
@@ -96,10 +103,40 @@ const LATEST_ARTICLES = [
 ]
 
 const TESTIMONIALS = [
-  { quote: "The detailed explanations of ADAS features helped me understand exactly what to look for.", name: "Rahul Mehta", role: "New Car Buyer" },
-  { quote: "Finally a platform that explains EV battery technology in simple terms.", name: "Priya Singh", role: "EV Owner" },
-  { quote: "As a first-time car buyer, I was overwhelmed by all the technical jargon. Vaahan made it clear.", name: "Amit Sharma", role: "First Time Buyer" }
+  {
+    quote: "The detailed explanations of ADAS features helped me understand exactly what to look for.",
+    name: "Rahul Mehta",
+    role: "New Car Buyer"
+  },
+  {
+    quote: "Finally a platform that explains EV battery technology in simple terms.",
+    name: "Priya Singh",
+    role: "EV Owner"
+  },
+  {
+    quote: "As a first-time car buyer, I was overwhelmed by all the technical jargon. Vaahan made it clear.",
+    name: "Amit Sharma",
+    role: "First Time Buyer"
+  },
+  {
+    quote: "The comparison guides and buying advice saved me weeks of research. I finally chose the right car with confidence.",
+    name: "Sneha Verma",
+    role: "Working Professional"
+  }
 ]
+
+// ========================================
+// HOMEPAGE SECTION THRESHOLDS
+// How many published items a section needs before it's shown, and how many
+// cards it displays once it qualifies. Lowered for now to match current
+// content volume (5 travelogues total; smallest live article category —
+// Feature Reviews — has 7). Bump these back up (e.g. to 8) once there's
+// more published content in each category; nothing else needs to change.
+// ========================================
+const TRAVELOGUE_MIN_COUNT = 5
+const TRAVELOGUE_DISPLAY_COUNT = 5
+const ARTICLE_CATEGORY_MIN_COUNT = 7
+const ARTICLE_CATEGORY_DISPLAY_COUNT = 7
 
 // ========================================
 // ANIMATED COUNTER COMPONENT - FIXED
@@ -210,21 +247,80 @@ const AnimatedCounter = ({ target, suffix = '', duration = 2000 }) => {
 const Home = () => {
   const { isDark } = useTheme()
   const navigate = useNavigate()
-  const [travelogues, setTravelogues] = useState([])
-  const [featuredArticles, setFeaturedArticles] = useState([])
+  // Every homepage carousel section (Travelogue, Tech Insights, Buying
+  // Guide, ...) lives in this single array. Nothing about a category is
+  // hardcoded — sections are built entirely from what the backend returns.
+  const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // Hero banners — fetched independently of the carousel sections above so
+  // a slow/failed Hero fetch can never delay or break the rest of the page,
+  // and vice versa.
+  const [heroBanners, setHeroBanners] = useState([])
+
+  useEffect(() => {
+    getActiveHeroBanners()
+      .then(setHeroBanners)
+      .catch((error) => {
+        console.error('Error fetching hero banners:', error)
+        setHeroBanners([])
+      })
+  }, [])
+
   // ========================================
-  // Fetch travelogues & articles on component mount
+  // Fetch homepage sections on component mount
   // ========================================
   const fetchHomeData = async () => {
     try {
-      const [logs, arts] = await Promise.all([
-        getFeaturedTravelogues(8),
-        getFeaturedArticles(8)
+      const [travelogues, categorySections] = await Promise.all([
+        // Already returns published travelogues sorted newest-first.
+        getAllTravelogues(),
+        // Grouped article categories: only those with >= ARTICLE_CATEGORY_MIN_COUNT
+        // published articles, latest ARTICLE_CATEGORY_DISPLAY_COUNT each, newest first.
+        getHomeCategories(ARTICLE_CATEGORY_MIN_COUNT, ARTICLE_CATEGORY_DISPLAY_COUNT),
       ])
-      setTravelogues(logs)
-      setFeaturedArticles(arts)
+
+      const builtSections = []
+
+      // Travelogues live in their own collection with their own detail
+      // route (/travelogue/:slug vs /article/:slug), so they can't come
+      // back from the /api/home/categories endpoint — but they still go
+      // through the exact same "min count, latest N" rule and the exact
+      // same generic carousel renderer as every other section below.
+      if (Array.isArray(travelogues) && travelogues.length >= TRAVELOGUE_MIN_COUNT) {
+        builtSections.push({
+          key: 'travelogue',
+          heading: 'Travelogue',
+          subheading: 'Real Journeys Experiences.',
+          ariaLabel: 'Travel Logs',
+          viewAllLink: '/travelogues',
+          linkPrefix: '/travelogue',
+          fallbackImage: '/images/travelogue/default.png',
+          items: travelogues.slice(0, TRAVELOGUE_DISPLAY_COUNT),
+        })
+      }
+
+      // One section per qualifying article category. New categories show
+      // up automatically once they cross ARTICLE_CATEGORY_MIN_COUNT published
+      // articles, and drop off automatically if they fall back below that.
+      // "View All" points to the existing /articles page (not /category/:id —
+      // that route isn't resolving category names on this build).
+      if (Array.isArray(categorySections)) {
+        categorySections.forEach((group) => {
+          builtSections.push({
+            key: group.category,
+            heading: group.category,
+            subheading: `Latest in ${group.category}.`,
+            ariaLabel: group.category,
+            viewAllLink: '/articles',
+            linkPrefix: '/article',
+            fallbackImage: '/images/article/default.png',
+            items: group.articles,
+          })
+        })
+      }
+
+      setSections(builtSections)
       setLoading(false)
     } catch (error) {
       console.error('Error fetching homepage data:', error)
@@ -242,129 +338,6 @@ const Home = () => {
   const fadeUp = {
     hidden: { opacity: 0, y: 40 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }
-  }
-
-  // ========================================
-  // Hero Section with Banner Slider
-  // ========================================
-  const renderHero = () => {
-    const [currentSlide, setCurrentSlide] = useState(0)
-
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % BANNERS.length)
-      }, 12000) // 10 seconds
-      return () => clearInterval(interval)
-    }, [])
-
-    const goToSlide = (index) => {
-      setCurrentSlide(index)
-    }
-
-    return (
-      <section
-        className="relative w-full overflow-hidden bg-transparent pt-[var(--header-height,72px)] lg:pt-0"
-      >
-        <style>{`
-        .ds-hero-box { aspect-ratio: 4 / 5; }
-        @media (min-width: 1024px) {
-          .ds-hero-box { aspect-ratio: 1672 / 941; }
-        }
-        .ds-hero-media {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: contain !important;
-          object-position: center !important;
-          display: block !important;
-        }
-      `}</style>
-        <div className="w-full relative aspect-[4/5] lg:aspect-[1672/941] ds-hero-box">
-
-          {BANNERS.map((banner, index) => (
-            <div
-              key={banner.id}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
-            >
-              <picture>
-                <source media="(max-width: 1023px)" srcSet={banner.mobileImage} />
-                <img
-                  src={banner.image}
-                  alt={banner.title}
-                  className="w-full h-full object-contain block ds-hero-media"
-                />
-              </picture>
-
-              <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-black/55 via-black/10 to-transparent pointer-events-none"></div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: index === currentSlide ? 1 : 0, y: index === currentSlide ? 0 : 12 }}
-                transition={{ duration: 0.5, delay: 0.25 }}
-                className="absolute bottom-2 right-2 xs:bottom-3 xs:right-3 sm:bottom-5 sm:right-5 md:bottom-8 md:right-8 z-10"
-              >
-                <Link
-                  to={banner.link}
-                  className="inline-block whitespace-nowrap px-3 py-1.5 xs:px-4 xs:py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-lg sm:rounded-xl font-semibold text-[11px] xs:text-xs sm:text-sm md:text-base transition-all duration-300 hover:scale-105 hover:shadow-xl text-black"
-                  style={{
-                    background: '#af860c',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-                  }}
-                >
-                  {banner.buttonText}
-                </Link>
-              </motion.div>
-            </div>
-          ))}
-
-          {/* Left Arrow Button — kept at the far left edge of the page */}
-          <button
-            onClick={() => goToSlide((currentSlide - 1 + BANNERS.length) % BANNERS.length)}
-            className="absolute left-1.5 xs:left-2 sm:left-4 md:left-6 top-[64%] -translate-y-1/2 transform z-30 w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-all duration-200 flex items-center justify-center text-black shadow-lg hover:shadow-xl hover:scale-105"
-            aria-label="Previous slide"
-          >
-            <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
-          {/* Right Arrow Button - kept at the far right edge of the page */}
-          <button
-            onClick={() => goToSlide((currentSlide + 1) % BANNERS.length)}
-            className="absolute right-1.5 xs:right-2 sm:right-4 md:right-6 top-[64%] -translate-y-1/2 transform z-30 w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-all duration-200 flex items-center justify-center text-black shadow-lg hover:shadow-xl hover:scale-105"
-            aria-label="Next slide"
-          >
-            <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Dots */}
-        <div className="flex justify-center items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-2.5 absolute bottom-10 xs:bottom-12 sm:bottom-14 md:bottom-16 lg:bottom-6 left-0 right-0 z-20">
-          {BANNERS.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className="flex items-center justify-center !bg-transparent !min-h-0 px-0.5 xs:px-1 sm:px-1.5"
-              aria-label={`Go to slide ${index + 1}`}
-            >
-              <span
-                className={`block rounded-full transition-all duration-300 ${index === currentSlide
-                  ? 'bg-yellow-500'
-                  : 'bg-white/40'
-                  } ${index === currentSlide
-                    ? 'w-2 h-0.5 xs:w-3 xs:h-0.5 sm:w-5 sm:h-1 md:w-7 md:h-1.5 lg:w-9 lg:h-2'
-                    : 'w-0.5 h-0.5 xs:w-1 xs:h-0.5 sm:w-1.5 sm:h-1 md:w-1.5 md:h-1.5 lg:w-2 lg:h-2'
-                  }`}
-              />
-            </button>
-          ))}
-        </div>
-
-      </section>
-    )
   }
 
   // ========================================
@@ -446,13 +419,15 @@ const Home = () => {
   }
 
   // ========================================
-  // COMBINED TRAVELOGUES & ARTICLES SECTION
-  // Two columns side by side with identical card styling
-  // Enhanced 3D shadow effect for light theme
+  // GENERIC CATEGORY CAROUSEL SECTION
+  // Renders ANY homepage section — Travelogue, Tech Insights, Buying Guide,
+  // EV Guide, or any future category — from a single `section` object.
+  // No category name is ever hardcoded here; Home just loops through
+  // `sections` and calls this once per entry. Carousel / CarouselCard are
+  // reused exactly as-is.
   // ========================================
-  const renderTravelogues = () => {
-    const isTraveloguesLoading = loading;
-    const hasTravelogues = travelogues && travelogues.length > 0;
+  const renderCategorySection = (section, index) => {
+    const hasItems = section.items && section.items.length > 0
 
     const cardShadowClass = isDark
       ? 'shadow-lg hover:shadow-2xl'
@@ -460,50 +435,55 @@ const Home = () => {
     const cardBgClass = isDark ? 'bg-dark-800' : 'bg-white';
 
     return (
-      <section className={`py-6 md:py-6 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
+      <section
+  key={section.key}
+  className={`py-3 md:py-6 transition-colors duration-150 ${
+    index > 0 ? 'border-t' : ''
+  } ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-gray-50 border-gray-200'}`}
+>
         <div className="container-custom">
           <motion.div
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="flex flex-wrap items-end justify-between gap-3 mb-5 md:mb-7"
+            className="flex flex-wrap items-end justify-between gap-3 mb-3 md:mb-7"
           >
             <div>
-              <h1 className={`text-yellow-500 font-bold text-3xl md:text-base tracking-wider uppercase ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`}>
-                Travelogue
-              </h1>
-              <p className={`text-sm md:text-base font-medium mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Real Journeys Experiences.
+              <h2
+  className={`text-xl xs:text-2xl sm:text-2xl md:text-3xl font-bold mt-1 md:mt-3 ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}>
+                {section.heading}
+              </h2>
+              <p
+  className={`text-xs xs:text-sm sm:text-sm md:text-base font-medium mt-0.5 md:mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                {section.subheading}
               </p>
             </div>
             <Link
-              to="/travelogues"
+              to={section.viewAllLink}
               className={`shrink-0 ml-auto text-sm font-medium hover:text-yellow-500 transition-colors duration-150 ${isDark ? 'text-gray-400 hover:text-yellow-400' : 'text-gray-500 hover:text-yellow-600'}`}
             >
               View All →
             </Link>
           </motion.div>
 
-          {isTraveloguesLoading ? (
-            <CarouselSkeleton count={4} isDark={isDark} />
-          ) : !hasTravelogues ? (
+          {!hasItems ? (
             <div className={`rounded-xl p-8 text-center ${cardBgClass} ${cardShadowClass}`}>
-              <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No travelogues available</p>
+              <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No {section.heading.toLowerCase()} available</p>
             </div>
           ) : (
             <FadeIn>
-              <Carousel ariaLabel="Travel Logs">
-                {travelogues.slice(0, 8).map((log, idx) => (
+              <Carousel ariaLabel={section.ariaLabel}>
+                {section.items.map((item, idx) => (
                   <CarouselCard
-                    key={log._id || idx}
-                    to={`/travelogue/${log.slug}`}
-                    image={log.thumbnail || log.image || '/images/travelogue/default.png'}
-                    fallbackImage="/images/travelogue/default.png"
-                    category={log.category || 'Travel'}
-                    readTime={log.readTime}
-                    title={log.title}
-                    excerpt={log.excerpt}
+                    key={item._id || idx}
+                    to={`${section.linkPrefix}/${item.slug}`}
+                    image={item.thumbnail || item.image || section.fallbackImage}
+                    fallbackImage={section.fallbackImage}
+                    category={item.category || section.heading}
+                    readTime={item.readTime}
+                    title={item.title}
+                    excerpt={item.excerpt}
                     isDark={isDark}
                     cardBgClass={cardBgClass}
                     cardShadowClass={cardShadowClass}
@@ -518,6 +498,19 @@ const Home = () => {
     )
   }
 
+  // Skeleton placeholder shown while the section list itself is still
+  // loading (before we even know which/how many categories qualify).
+  const renderSkeletonSection = (index) => (
+    <section
+      key={`skeleton-${index}`}
+      className={`pt-3 pb-4 md:py-6 transition-colors duration-150 ${index > 0 ? 'border-t' : ''} ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-gray-50 border-gray-200'}`}
+    >
+      <div className="container-custom">
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-5 md:mb-7">
+          <div>
+            <div className={`h-7 w-40 rounded animate-pulse ${isDark ? 'bg-dark-700' : 'bg-gray-200'}`} />
+            <div className={`h-4 w-56 rounded mt-2 animate-pulse ${isDark ? 'bg-dark-700' : 'bg-gray-200'}`} />
+          </div>
   const renderTechnologyGuides = () => {
     const isArticlesLoading = loading;
     const hasArticles = featuredArticles && featuredArticles.length > 0;
@@ -583,9 +576,10 @@ const Home = () => {
             </FadeIn>
           )}
         </div>
-      </section>
-    )
-  }
+        <CarouselSkeleton count={4} isDark={isDark} />
+      </div>
+    </section>
+  )
 
   const renderTestimonials = () => {
     const cardShadowClass = isDark
@@ -604,12 +598,12 @@ const Home = () => {
             className="text-center max-w-4xl mx-auto mb-8 md:mb-10"
           >
             <span className="text-yellow-500 font-bold text-xl tracking-wider uppercase">Testimonials</span>
-            <h2 className={`text-3xl md:text-4xl font-bold mt-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-3xl md:text-xl font-bold mt-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               What Our Readers Say
             </h2>
           </motion.div>
 
-          <Carousel ariaLabel="Testimonials" center>
+          <Carousel ariaLabel="Testimonials">
             {TESTIMONIALS.map((testimonial, idx) => (
               <div
                 key={idx}
@@ -673,7 +667,14 @@ const Home = () => {
   return (
     <>
       <SkeletonStyles />
-      {renderHero()}
+      {/* Hero Section — banner data comes from the backend
+          (/api/hero-banners). FALLBACK_BANNERS only covers the gap while
+          that fetch is in flight, fails, or the backend has no banners
+          published yet — real backend data always takes priority the
+          moment it's available. Markup, animation, timing, arrows, and
+          dots are all unchanged: this is the exact same Hero, just fed
+          dynamic data via HeroSlider. */}
+      <HeroSlider banners={heroBanners.length > 0 ? heroBanners : FALLBACK_BANNERS} />
 
 
       <section className={`transition-colors duration-150 border-b ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-gray-50 border-gray-100'} pt-6 pb-6 md:pb-10`}>
@@ -681,14 +682,16 @@ const Home = () => {
         {renderStatsCards()}
       </section>
 
-      {/* Travel Logs — horizontal carousel */}
-      {renderTravelogues()}
-
-      {/* Technology Guides — horizontal carousel */}
-      {renderTechnologyGuides()}
+      {/* Dynamic category carousels — Travelogue, Tech Insights, Buying
+          Guide, EV Guide, or any future category with >= 8 published
+          articles. Fully generated from `sections`; nothing here is
+          category-specific. */}
+      {loading
+        ? [0, 1].map((idx) => renderSkeletonSection(idx))
+        : sections.map((section, idx) => renderCategorySection(section, idx))}
 
       {/* Testimonials Section — same horizontal Carousel component as
-          Travelogue / Technology Guides, so mobile scrolling (native
+          the category sections above, so mobile scrolling (native
           swipe, arrows, no per-card fade delay) matches exactly. */}
       {renderTestimonials()}
 

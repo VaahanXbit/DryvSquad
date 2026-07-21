@@ -1,6 +1,6 @@
 // src/pages/Contact.jsx - Updated with theme matching backgrounds
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTheme } from '../context/ThemeContext'
 import { api } from '../services/api'
@@ -75,12 +75,12 @@ const Contact = () => {
   return (
     <>
       {/* Hero Section - THEME AWARE FIXED */}
-      <section className={`relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 transition-colors duration-300 ${
+      <section className={`relative pt-[var(--header-height,72px)] sm:pt-28 md:pt-32 pb-12 sm:pb-16 transition-colors duration-300 ${
         isDark ? 'bg-dark-950' : 'bg-white'
       }`}>
         <div className="container-custom text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 ${
-            isDark ? 'text-white' : 'text-gray-900'
+            isDark ? 'text-yellow-500' : 'text-gray-900'
           }`}>
             Get In Touch
           </motion.h1>
@@ -98,7 +98,7 @@ const Contact = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12">
             {/* Form Column */}
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className={`text-xl sm:text-2xl font-bold mb-4 sm:mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Send us a message</h3>
+              <h3 className={`text-xl sm:text-2xl font-bold mb-4 sm:mb-6 ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}>Send us a message</h3>
               
               {error && (
                 <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -244,7 +244,7 @@ const Contact = () => {
 
             {/* Contact Information Column */}
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <h3 className={`text-xl sm:text-2xl font-bold mb-4 sm:mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Contact Information</h3>
+              <h3 className={`text-xl sm:text-2xl font-bold mb-4 sm:mb-6 ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}>Contact Information</h3>
               <div className="space-y-4">
                 {contactInfo.map((info, idx) => (
                   <div key={idx} className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl transition-colors duration-300 ${

@@ -245,6 +245,13 @@ exports.compareCars = async (req, res) => {
       torqueNumeric: car1.torqueNumeric || extractNumeric(car1.torque),
       powerNumeric: car1.powerNumeric || extractNumeric(car1.power),
       mileageNumeric: car1.mileageNumeric || extractNumeric(car1.mileage),
+      // Raw strings kept alongside the numeric fields (additive only) so the
+      // segment-aware rating engine can correctly resolve PS vs kW for
+      // variants formatted like "61 kW (83 PS) @ 6000 r/min" — the
+      // pre-computed powerNumeric field alone isn't reliable for these.
+      power: car1.power,
+      torque: car1.torque,
+      mileage: car1.mileage,
       specifications: {
         bootSpace: bootSpace1,
         groundClearance: groundClearance1,
@@ -271,6 +278,9 @@ exports.compareCars = async (req, res) => {
       torqueNumeric: car2.torqueNumeric || extractNumeric(car2.torque),
       powerNumeric: car2.powerNumeric || extractNumeric(car2.power),
       mileageNumeric: car2.mileageNumeric || extractNumeric(car2.mileage),
+      power: car2.power,
+      torque: car2.torque,
+      mileage: car2.mileage,
       specifications: {
         bootSpace: bootSpace2,
         groundClearance: groundClearance2,
@@ -297,6 +307,9 @@ exports.compareCars = async (req, res) => {
       torqueNumeric: car3.torqueNumeric || extractNumeric(car3.torque),
       powerNumeric: car3.powerNumeric || extractNumeric(car3.power),
       mileageNumeric: car3.mileageNumeric || extractNumeric(car3.mileage),
+      power: car3.power,
+      torque: car3.torque,
+      mileage: car3.mileage,
       specifications: {
         bootSpace: bootSpace3,
         groundClearance: groundClearance3,

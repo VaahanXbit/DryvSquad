@@ -177,7 +177,7 @@ class AboutPage extends BasePage {
     return (
       <>
         {/* Hero Section */}
-        <section className="relative min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh] flex items-center overflow-hidden pt-24 sm:pt-20">
+        <section className="relative min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh] flex items-center overflow-hidden pt-[var(--header-height,72px)] sm:pt-20">
           <div className="absolute inset-0">
             <img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1920&h=600&fit=crop" alt="Luxury Car Workshop" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40"></div>

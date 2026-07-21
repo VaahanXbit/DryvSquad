@@ -12,21 +12,26 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 
 import { api } from '../services/api';
 
+// ========================================
+// CACHE FOR ARTICLES
+// ========================================
 let articlesCache = null;
-let isFetching = false;
-let fetchPromise = null;
+let articlesFetchPromise = null;
+let homeCategoriesCache = null;
+let homeCategoriesCacheTime = 0;
+const HOME_CATEGORIES_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-// Fetch articles from backend
+// ========================================
+// Fetch articles from backend with cache
+// ========================================
 const fetchArticles = async () => {
   if (articlesCache) return articlesCache;
   
-  if (isFetching) {
-    return fetchPromise;
+  if (articlesFetchPromise) {
+    return articlesFetchPromise;
   }
   
-  isFetching = true;
-  fetchPromise = api.getAllArticles().then(result => {
-    isFetching = false;
+  articlesFetchPromise = api.getAllArticles().then(result => {
     if (result.success) {
       articlesCache = result.articles;
       return articlesCache;
@@ -34,20 +39,25 @@ const fetchArticles = async () => {
     console.error('❌ Failed to fetch articles:', result.message);
     return [];
   }).catch(error => {
-    isFetching = false;
     console.error('❌ Error fetching articles:', error);
     return [];
+  }).finally(() => {
+    articlesFetchPromise = null;
   });
   
-  return fetchPromise;
+  return articlesFetchPromise;
 };
 
+// ========================================
 // Get all articles
+// ========================================
 export const getAllArticles = async () => {
   return await fetchArticles();
 };
 
+// ========================================
 // Get article by slug
+// ========================================
 export const getArticleBySlug = async (slug) => {
   if (!slug) return null;
   const result = await api.getArticleBySlug(slug);
@@ -57,7 +67,9 @@ export const getArticleBySlug = async (slug) => {
   return null;
 };
 
+// ========================================
 // Get articles by category
+// ========================================
 export const getArticlesByCategory = async (categoryName) => {
   const result = await api.getArticlesByCategory(categoryName);
   if (result.success) {
@@ -66,7 +78,9 @@ export const getArticlesByCategory = async (categoryName) => {
   return [];
 };
 
+// ========================================
 // Get all categories with counts
+// ========================================
 export const getCategories = async () => {
   const articles = await fetchArticles();
   const categories = {};
@@ -84,7 +98,9 @@ export const getCategories = async () => {
   }));
 };
 
+// ========================================
 // Search articles
+// ========================================
 export const searchArticles = async (query) => {
   if (!query || query.trim() === '') {
     return await fetchArticles();
@@ -97,14 +113,14 @@ export const searchArticles = async (query) => {
 };
 
 // ========================================
-// ADDED: allArticles export for backward compatibility
+// allArticles export for backward compatibility
 // ========================================
 export const allArticles = async () => {
   return await fetchArticles();
 };
 
 // ========================================
-// ADDED: featureReviews, newLaunches, techInsights for backward compatibility
+// featureReviews, newLaunches, techInsights
 // ========================================
 export const featureReviews = async () => {
   return await getArticlesByCategory('Feature Reviews');
@@ -118,7 +134,9 @@ export const techInsights = async () => {
   return await getArticlesByCategory('Tech Insights');
 };
 
-// Get featured articles (sorted by popularity/views on the backend)
+// ========================================
+// Get featured articles (sorted by popularity/views)
+// ========================================
 export const getFeaturedArticles = async (limit = 4) => {
   try {
     const result = await api.getFeaturedArticles(limit);
@@ -133,6 +151,35 @@ export const getFeaturedArticles = async (limit = 4) => {
   return all.slice(0, limit);
 };
 
+// ========================================
+// Get dynamic homepage category sections with cache
+// ========================================
+export const getHomeCategories = async (minCount = 8, perCategory = 8) => {
+  const cacheKey = `${minCount}-${perCategory}`;
+  const now = Date.now();
+  
+  // Check cache
+  if (homeCategoriesCache && homeCategoriesCache.key === cacheKey && 
+      (now - homeCategoriesCacheTime) < HOME_CATEGORIES_CACHE_TTL_MS) {
+    return homeCategoriesCache.data;
+  }
+  
+  try {
+    const result = await api.getHomeCategories(minCount, perCategory);
+    if (result.success) {
+      homeCategoriesCache = {
+        key: cacheKey,
+        data: result.categories
+      };
+      homeCategoriesCacheTime = now;
+      return result.categories;
+    }
+  } catch (error) {
+    console.error('Error in getHomeCategories data service:', error);
+  }
+  return [];
+};
+
 export default {
   getAllArticles,
   getArticleBySlug,
@@ -144,4 +191,5 @@ export default {
   newLaunches,
   techInsights,
   getFeaturedArticles,
+  getHomeCategories,
 };
