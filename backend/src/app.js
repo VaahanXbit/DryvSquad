@@ -48,9 +48,12 @@ const allowedOrigins = [
   "https://www.dryvsquad.com",
   "https://dryvsquad.com",
 
-  // Current Production Frontend
-  "https://dryv-squad.vercel.app",
-  "https://dryv-squad-bcgg9uant-vaahan-xbit-s-projects.vercel.app",
+  // Vercel Frontend (keep if still used)
+  // "https://dryv-squad.vercel.app",
+  // "https://dryv-squad-bcgg9uant-vaahan-xbit-s-projects.vercel.app",
+
+  // Cloudflare Workers Frontend
+  "https://dryvsquad.vaahanxbit.workers.dev",
 
   // Environment Variable
   process.env.FRONTEND_URL,
