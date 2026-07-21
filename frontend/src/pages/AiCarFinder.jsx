@@ -569,7 +569,7 @@ const AiCarFinder = () => {
   }
 
   return (
-    <div className={`min-h-screen pt-24 pb-16 transition-colors duration-300 ${
+    <div className={`min-h-screen pt-[var(--header-height,72px)] lg:pt-24 pb-16 transition-colors duration-300 ${
       isDark ? 'bg-dark-950 text-white' : 'bg-[#FFFDFC] text-slate-900'
     }`}>
       <div className="container-custom max-w-6xl mx-auto px-4 sm:px-6 space-y-12">

@@ -545,7 +545,7 @@ const SelectedCarCard = ({ car, onRemove, onEdit, isDark }) => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
-      className={`relative overflow-hidden rounded-xl border h-full flex flex-col ${
+      className={`relative overflow-hidden rounded-xl border h-auto flex flex-col ${
         isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-200 hover:shadow-sm'
       }`}
     >
@@ -1088,7 +1088,7 @@ const CompareCars = () => {
         <SkeletonStyles />
 
         {/* Hero renders immediately — it's static content, no need to wait */}
-        <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
+        <section className="relative pt-[var(--header-height,72px)] sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img
               src="./imageCompare.png"
@@ -1099,9 +1099,9 @@ const CompareCars = () => {
           </div>
           <div className="container-custom relative z-10">
             <div className="max-w-3xl">
-              <div className="inline-block px-3 sm:px-4 py-1.5 bg-[#fc641c] rounded-full text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-sm">
+              {/* <div className="inline-block px-3 sm:px-4 py-1.5 bg-[#fc641c] rounded-full text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-sm">
                 🚗 Car Comparison Tool
-              </div>
+              </div> */}
               <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
                 Compare Cars{' '}
                 <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Side by Side</span>
@@ -1127,7 +1127,7 @@ const CompareCars = () => {
           <div className="container-custom">
             <div className="max-w-6xl mx-auto">
               <div className="mb-8">
-                <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Popular Comparisons</h2>
+                <h2 className={`text-xl font-bold ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}>Popular Comparisons</h2>
               </div>
               <CompareCardGridSkeleton count={5} isDark={isDark} />
             </div>
@@ -1139,7 +1139,7 @@ const CompareCars = () => {
 
   if (dataError) {
     return (
-      <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen flex items-center justify-center pt-[var(--header-height,72px)] lg:pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
         <div className="text-center">
           <p className="text-red-500">{dataError}</p>
           <button onClick={() => window.location.reload()} className="mt-4 bg-[#ff5a00] hover:bg-[#e05312] text-white font-semibold py-2 px-6 rounded transition-all">Retry</button>
@@ -1153,7 +1153,7 @@ const CompareCars = () => {
       <SkeletonStyles />
       
       {/* RESTORED HERO SECTION */}
-      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
+      <section className="relative pt-[var(--header-height,72px)] sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src="./imageCompare.png"
@@ -1170,14 +1170,14 @@ const CompareCars = () => {
             transition={{ duration: 0.6 }}
             className="max-w-3xl"
           >
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
               className="inline-block px-3 sm:px-4 py-1.5 bg-[#fc641c] rounded-full text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-sm"
             >
               🚗 Car Comparison Tool
-            </motion.div>
+            </motion.div> */}
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -1207,10 +1207,10 @@ const CompareCars = () => {
           <div className="container-custom">
             <div className="max-w-5xl mx-auto">
               
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 md:gap-3 items-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 md:gap-3 items-start">
                 
                 {/* Car 1 */}
-                <div ref={carCardRef1} className="w-full h-full">
+                <div ref={carCardRef1} className="w-full h-auto">
                   <AnimatePresence mode="wait">
                     {car1 ? (
                       <SelectedCarCard 
@@ -1221,7 +1221,7 @@ const CompareCars = () => {
                         isDark={isDark} 
                       />
                     ) : (
-                      <div ref={addCarRef1} className="w-full h-full">
+                      <div ref={addCarRef1} className="w-full h-auto">
                         <AddCarButton key="add1" onClick={() => openPopup(1)} isDark={isDark} />
                       </div>
                     )}
@@ -1234,7 +1234,7 @@ const CompareCars = () => {
                 </div>
 
                 {/* Car 2 */}
-                <div ref={carCardRef2} className="w-full h-full">
+                <div ref={carCardRef2} className="w-full h-auto">
                   <AnimatePresence mode="wait">
                     {car2 ? (
                       <SelectedCarCard 
@@ -1245,7 +1245,7 @@ const CompareCars = () => {
                         isDark={isDark} 
                       />
                     ) : (
-                      <div ref={addCarRef2} className="w-full h-full">
+                      <div ref={addCarRef2} className="w-full h-auto">
                         <AddCarButton key="add2" onClick={() => openPopup(2)} isDark={isDark} />
                       </div>
                     )}
@@ -1258,7 +1258,7 @@ const CompareCars = () => {
                 </div>
 
                 {/* Car 3 — optional, CarDekho-style */}
-                <div ref={carCardRef3} className="w-full h-full">
+                <div ref={carCardRef3} className="w-full h-auto">
                   <AnimatePresence mode="wait">
                     {car3 ? (
                       <SelectedCarCard 
@@ -1269,7 +1269,7 @@ const CompareCars = () => {
                         isDark={isDark} 
                       />
                     ) : (
-                      <div ref={addCarRef3} className="w-full h-full">
+                      <div ref={addCarRef3} className="w-full h-auto">
                         <AddCarButton key="add3" onClick={() => openPopup(3)} isDark={isDark} label="Add car (optional)" />
                       </div>
                     )}
@@ -1373,7 +1373,7 @@ const CompareCars = () => {
         <div className="container-custom">
           <div className="max-w-6xl mx-auto">
             <div className="mb-8">
-              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Popular Comparisons</h2>
+              <h2 className={`text-xl font-bold ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}>Popular Comparisons</h2>
             </div>
             
             {/* Display the dynamically generated popular comparisons */}

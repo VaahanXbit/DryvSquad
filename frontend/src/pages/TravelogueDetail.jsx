@@ -90,7 +90,7 @@ const TravelogueDetail = () => {
 
   if (!travelogue) {
     return (
-      <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen flex items-center justify-center pt-[var(--header-height,72px)] lg:pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
         <div className="text-center max-w-md mx-auto px-4">
           <div className="text-6xl mb-6">📖</div>
           <h1 className={`text-3xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Story Not Found</h1>
@@ -112,7 +112,7 @@ const TravelogueDetail = () => {
     <>
       <SkeletonStyles />
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-24 sm:pt-28 md:pt-32 pb-10 sm:pb-12 md:pb-16 bg-gradient-to-r from-dark-950 via-slate-900 to-slate-700">
+      <section className="relative overflow-hidden pt-[var(--header-height,72px)] sm:pt-28 md:pt-32 pb-10 sm:pb-12 md:pb-16 bg-gradient-to-r from-dark-950 via-slate-900 to-slate-700">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container-custom relative z-10 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">

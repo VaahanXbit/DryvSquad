@@ -1,106 +1,3 @@
-// // backend/src/app.js (Add location routes)
-// const express = require('express');
-// const cors = require('cors');
-// const helmet = require('helmet');
-// const rateLimit = require('express-rate-limit');
-// const authRoutes = require('./routes/authRoutes');
-// const articleRoutes = require('./routes/articleRoutes');
-// const commentRoutes = require('./routes/commentRoutes');
-// const compareRoutes = require('./routes/compareRoutes');
-// const carRoutes = require('./routes/carRoutes');
-// const travelogueRoutes = require('./routes/travelogueRoutes');
-// const contactRoutes = require('./routes/contactRoutes');
-// const leadRoutes = require('./routes/leadRoutes');
-// const locationRoutes = require('./routes/locationRoutes'); // ✅ ADD THIS
-// const pricingRoutes = require('./routes/pricingRoutes'); // ✅ ADD THIS
-
-// const connectDB = require('./config/database');
-
-// // Connect to MongoDB
-// connectDB();
-
-// const app = express();
-
-// // Security middleware
-// app.use(helmet());
-
-// // Rate limiting
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000,
-//   max: 100,
-//   message: 'Too many requests from this IP, please try again later.',
-// });
-// app.use('/api', limiter);
-
-// const allowedOrigins = [
-//   "http://localhost:3000",
-//   "http://localhost:5173",
-//   "http://localhost:5000",
-//   "https://www.dryvsquad.com",
-//   "https://dryvsquad.com",
-//   "https://vaahan-international-obbc.vercel.app",
-//   "https://vaahan-international-jnrgeygvv-tahseen-razas-projects.vercel.app",
-//   process.env.FRONTEND_URL,
-// ];
-
-// app.use(cors({
-//   origin: function (origin, callback) {
-//     if (!origin) return callback(null, true);
-//     if (allowedOrigins.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       console.log('❌ CORS blocked for origin:', origin);
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-// }));
-
-// // Body parser
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-
-// // Routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/articles', articleRoutes);
-// app.use('/api/comments', commentRoutes);
-// app.use('/api/cars', carRoutes);
-// app.use('/api/compare', compareRoutes);
-// app.use('/api/travelogues', travelogueRoutes);
-// app.use('/api/contact', contactRoutes);
-// app.use('/api/leads', leadRoutes);
-// app.use('/api/location', locationRoutes); // ✅ ADD THIS
-// app.use('/api/pricing', pricingRoutes); // ✅ ADD THIS
-
-// // Health check
-// app.get('/health', (req, res) => {
-//   res.status(200).json({ status: 'OK', message: 'Server is running' });
-// });
-
-// // Error handling middleware
-// app.use((err, req, res, next) => {
-//   console.error('❌ Error:', err.stack);
-//   res.status(500).json({
-//     success: false,
-//     message: 'Something went wrong!',
-//     error: process.env.NODE_ENV === 'development' ? err.message : undefined,
-//   });
-// });
-
-// // 404 handler
-// app.use((req, res) => {
-//   res.status(404).json({
-//     success: false,
-//     message: 'Route not found',
-//   });
-// });
-
-// module.exports = app;
-
-
-
 // src/app.js
 const express = require('express');
 const cors = require('cors');
@@ -118,6 +15,8 @@ const leadRoutes = require('./routes/leadRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const pricingRoutes = require('./routes/pricingRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const homeRoutes = require('./routes/homeRoutes');
+const heroBannerRoutes = require('./routes/heroBannerRoutes');
 
 const connectDB = require('./config/database');
 
@@ -190,8 +89,12 @@ app.use(cors({
 }));
 
 // Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Base64 image payloads (article images, and especially Hero Banner
+// publishes — which can carry several images up to 6MB each, ~33% larger
+// once base64-encoded, across multiple banners in one request) are far
+// larger than Express's default 100kb JSON limit.
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -204,7 +107,9 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/pricing', pricingRoutes);
-app.use('/api/payment', paymentRoutes); 
+app.use('/api/payment', paymentRoutes);
+app.use('/api/home', homeRoutes);
+app.use('/api/hero-banners', heroBannerRoutes);
 
 
 

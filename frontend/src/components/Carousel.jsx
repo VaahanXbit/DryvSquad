@@ -160,7 +160,7 @@ const Carousel = ({ children, ariaLabel = 'Carousel', center = false }) => {
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
         onClickCapture={handleClickCapture}
-        className={`flex gap-4 md:gap-5 overflow-x-auto overflow-y-hidden hide-scrollbar pb-2 cursor-grab ${center ? 'justify-center' : ''}`}
+        className={`flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto overflow-y-hidden hide-scrollbar pb-2 cursor-grab ${center ? 'justify-center' : ''}`}
         style={{
           WebkitOverflowScrolling: 'touch',
           // Native ('auto') at all times — trackpad/touch/wheel scrolling

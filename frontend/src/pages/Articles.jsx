@@ -3,7 +3,7 @@
 ================================================================================
 File Name : Articles.jsx
 Author : Tahseen Raza
-Created Date : 2025-01-15
+Created Date : 2026-06-15
 Description : Articles page with all articles
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
@@ -65,7 +65,7 @@ const Articles = () => {
 
   if (error) {
     return (
-      <div className={`min-h-screen flex items-center justify-center pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen flex items-center justify-center pt-[var(--header-height,72px)] lg:pt-20 ${isDark ? 'bg-dark-950' : 'bg-gray-50'}`}>
         <div className="text-center">
           <p className="text-red-500">{error}</p>
           <button
@@ -85,7 +85,7 @@ const Articles = () => {
     <>
       <SkeletonStyles />
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-24 sm:pt-28 md:pt-32 pb-10 sm:pb-12 md:pb-16 bg-gradient-to-r from-dark-950 via-slate-900 to-slate-700">
+      <section className="relative overflow-hidden pt-[var(--header-height,72px)] sm:pt-28 md:pt-32 pb-10 sm:pb-12 md:pb-16 bg-gradient-to-r from-dark-950 via-slate-900 to-slate-700">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container-custom relative z-10 text-center">
           <motion.h1

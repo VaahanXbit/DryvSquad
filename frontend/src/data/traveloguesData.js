@@ -10,24 +10,53 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { api } from '../services/api';
 
 // ========================================
-// Fetch all travelogues
+// CACHE FOR TRAVELOGUES
+// ========================================
+let traveloguesCache = null;
+let traveloguesCacheTime = 0;
+let traveloguesFetchPromise = null;
+const TRAVELOGUES_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// ========================================
+// Fetch all travelogues with cache
 // ========================================
 export const getAllTravelogues = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/travelogues`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    console.log('✅ All travelogues data:', data);
-    return data.travelogues || [];
-  } catch (error) {
-    console.error('❌ Error fetching travelogues:', error);
-    return [];
+  const now = Date.now();
+  
+  // Return cached data if fresh
+  if (traveloguesCache && (now - traveloguesCacheTime) < TRAVELOGUES_CACHE_TTL_MS) {
+    return traveloguesCache;
   }
+  
+  // Prevent concurrent duplicate requests
+  if (traveloguesFetchPromise) {
+    return traveloguesFetchPromise;
+  }
+  
+  traveloguesFetchPromise = (async () => {
+    try {
+      const result = await api.getAllTravelogues();
+      if (result.success) {
+        traveloguesCache = result.travelogues || [];
+        traveloguesCacheTime = now;
+      } else {
+        // On error, return cached data if available
+        if (traveloguesCache) return traveloguesCache;
+        traveloguesCache = [];
+      }
+      return traveloguesCache;
+    } catch (error) {
+      console.error('❌ Error fetching travelogues:', error);
+      return traveloguesCache || [];
+    } finally {
+      traveloguesFetchPromise = null;
+    }
+  })();
+  
+  return traveloguesFetchPromise;
 };
 
 // ========================================
@@ -35,12 +64,11 @@ export const getAllTravelogues = async () => {
 // ========================================
 export const getTravelogueBySlug = async (slug) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/travelogues/${slug}`);
+    const response = await fetch(`${api.API_URL || ''}/travelogues/${slug}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log('✅ Travelogue by slug:', data);
     return data.travelogue || null;
   } catch (error) {
     console.error(`❌ Error fetching travelogue with slug "${slug}":`, error);
@@ -53,7 +81,7 @@ export const getTravelogueBySlug = async (slug) => {
 // ========================================
 export const getTraveloguesByCategory = async (category) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/travelogues/category/${encodeURIComponent(category)}`);
+    const response = await fetch(`${api.API_URL || ''}/travelogues/category/${encodeURIComponent(category)}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -70,13 +98,11 @@ export const getTraveloguesByCategory = async (category) => {
 // ========================================
 export const getFeaturedTravelogues = async (limit = 4) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/travelogues/featured?limit=${limit}`);
+    const response = await fetch(`${api.API_URL || ''}/travelogues/featured?limit=${limit}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log('✅ Featured travelogues data:', data);
-    // Check if data has travelogues property
     if (data.success && data.travelogues) {
       return data.travelogues;
     }

@@ -3,9 +3,9 @@
 ================================================================================
 File Name : CommonHeader.jsx
 Author : Tahseen Raza
-Created Date : 2025-01-15
+Created Date : 2026-06-20
 Description : Optimized header component with AuthModal integration, dynamic logo,
-              functional SearchBar, and CarDekho style two-row premium layout.
+              functional SearchBar, and two-row premium layout.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -63,10 +63,6 @@ const MOBILE_CATEGORIES = [
 
 // Updated to match the specific CarDekho layout links
 const NAV_LINKS = [
-  // { path: '/', name: 'New Cars' },
-  // { path: '/compare-cars', name: 'Compare Cars' },
-  // { path: '/articles', name: 'Articles' },
-  // { path: '/travelogues', name: 'Travelogues' },
   { path: '/about', name: 'About' },
   { path: '/contact', name: 'Contact' },
 ]
@@ -99,6 +95,9 @@ const CommonHeader = () => {
   // Ref to the <nav> element itself — used to publish its real, live rendered
   // height as a CSS variable so other components can clear it.
   const navRef = useRef(null)
+
+  // Mobile categories dropdown ref
+  const mobileCategoriesRef = useRef(null)
 
   // Memoized values
   const brandColor = useMemo(() => isDark ? '#000000' : '#ffffff', [isDark])
@@ -175,6 +174,10 @@ const CommonHeader = () => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false)
+      }
+      // Close mobile categories dropdown when clicking outside
+      if (mobileCategoriesRef.current && !mobileCategoriesRef.current.contains(event.target)) {
+        setIsCategoriesOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -279,7 +282,7 @@ const CommonHeader = () => {
     const catHoverBg = isDark ? 'hover:bg-dark-700' : 'hover:bg-gray-50'
     const catBorderColor = isDark ? 'border-dark-700' : 'border-gray-100'
     const catBgColor = isDark ? 'bg-dark-800' : 'bg-white'
-    
+
     // Active style match
     const catHoverText = 'hover:text-[#C69327]'
 
@@ -336,11 +339,62 @@ const CommonHeader = () => {
     )
   }, [isDark])
 
+  // Mobile Categories Dropdown - same as desktop
+  const MobileCategoriesDropdown = useCallback(() => {
+    const catTextColor = isDark ? 'text-white' : 'text-gray-900'
+    const catSubTextColor = isDark ? 'text-gray-400' : 'text-gray-500'
+    const catHoverBg = isDark ? 'hover:bg-dark-700' : 'hover:bg-gray-50'
+    const catBorderColor = isDark ? 'border-dark-700' : 'border-gray-100'
+    const catBgColor = isDark ? 'bg-dark-800' : 'bg-white'
+
+    if (!isCategoriesOpen) return null
+
+    return (
+      <div
+        className={`absolute left-0 right-0 top-full mt-0 w-full rounded-b-xl shadow-xl border z-[100] overflow-hidden lg:hidden ${catBgColor}`}
+        style={{
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'
+        }}
+        ref={mobileCategoriesRef}
+      >
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <Link
+            to="/compare-cars"
+            className={`flex items-center justify-between px-3 py-3 ${catHoverBg} transition-colors duration-200 border-b ${catBorderColor}`}
+            onClick={() => setIsCategoriesOpen(false)}
+          >
+            <div>
+              <div className={`font-bold text-sm sm:text-base ${catTextColor}`}>Compare Cars</div>
+              <div className={`text-[11px] sm:text-xs ${catSubTextColor}`}>Side by side comparison</div>
+            </div>
+            <span className="text-[#C69327] text-sm">→</span>
+          </Link>
+
+          {DESKTOP_CATEGORIES.map((category, idx) => (
+            <Link
+              key={idx}
+              to={category.path}
+              className={`flex items-center justify-between px-3 py-3 ${catHoverBg} transition-colors duration-200 border-b ${catBorderColor} last:border-0`}
+              onClick={() => setIsCategoriesOpen(false)}
+            >
+              <div>
+                <div className={`font-semibold text-sm sm:text-base ${catTextColor}`}>
+                  {category.name}
+                </div>
+              </div>
+              <span className="text-[#C69327] text-sm">→</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    )
+  }, [isCategoriesOpen, isDark])
+
   // Active / Inactive states matching CarDekho (Orange hover/underline)
   const navLinkClasses = `h-full flex items-center font-semibold text-[15px] xl:text-[16px] tracking-wide transition-all duration-200 border-b-[3px] pt-[3px]`
   const navLinkActiveClasses = 'text-[#C69327] border-[#C69327]'
-  const navLinkInactiveClasses = isDark 
-    ? 'text-white hover:text-[#C69327] border-transparent' 
+  const navLinkInactiveClasses = isDark
+    ? 'text-white hover:text-[#C69327] border-transparent'
     : 'text-gray-900 hover:text-[#C69327] border-transparent'
 
   const mobileNavLinkClasses = `block py-2.5 font-medium text-base sm:text-lg transition-colors duration-200`
@@ -359,21 +413,21 @@ const CommonHeader = () => {
     <>
       <nav
         ref={navRef}
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          hideHeader ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'
-        }`}
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${hideHeader ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'
+          }`}
         style={{
           backgroundColor: brandColor,
           boxShadow: isScrolled ? (isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 15px rgba(0,0,0,0.05)') : 'none'
         }}
       >
         {/* ===============================
-            TOP ROW: Logo, Search, Actions
+            TOP AREA: Actions & Mobile Redesign
             =============================== */}
         <div className={`border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
           <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+            {/* ROW 1 (Always Visible): Logo, Mobile Actions, Desktop Actions */}
             <div className="flex items-center justify-between h-[72px] lg:h-[80px]">
-              
               {/* Logo */}
               <Link to="/" className="flex items-center group flex-shrink-0">
                 <img
@@ -384,31 +438,20 @@ const CommonHeader = () => {
                 />
               </Link>
 
-              {/* Functional Search Bar integration with Tailwind overrides to force CarDekho layout sizing */}
+              {/* Functional Search Bar integration with Tailwind overrides to force CarDekho layout sizing (Desktop Only) */}
               <div className="hidden lg:flex flex-1 max-w-[650px] mx-8 xl:mx-12">
                 <div className="w-full relative z-[60] [&_input]:h-[48px] [&_input]:rounded-[16px] [&_input]:text-[15px] [&_input]:border-gray-200 dark:[&_input]:border-dark-600 focus-within:[&_input]:border-[#C69327] focus-within:[&_input]:ring-1 focus-within:[&_input]:ring-[#C69327]/50 transition-all duration-200">
                   <SearchBar />
                 </div>
               </div>
 
-              {/* Right Actions: Language, Wishlist, Login, Location, Theme */}
-              <div className="flex items-center space-x-4 lg:space-x-5 xl:space-x-6">
-                
-                {/* Language UI Mock */}
-                {/* <button className={`hidden lg:flex items-center gap-1.5 text-[15px] font-semibold transition-colors duration-200 ${isDark ? 'text-white hover:text-[#C69327]' : 'text-gray-900 hover:text-[#C69327]'}`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
-                  <span>English</span>
-                </button> */}
+              {/* Right Actions: Authentication, Location, Theme, Hamburger */}
+              <div className="flex items-center space-x-2.5 sm:space-x-4 lg:space-x-5 xl:space-x-6">
 
-                {/* Wishlist UI Mock */}
-                {/* <button className={`hidden lg:flex items-center transition-colors duration-200 ${isDark ? 'text-white hover:text-[#C69327]' : 'text-gray-900 hover:text-[#C69327]'}`}>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                </button> */}
-
-                {/* Authentication */}
+                {/* Authentication - Desktop */}
                 {!isLoading && (
                   user ? (
-                    <div className="relative" ref={dropdownRef}>
+                    <div className="relative hidden lg:block" ref={dropdownRef}>
                       <button
                         onClick={toggleDropdown}
                         className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
@@ -450,10 +493,17 @@ const CommonHeader = () => {
                   )
                 )}
 
-                <div className="hidden md:block">
+                {/* Location Badge - Desktop */}
+                <div className="hidden lg:block">
                   <LocationBadge isDark={isDark} variant="desktop" />
                 </div>
-                
+
+                {/* Location Badge - Mobile (visible in Row 1) */}
+                <div className="lg:hidden">
+                  <LocationBadge isDark={isDark} variant="mobile" />
+                </div>
+
+                {/* Theme Toggle */}
                 <ThemeToggle />
 
                 {/* Mobile Menu Button */}
@@ -470,11 +520,86 @@ const CommonHeader = () => {
                 </button>
               </div>
             </div>
+
+            {/* MOBILE ONLY ROWS: Row 2 (Search + AI Mode) */}
+            <div className="flex flex-col gap-3 pb-3 lg:hidden">
+              <div className="w-full relative z-[60] [&_input]:h-[48px] [&_input]:rounded-[16px] [&_input]:text-[15px] [&_input]:border-gray-200 dark:[&_input]:border-dark-600 focus-within:[&_input]:border-[#C69327] focus-within:[&_input]:ring-1 focus-within:[&_input]:ring-[#C69327]/50 transition-all duration-200">
+                <SearchBar />
+              </div>
+            </div>
+
+           {/* MOBILE ONLY: Row 3 - Quick Actions */}
+<div className="lg:hidden pb-3">
+  <div className="flex items-center justify-between w-full">
+
+    {/* Launch Car Finder */}
+    <button
+      onClick={() => navigate('/ai-car-finder')}
+      className={`inline-flex items-center gap-1.5
+        px-3 py-2
+        rounded-xl
+        font-bold
+        text-[12px] sm:text-[13px]
+        whitespace-nowrap
+        transition-all duration-300
+        shadow-sm
+        flex-shrink-0
+        ${
+          isDark
+            ? 'bg-[#C69327] hover:bg-[#A87B1F] text-white'
+            : 'bg-[#C69327] hover:bg-[#A87B1F] text-white'
+        }`}
+    >
+
+      <span>Launch Car Finder</span>
+    </button>
+
+    {/* Categories */}
+    <div className="relative flex-shrink-0">
+      <button
+        onClick={toggleCategories}
+        className={`inline-flex items-center gap-1
+          font-semibold
+          text-[13px] sm:text-[14px]
+          transition-colors duration-200
+          ${
+            isDark
+              ? 'text-white hover:text-[#C69327]'
+              : 'text-gray-900 hover:text-[#C69327]'
+          }
+          ${isCategoriesOpen ? 'text-[#C69327]' : ''}
+        `}
+      >
+        <span>Categories</span>
+
+        <svg
+          className={`w-3 h-3 transition-transform duration-200 ${
+            isCategoriesOpen ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>
           </div>
         </div>
 
+        {/* Mobile Categories Dropdown - positioned below the categories button */}
+        <MobileCategoriesDropdown />
+
         {/* ===============================
-            BOTTOM ROW: Navigation Links
+            BOTTOM ROW: Navigation Links (Desktop)
             =============================== */}
         <div className="hidden lg:block max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 border-b border-transparent">
           <div className="flex items-center h-[48px] lg:h-[50px] space-x-8 xl:space-x-10">
@@ -489,15 +614,14 @@ const CommonHeader = () => {
             ))}
             <CategoriesDropdown />
             <button
-  onClick={() => navigate('/ai-car-finder')}
-  className={`px-3.5 py-1.5 font-bold rounded-lg text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-md flex items-center gap-1.5 cursor-pointer font-sans ${
-    isDark 
-      ? 'bg-yellow-500 hover:bg-yellow-600 text-black' 
-      : 'bg-white hover:bg-gray-400 text-black'
-  }`}
->
-  <span>Launch Car Finder</span>
-</button>
+              onClick={() => navigate('/ai-car-finder')}
+              className={`px-3.5 py-1.5 font-bold rounded-lg text-xs transition-all duration-300 hover:scale-105 active:scale-95 shadow-md flex items-center gap-1.5 cursor-pointer font-sans ${isDark
+                ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                : 'bg-white hover:bg-gray-400 text-black'
+                }`}
+            >
+              <span>Launch Car Finder</span>
+            </button>
           </div>
         </div>
 
@@ -528,11 +652,6 @@ const CommonHeader = () => {
                 }}
               >
                 <div className="max-w-7xl mx-auto px-4 pt-4 pb-5 space-y-1.5 max-h-[calc(100vh-var(--header-height,72px))] overflow-y-auto overscroll-contain">
-                  
-                  {/* Functional Search Bar integration for Mobile Menu */}
-                  <div className="mb-4 relative w-full z-[60] [&_input]:h-[44px] [&_input]:rounded-[12px] [&_input]:text-sm [&_input]:border-gray-200 dark:[&_input]:border-dark-600 focus-within:[&_input]:border-[#C69327]">
-                    <SearchBar />
-                  </div>
 
                   {NAV_LINKS.map((link) => (
                     <NavLink
@@ -545,54 +664,7 @@ const CommonHeader = () => {
                     </NavLink>
                   ))}
 
-                  <div className="py-2">
-                    <button
-                      onClick={() => {
-                        navigate('/ai-car-finder');
-                        closeMenu();
-                      }}
-                      className="w-full py-2.5 bg-[#C69327] hover:bg-[#A87B1F] text-white font-bold rounded-xl text-sm transition-all duration-300 shadow-md flex items-center justify-center gap-1.5 cursor-pointer font-sans"
-                    >
-                      <span>Launch Car Finder</span>
-                    </button>
-                  </div>
-
-                  <div className="py-1 border-t border-gray-100 dark:border-dark-700 mt-2 pt-2">
-                    <button
-                      onClick={toggleCategories}
-                      className={`w-full flex items-center justify-between py-2 font-medium text-base sm:text-lg transition-colors duration-200 ${isDark ? 'text-white hover:text-[#C69327]' : 'text-gray-900 hover:text-[#C69327]'}`}
-                    >
-                      <span>Categories</span>
-                      <svg className={`w-4 h-4 transition-transform duration-200 ${isCategoriesOpen ? 'rotate-180 text-[#C69327]' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-
-                    <AnimatePresence>
-                      {isCategoriesOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.15 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="ml-4 space-y-1 pt-1 pb-2">
-                            {MOBILE_CATEGORIES.map((item, idx) => (
-                              <Link
-                                key={idx}
-                                to={item.path}
-                                className={`block py-2 text-sm sm:text-base transition-colors duration-200 pl-3 border-l-2 border-gray-200 dark:border-dark-700 hover:border-[#C69327] ${isDark ? 'text-gray-300 hover:text-[#C69327]' : 'text-gray-600 hover:text-[#C69327]'}`}
-                                onClick={closeMenu}
-                              >
-                                {item.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  {/* Categories removed from hamburger - now in Row 3 */}
 
                   {!isLoading && (
                     user ? (
@@ -634,13 +706,7 @@ const CommonHeader = () => {
                     )
                   )}
 
-                  <div className={`mt-2 pt-4 pb-2 border-t flex flex-col gap-4 ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
-                    <LocationBadge isDark={isDark} variant="mobile" />
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Appearance</span>
-                      <ThemeToggle />
-                    </div>
-                  </div>
+                  {/* Location, Theme, Search, AI Mode, Launch Car Finder removed from hamburger - now in Row 1, 2, 3 */}
                 </div>
               </motion.div>
             </>
@@ -654,11 +720,20 @@ const CommonHeader = () => {
           dynamically takes up exactly '--header-height' space on desktop only, and perfectly pushes the Hero 
           downwards so no images are ever cut from the top, all without touching Home.jsx.
       */}
-    <div
-  className="hidden lg:block w-full pointer-events-none"
-  style={{ height: 'calc(var(--header-height, 130px) - 80px)' }}
-  aria-hidden="true"
-/>
+      <div
+        className="hidden lg:block w-full pointer-events-none"
+        style={{ height: 'calc(var(--header-height, 130px) - 80px)' }}
+        aria-hidden="true"
+      />
+
+      {/* Mobile/Tablet spacing is now handled per-page: each page's own
+          hero/top section uses pt-[var(--header-height)] directly on its
+          base (mobile) tier, so it always reserves exactly the header's
+          real, dynamically-measured height — no more, no less. A global
+          spacer here would double-stack with that and re-create the exact
+          "extra space" issue this replaced. Desktop is untouched — the
+          spacer below still exists for that. */}
+
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={closeAuthModal}
