@@ -5,9 +5,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SITE_URL = 'https://www.dryvsquad.com'; // Adjust to your actual domain
+const SITE_URL = 'https://dryvsquad.com'; // Adjust to your actual domain
 // Using production API as primary source. During local build, fallback to localhost if production is down.
-const PRODUCTION_API = 'https://vaahan-international.onrender.com/api';
+const PRODUCTION_API = 'https://dryvsquad-dgs0.onrender.com/api';
 const LOCAL_API = 'http://localhost:5000/api';
 
 const staticPaths = [
@@ -17,7 +17,10 @@ const staticPaths = [
   '/articles',
   '/travelogues',
   '/compare-cars',
-  '/ai-mode'
+  '/ai-mode',
+  '/ai-car-finder',
+  '/loan-quotes',
+  '/insurance-quotes'
 ];
 
 async function generate() {
