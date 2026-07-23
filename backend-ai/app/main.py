@@ -35,9 +35,10 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "https://vaahan-international-obbc.vercel.app",
         "https://dryvsquad.com",
-        "https://www.dryvsquad.com"
+        "https://www.dryvsquad.com",
+        "https://dryvsquad.vaahanxbit.workers.dev"
     ],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://.*(\.vercel\.app|\.workers\.dev)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

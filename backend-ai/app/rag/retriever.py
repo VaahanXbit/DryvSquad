@@ -10,17 +10,18 @@ try:
 except Exception as e:
     print(f"[WARNING] Could not create text index: {e}")
 
-# Lazy-load CrossEncoder re-ranker model on first use
+# Lazy-load CrossEncoder re-ranker model on first use (disabled by default on 512MB RAM free tier)
 _reranker_model = None
 _reranker_loaded = False
 
 
 def _get_reranker():
-    """Return the CrossEncoder re-ranker, loading it on first call."""
+    """Return the CrossEncoder re-ranker if enabled via environment variable."""
     global _reranker_model, _reranker_loaded
     if not _reranker_loaded:
         _reranker_loaded = True
-        if os.getenv("DISABLE_RERANKER", "false").lower() != "true":
+        # Default to True on RAM-constrained hosting environments like Render Free Tier
+        if os.getenv("ENABLE_RERANKER", "false").lower() == "true":
             try:
                 print("[INFO] Lazy-loading CrossEncoder re-ranker model...")
                 from sentence_transformers import CrossEncoder
@@ -30,11 +31,14 @@ def _get_reranker():
                 print(f"[WARNING] Could not load CrossEncoder model: {e}. Re-ranking fallback will be used.")
     return _reranker_model
 
+
 def cosine_similarity(a, b):
-    return np.dot(a, b) / (
-        np.linalg.norm(a)
-        * np.linalg.norm(b)
-    )
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return float(np.dot(a, b) / (norm_a * norm_b))
+
 
 def retrieve(query, top_k=5):
     # Step 1: Run Vector Search
@@ -48,25 +52,24 @@ def retrieve(query, top_k=5):
         
         pinecone_api_key = os.getenv("PINECONE_API_KEY")
         pinecone_index_name = os.getenv("PINECONE_INDEX_NAME")
-        if not pinecone_api_key or not pinecone_index_name:
-            raise ValueError("Pinecone configuration keys (PINECONE_API_KEY, PINECONE_INDEX_NAME) are missing from the environment.")
+        if pinecone_api_key and pinecone_index_name:
+            pc = Pinecone(api_key=pinecone_api_key)
+            index = pc.Index(pinecone_index_name)
             
-        pc = Pinecone(api_key=pinecone_api_key)
-        index = pc.Index(pinecone_index_name)
-        
-        res = index.query(vector=query_vector, top_k=candidate_limit * 2, include_metadata=False)
-        match_ids = [m.id for m in res.matches if m.score >= 0.50]
-        
-        if match_ids:
-            vector_results = list(chunks_collection.find({
-                "_id": {"$in": [ObjectId(mid) for mid in match_ids]},
-                "is_active": True
-            }))
-            doc_map = {str(doc["_id"]): doc for doc in vector_results}
-            vector_results = [doc_map[mid] for mid in match_ids if mid in doc_map]
+            res = index.query(vector=query_vector, top_k=candidate_limit * 2, include_metadata=False)
+            match_ids = [m.id for m in res.matches if m.score >= 0.50]
+            
+            if match_ids:
+                vector_results = list(chunks_collection.find({
+                    "_id": {"$in": [ObjectId(mid) for mid in match_ids]},
+                    "is_active": True
+                }))
+                doc_map = {str(doc["_id"]): doc for doc in vector_results}
+                vector_results = [doc_map[mid] for mid in match_ids if mid in doc_map]
+        else:
+            print("[INFO] Pinecone keys not configured, skipping vector search.")
     except Exception as e:
-        print(f"[ERROR] Pinecone vector search failed: {e}")
-        raise e
+        print(f"[WARNING] Pinecone vector search failed: {e}. Falling back to keyword search.")
 
     # Step 2: Run Keyword Search
     keyword_results = []

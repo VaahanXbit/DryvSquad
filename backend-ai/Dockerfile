@@ -9,8 +9,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Expose port 7860 (Hugging Face Spaces standard port)
-EXPOSE 7860
-
-# Run uvicorn on port 7860
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Use Render's $PORT environment variable (defaults to 7860 if not set)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
