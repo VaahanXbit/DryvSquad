@@ -54,19 +54,60 @@ const HeroSlider = ({ banners, forceViewport }) => {
     <section
       className="relative w-full overflow-hidden bg-transparent pt-[var(--header-height,72px)] lg:pt-0"
     >
-      <style>{`
-        .ds-hero-box { aspect-ratio: 4 / 5; }
-        @media (min-width: 1024px) {
-          .ds-hero-box { aspect-ratio: 1672 / 941; }
-        }
-        .ds-hero-media {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: contain !important;
-          object-position: center !important;
-          display: block !important;
-        }
-      `}</style>
+     <style>{`
+  /* ===========================
+     Mobile (UNCHANGED)
+  ============================ */
+  .ds-hero-box {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+  }
+
+  .ds-hero-media {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  /* ===========================
+     Desktop Only
+  ============================ */
+  @media (min-width:1024px){
+
+    /* Instead of showing the full image,
+       crop the bottom white area */
+    .ds-hero-box{
+      aspect-ratio: auto !important;
+      height: 650px;
+      overflow: hidden;
+    }
+
+    .ds-hero-media{
+      width:100%;
+      height:100%;
+      object-fit:cover !important;
+
+      /*
+       Move the crop upward.
+
+       Increase this value if more white is visible.
+
+       Try:
+       center 0%
+       center 10%
+       center 15%
+       center 20%
+      */
+
+      object-position:center 10% !important;
+    }
+
+  }
+`}</style>
       <div
         className="w-full relative aspect-[4/5] lg:aspect-[1672/941] ds-hero-box"
         style={forceViewport === 'mobile' ? { aspectRatio: '4 / 5' } : undefined}
@@ -95,13 +136,37 @@ const HeroSlider = ({ banners, forceViewport }) => {
               </picture>
             )}
 
-            <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-black/55 via-black/10 to-transparent pointer-events-none"></div>
+           <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-black/55 via-black/10 to-transparent pointer-events-none z-10"></div>
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: index === currentSlide ? 1 : 0, y: index === currentSlide ? 0 : 12 }}
               transition={{ duration: 0.5, delay: 0.25 }}
-              className="absolute bottom-2 right-2 xs:bottom-3 xs:right-3 sm:bottom-5 sm:right-5 md:bottom-8 md:right-8 z-10"
+          className="
+absolute
+
+/* Mobile */
+bottom-24
+right-3
+
+xs:bottom-24
+xs:right-3
+
+sm:bottom-5
+sm:right-5
+
+md:bottom-8
+md:right-8
+
+/* Desktop */
+lg:bottom-28
+lg:right-10
+
+xl:bottom-32
+xl:right-12
+
+z-50
+"
             >
               <Link
                 to={banner.buttonLink || banner.link}
@@ -121,7 +186,7 @@ const HeroSlider = ({ banners, forceViewport }) => {
         {/* Left Arrow Button — kept at the far left edge of the page */}
         <button
           onClick={() => goToSlide((currentSlide - 1 + banners.length) % banners.length)}
-          className="absolute left-1.5 xs:left-2 sm:left-4 md:left-6 top-[64%] -translate-y-1/2 transform z-30 w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-all duration-200 flex items-center justify-center text-black shadow-lg hover:shadow-xl hover:scale-105"
+          className="absolute left-1.5 xs:left-2 sm:left-4 md:left-6 top-[50%] -translate-y-1/2 transform z-30 w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-all duration-200 flex items-center justify-center text-black shadow-lg hover:shadow-xl hover:scale-105"
           aria-label="Previous slide"
         >
           <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +197,7 @@ const HeroSlider = ({ banners, forceViewport }) => {
         {/* Right Arrow Button - kept at the far right edge of the page */}
         <button
           onClick={() => goToSlide((currentSlide + 1) % banners.length)}
-          className="absolute right-1.5 xs:right-2 sm:right-4 md:right-6 top-[64%] -translate-y-1/2 transform z-30 w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-all duration-200 flex items-center justify-center text-black shadow-lg hover:shadow-xl hover:scale-105"
+         className="absolute right-1.5 xs:right-2 sm:right-4 md:right-6 top-[50%] -translate-y-1/2 transform z-30 w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-all duration-200 flex items-center justify-center text-black shadow-lg hover:shadow-xl hover:scale-105"
           aria-label="Next slide"
         >
           <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +207,8 @@ const HeroSlider = ({ banners, forceViewport }) => {
       </div>
 
       {/* Dots */}
-      <div className="flex justify-center items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-2.5 absolute bottom-10 xs:bottom-12 sm:bottom-14 md:bottom-16 lg:bottom-6 left-0 right-0 z-20">
+      <div className="flex justify-center items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-2.5 absolute bottom-10 xs:bottom-12 sm:bottom-14 md:bottom-16 lg:bottom-20
+xl:bottom-24 left-0 right-0 z-20">
         {banners.map((_, index) => (
           <button
             key={index}

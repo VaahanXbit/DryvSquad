@@ -68,7 +68,7 @@ const ParameterDrawer = ({ isOpen, onClose, param }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.8 }}
             className="fixed inset-0 bg-black/30 z-[60]"
             onClick={onClose}
           />
@@ -77,7 +77,7 @@ const ParameterDrawer = ({ isOpen, onClose, param }) => {
             initial={{ x: DRAWER_WIDTH, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: DRAWER_WIDTH, opacity: 0 }}
-            transition={{ type: 'tween', duration: 0.28, ease: 'easeOut' }}
+            transition={{ type: 'tween', duration: 2, ease: [0.16, 1, 0.3, 1] }}
             style={{ width: DRAWER_WIDTH }}
             className="fixed top-0 right-0 h-full z-[61] bg-white dark:bg-dark-800 shadow-2xl border-l border-gray-200 dark:border-dark-700 flex flex-col"
           >
@@ -104,7 +104,7 @@ const ParameterDrawer = ({ isOpen, onClose, param }) => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.15 }}
+                    transition={{ duration: 0.8, delay: 0.7, ease: 'easeOut' }}
                   >
                     <ExplanationContent label={param.label} icon={param.icon} entries={param.entries} winner={param.winner} />
                   </motion.div>

@@ -230,18 +230,18 @@ const ComparisonResults = ({
             <span className="text-gray-400 dark:text-gray-500 font-bold tracking-widest uppercase text-sm theme-transition">Parameter</span>
           </div>
 
-          <div className="grid flex-1 gap-2 sm:gap-4 md:gap-6" style={carGridStyle}>
+          <div className="grid flex-1 gap-3 sm:gap-4 md:gap-6" style={carGridStyle}>
             {cars.map(({ car, position, ref }, idx) => {
               const carVariant = car.name || car.variant || ''
               return (
                 <div
                   key={position}
                   ref={ref}
-                  className={`text-center flex flex-col items-center relative px-1 sm:px-0 ${
+                  className={`text-center flex flex-col items-center relative rounded-2xl border border-gray-200/80 dark:border-dark-700/70 bg-white/70 dark:bg-dark-900/30 p-2.5 sm:p-0 sm:bg-transparent sm:dark:bg-transparent sm:border-0 sm:rounded-none ${
                     idx < cars.length - 1 ? 'md:border-r md:border-gray-200 dark:md:border-dark-700 md:pr-4' : ''
                   }`}
                 >
-                  <div className="flex justify-center mb-2 sm:mb-4 w-full h-20 sm:h-36 md:h-44 lg:h-48 relative">
+                  <div className="flex justify-center mb-2 sm:mb-4 w-full h-24 sm:h-36 md:h-44 lg:h-48 relative">
                     <img
                       src={car.image}
                       alt={car.model}
@@ -249,28 +249,24 @@ const ComparisonResults = ({
                     />
                   </div>
 
-                  <div className="flex items-center justify-center w-full relative mb-1 sm:mb-1.5 px-1 sm:px-2">
+                  <div className="flex items-center justify-center w-full relative mb-1.5 sm:mb-1.5">
                     <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 bg-yellow-500 text-gray-900 rounded-full shadow-sm">
                       {car.brand}
                     </span>
                     <button
                       onClick={() => handleEditClick(position)}
-                      className="absolute right-0 sm:right-2 text-[9px] sm:text-[11px] font-medium text-gray-500 hover:text-yellow-600 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors duration-200 flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-dark-700 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md"
+                      className="absolute right-0 text-gray-400 hover:text-yellow-600 dark:text-gray-500 dark:hover:text-yellow-400 transition-colors duration-200 flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-dark-700 p-1 sm:px-2 sm:py-1 rounded-full sm:rounded-md"
+                      aria-label="Edit"
                     >
-                      ✏️ Edit
+                      <span className="text-[11px] sm:text-[11px]">✏️</span>
+                      <span className="hidden sm:inline text-[11px] font-medium">Edit</span>
                     </button>
                   </div>
 
-                  <div className="text-xs sm:text-lg md:text-xl font-bold text-gray-800 dark:text-white leading-tight theme-transition px-1">{car.model}</div>
-                  <div className="text-[9px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1 uppercase tracking-wider font-semibold theme-transition">{carVariant}</div>
+                  <div className="w-full text-sm sm:text-lg md:text-xl font-bold text-gray-800 dark:text-white leading-tight theme-transition truncate">{car.model}</div>
+                  <div className="w-full text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1 uppercase tracking-wider font-semibold theme-transition truncate">{carVariant}</div>
 
-                  {car.segment?.label && (
-                    <span className="mt-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-dark-700 px-2 py-0.5 rounded-full">
-                      {car.segment.label}
-                    </span>
-                  )}
-
-                  <div className="mt-1 sm:mt-2 px-1">
+                  <div className="mt-2 sm:mt-2 w-full flex justify-center">
                     <OnRoadPriceDisplay
                       exShowroomPrice={car.onRoadPricing?.exShowroomPrice}
                       exShowroomPriceLabel={car.price}
@@ -280,7 +276,7 @@ const ComparisonResults = ({
                     />
                   </div>
                   {car.overallScore && (
-                    <div className="mt-1.5 sm:mt-3 inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
+                    <div className="mt-2 sm:mt-3 inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full border border-yellow-500/20 theme-transition">
                       <span className="text-[10px] sm:text-xs text-yellow-600 dark:text-yellow-400">★</span>
                       <span className="text-xs sm:text-sm font-bold text-yellow-600 dark:text-yellow-400">{car.overallScore.toFixed(1)}</span>
                     </div>

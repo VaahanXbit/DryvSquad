@@ -24,7 +24,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, icon, children }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.8 }}
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={onClose}
           />
@@ -33,7 +33,7 @@ const MobileBottomSheet = ({ isOpen, onClose, title, icon, children }) => {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
+            transition={{ type: 'tween', duration: 2, ease: [0.16, 1, 0.3, 1] }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.4 }}

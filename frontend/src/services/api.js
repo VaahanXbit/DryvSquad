@@ -503,7 +503,7 @@ export const api = {
   },
 
   getActiveHeroBanners: async () => {
-    return fetchWithDedupe(`${API_URL}/hero-banners`);
+    return fetchWithDedupe(`${API_URL}/hero-banners`, { cache: 'no-store' });
   },
 
   getAllHeroBannersAdmin: async (token) => {
@@ -513,6 +513,7 @@ export const api = {
           'Accept': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
+        cache: 'no-store',
       });
       return await handleResponse(response);
     } catch (error) {

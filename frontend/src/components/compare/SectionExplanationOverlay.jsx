@@ -1,43 +1,68 @@
-// src/components/compare/SectionExplainButton.jsx
+// src/components/compare/SectionExplainOverlay.jsx
 /*
 ================================================================================
-File Name : SectionExplainButton.jsx
-Description : The one Explain button a category owns. Sits at the bottom-
-              right of the expanded section body (below the last row) —
-              small dark pill, soft breathing glow, subtle pulse.
-              
-              Hidden when the explanation panel is open.
+File Name : SectionExplainOverlay.jsx
+Description : The desktop "X-Ray inside the section" overlay. Absolutely
+              positioned within the section's own row-list wrapper (which
+              must be `position: relative`), NOT the viewport. Uses an
+              invisible spacer matching the parameter-label column width so
+              the panel only ever covers the car-values area — parameter
+              names stay visible, and the overlay can never bleed outside
+              its own section.
+
+              Now uses the full comparison width (after parameter column)
+              and background matches accordion body.
 ================================================================================
 */
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import SectionExplanationPanel from './SectionExplanationPanel'
 
-const SectionExplainButton = ({ onClick, isActive, label = 'Explain' }) => {
-  // Don't render if active (panel is open)
-  if (isActive) return null
-
+const SectionExplainOverlay = ({ isOpen, section, labelColWidthClass, onClose }) => {
   return (
-    <div className="flex justify-end px-3 sm:px-6 md:px-8 py-2.5 border-t border-gray-100 dark:border-dark-700/70">
-      <motion.button
-        onClick={onClick}
-        animate={{
-          boxShadow: [
-            '0 0 0px 0px rgba(250,204,21,0.0)',
-            '0 0 14px 2px rgba(250,204,21,0.35)',
-            '0 0 0px 0px rgba(250,204,21,0.0)',
-          ],
-          scale: [1, 1.015, 1],
-        }}
-        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.96 }}
-        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold tracking-wide transition-colors duration-200 bg-gradient-to-br from-gray-900 to-dark-800 dark:from-black dark:to-dark-900 text-yellow-300 border border-yellow-500/30"
-      >
-        <span className="text-sm">✨</span>
-        {label}
-      </motion.button>
-    </div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="absolute inset-0 z-20 flex items-stretch pointer-events-none">
+          {/* Invisible spacer — keeps parameter names visible, uncovered */}
+          <div className={`${labelColWidthClass} shrink-0`} />
+
+          <motion.div
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ 
+              type: 'tween', 
+              duration: 5.0,  // 5 seconds
+              ease: [0.42, 0, 0.58, 1],  // Smooth ease-in-out for even more refined feel
+            }}
+            className="flex-1 min-w-0 pointer-events-auto overflow-hidden bg-white dark:bg-dark-800 shadow-2xl"
+            style={{ 
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              transition={{ 
+                type: 'tween', 
+                duration: 2.0,  
+                delay: 2.0,     // Content appears at 2 seconds (40% through the animation)
+                ease: [0.25, 1, 0.5, 1]  // Smooth bounce-like ease-out
+              }}
+              className="h-full"
+            >
+              <SectionExplanationPanel 
+                section={section} 
+                onClose={onClose} 
+                showHeader={true}
+              />
+            </motion.div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }
 
-export default SectionExplainButton
+export default SectionExplainOverlay

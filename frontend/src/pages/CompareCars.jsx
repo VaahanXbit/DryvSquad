@@ -1019,10 +1019,21 @@ const CompareCars = () => {
     setShowPopup2(false)
     setShowPopup3(false)
     setShowEditPopup(false)
-    
-    // ⚠️ REMOVED: We no longer auto-trigger comparison here.
-    // The user must explicitly click "Compare Now".
-    
+
+    // If we're editing a car on the already-visible comparison results
+    // screen, there's no "Compare Now" button to click — refresh the
+    // comparison immediately so the swap actually shows up.
+    if (showComparison && newCar1Id && newCar2Id) {
+      if (!location) {
+        setPendingCompare({ id1: newCar1Id, id2: newCar2Id, id3: newCar3Id })
+        openLocationModal()
+      } else {
+        executeComparison(newCar1Id, newCar2Id, newCar3Id)
+      }
+    }
+    // Otherwise (first-time selection screen), we intentionally don't
+    // auto-trigger — the user clicks "Compare Now" themselves.
+
     setEditingCar(null)
     setEditAnchorRef(null)
   }
