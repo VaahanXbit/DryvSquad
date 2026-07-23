@@ -16,7 +16,7 @@ const createTransporter = () => {
   // Development - Use Ethereal
   if (process.env.NODE_ENV === 'development' || !process.env.EMAIL_PROVIDER) {
     console.log('📧 Using Ethereal email service (test mode)');
-    
+
     if (process.env.ETHEREAL_EMAIL && process.env.ETHEREAL_PASSWORD) {
       return nodemailer.createTransport({
         host: 'smtp.ethereal.email',
@@ -28,7 +28,7 @@ const createTransporter = () => {
         },
       });
     }
-    
+
     console.log('📧 Creating new Ethereal test account...');
     return nodemailer.createTransport({
       host: 'smtp.ethereal.email',
@@ -116,27 +116,27 @@ const createTransporter = () => {
 const sendOTPEmail = async (email, otp, purpose = 'verify') => {
   try {
     console.log(`📧 Attempting to send OTP to ${email}...`);
-    
+
     const transporter = createTransporter();
-    
+
     // Verify connection
-    try {
-      await transporter.verify();
-      console.log('✅ Email transporter verified successfully');
-    } catch (verifyError) {
-      console.error('❌ Email transporter verification failed:', verifyError.message);
-      return { success: false, error: 'Email service not configured properly' };
-    }
+    // try {
+    //   await transporter.verify();
+    //   console.log('✅ Email transporter verified successfully');
+    // } catch (verifyError) {
+    //   console.error('❌ Email transporter verification failed:', verifyError.message);
+    //   return { success: false, error: 'Email service not configured properly' };
+    // }
 
     // ✅ FIX: Get sender details from .env
     const senderName = process.env.SENDER_NAME || 'DryvSquad';
     const senderEmail = process.env.EMAIL_FROM || 'contact@dryvsquad.com';
-    
+
     // ✅ FIX: Combine to proper format: "Display Name" <email@domain.com>
     const fromAddress = `"${senderName}" <${senderEmail}>`;
 
     const subject = `Your OTP for ${senderName}`;
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -236,7 +236,7 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`✅ OTP email sent to ${email}: ${info.messageId}`);
-    
+
     // Get preview URL for Ethereal (development only)
     let previewUrl = null;
     if (process.env.NODE_ENV === 'development') {
@@ -247,16 +247,18 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
       }
     }
 
-    return { 
-      success: true, 
-      messageId: info.messageId, 
+    return {
+      success: true,
+      messageId: info.messageId,
       preview: previewUrl,
       otp: process.env.NODE_ENV === 'development' ? otp : undefined
     };
   } catch (error) {
-    console.error('❌ Email sending failed:', error);
-    console.error('Error details:', error.message);
-    
+    console.error("FULL ERROR:", error);
+    console.error("CODE:", error.code);
+    console.error("COMMAND:", error.command);
+    console.error("MESSAGE:", error.message);
+
     // Provide more specific error messages
     let errorMessage = error.message;
     if (errorMessage.includes('sender')) {
@@ -266,7 +268,7 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
     } else if (errorMessage.includes('connect')) {
       errorMessage = 'Could not connect to email server. Check your internet.';
     }
-    
+
     return { success: false, error: errorMessage };
   }
 };
