@@ -2,6 +2,7 @@
   "name": "dryvsquad",
   "compatibility_date": "2026-07-22",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
   }
 }

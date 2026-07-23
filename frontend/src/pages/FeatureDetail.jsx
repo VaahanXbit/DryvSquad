@@ -3,7 +3,7 @@
 ================================================================================
 File Name : FeatureDetail.jsx
 Author : Tahseen Raza
-Created Date : 2025-01-15
+Created Date : 2026-06-15
 Description : Individual feature detail page with full content
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.

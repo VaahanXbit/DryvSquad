@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
+import HeroBannerManager from '../components/admin/HeroBannerManager'
 import { useTheme } from '../context/ThemeContext'
 
 const AdminPage = () => {
@@ -775,6 +776,16 @@ const AdminPage = () => {
           >
             Manage Content
           </button>
+          <button
+            onClick={() => setActiveTab('hero')}
+            className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              activeTab === 'hero'
+                ? 'bg-yellow-500 text-slate-950 font-bold'
+                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Hero Banner Management
+          </button>
         </div>
 
         {/* Status Alerts */}
@@ -915,6 +926,10 @@ const AdminPage = () => {
                 </table>
               </div>
             )}
+          </div>
+        ) : activeTab === 'hero' ? (
+          <div className="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-6 md:p-8 shadow-2xl">
+            <HeroBannerManager token={token} />
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
