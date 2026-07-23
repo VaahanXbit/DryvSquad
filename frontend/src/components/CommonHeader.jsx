@@ -722,7 +722,7 @@ const CommonHeader = () => {
       */}
       <div
         className="hidden lg:block w-full pointer-events-none"
-        style={{ height: 'calc(var(--header-height, 130px) - 80px)' }}
+        style={{ height: '0px' }}
         aria-hidden="true"
       />
 

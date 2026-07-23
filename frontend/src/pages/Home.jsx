@@ -35,24 +35,38 @@ import { SkeletonStyles, CarouselSkeleton, FadeIn } from '../components/skeleton
 const FALLBACK_BANNERS = [
   {
     id: 'fallback-1',
-    desktopImage: "/Hero1.png",
+    desktopImage: "/Hero1-new.png",
     mobileImage: "/Hero1-mobile.png",
+    buttonLink: "/ai-car-finder",
+    buttonText: "Launch Car Finder →"
+  },
+  {
+    id: 'fallback-2',
+    desktopImage: "/Hero2-new.png",
+    mobileImage: "/Hero2-mobile.png",
+    buttonLink: "/ai-mode",
+    buttonText: "Ask AI Advisor →"
+  },
+  {
+    id: 'fallback-3',
+    desktopImage: "/Hero3-new.png",
+    mobileImage: "/Hero3-mobile2.png",
     buttonLink: "/articles",
     buttonText: "Explore Articles →"
   },
   {
-    id: 'fallback-2',
-    desktopImage: "/Hero2.png",
+    id: 'fallback-4',
+    desktopImage: "/Hero4-new.png",
+    mobileImage: "/Hero1-mobile.png",
+    buttonLink: "/compare-cars",
+    buttonText: "Compare Cars →"
+  },
+  {
+    id: 'fallback-5',
+    desktopImage: "/Hero5-new.png",
     mobileImage: "/Hero2-mobile.png",
     buttonLink: "/travelogues",
     buttonText: "Read Travel Stories →"
-  },
-  {
-    id: 'fallback-3',
-    desktopImage: "/Hero3.png",
-    mobileImage: "/Hero3-mobile2.png",
-    buttonLink: "/compare-cars",
-    buttonText: "Compare Cars →"
   }
 ];
 
