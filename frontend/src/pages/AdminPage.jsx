@@ -727,13 +727,12 @@ const AdminPage = () => {
   }
 
   // --- RENDERING ARTICLE CREATION DASHBOARD (SIDE-BY-SIDE) ---
-  return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+   return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 pt-36 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[1600px] mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-700/50 pb-6 mb-6">
           <div className="flex items-center gap-3">
-            
             <div>
               <h1 className="text-2xl font-extrabold text-white">
                 DryvSquad AI Creator
