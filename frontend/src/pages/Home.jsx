@@ -307,8 +307,8 @@ const Home = () => {
           heading: 'Travelogue',
           subheading: 'Real Journeys Experiences.',
           ariaLabel: 'Travel Logs',
-          viewAllLink: '/travelogues',
-          linkPrefix: '/travelogue',
+          viewAllLink: '/articles',
+          linkPrefix: '/article',
           fallbackImage: '/images/travelogue/default.png',
           items: travelogues.slice(0, TRAVELOGUE_DISPLAY_COUNT),
         })
@@ -359,7 +359,7 @@ const Home = () => {
   // ========================================
   const renderSearchSection = () => {
     return (
-      <section className="pt-8 md:pt-12 transition-colors duration-150">
+      <section className="transition-colors duration-150">
         <div className="container-custom">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-6 md:mb-8">
@@ -390,8 +390,7 @@ const Home = () => {
               viewport={{ once: true }}
               className="flex flex-wrap justify-center gap-2 mt-5"
             >
-              {/* 
-               */}
+              {/*  */}
             </motion.div>
           </div>
         </div>
@@ -404,7 +403,7 @@ const Home = () => {
   // ========================================
   const renderStatsCards = () => {
     return (
-      <div className="container-custom mt-6 md:mt-8">
+      <div className="container-custom">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {STATS.map((stat, idx) => (
             <motion.div
@@ -450,26 +449,26 @@ const Home = () => {
 
     return (
       <section
-  key={section.key}
-  className={`py-3 md:py-6 transition-colors duration-150 ${
-    index > 0 ? 'border-t' : ''
-  } ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-gray-50 border-gray-200'}`}
->
+        key={section.key}
+        className="transition-colors duration-150"
+      >
         <div className="container-custom">
           <motion.div
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="flex flex-wrap items-end justify-between gap-3 mb-3 md:mb-7"
+            className="flex flex-wrap items-end justify-between gap-3 mb-4 md:mb-5"
           >
             <div>
               <h2
-  className={`text-xl xs:text-2xl sm:text-2xl md:text-3xl font-bold mt-1 md:mt-3 ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}>
+                className={`text-xl xs:text-2xl sm:text-2xl md:text-3xl font-bold ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}
+              >
                 {section.heading}
               </h2>
               <p
-  className={`text-xs xs:text-sm sm:text-sm md:text-base font-medium mt-0.5 md:mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                className={`text-xs xs:text-sm sm:text-sm md:text-base font-medium mt-0.5 md:mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+              >
                 {section.subheading}
               </p>
             </div>
@@ -517,10 +516,10 @@ const Home = () => {
   const renderSkeletonSection = (index) => (
     <section
       key={`skeleton-${index}`}
-      className={`pt-3 pb-4 md:py-6 transition-colors duration-150 ${index > 0 ? 'border-t' : ''} ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-gray-50 border-gray-200'}`}
+      className="transition-colors duration-150"
     >
       <div className="container-custom">
-        <div className="flex flex-wrap items-end justify-between gap-3 mb-5 md:mb-7">
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-4 md:mb-5">
           <div>
             <div className={`h-7 w-40 rounded animate-pulse ${isDark ? 'bg-dark-700' : 'bg-gray-200'}`} />
             <div className={`h-4 w-56 rounded mt-2 animate-pulse ${isDark ? 'bg-dark-700' : 'bg-gray-200'}`} />
@@ -531,6 +530,9 @@ const Home = () => {
     </section>
   )
 
+   // ========================================
+  // TESTIMONIALS SECTION - Centered heading
+  // ========================================
   const renderTestimonials = () => {
     const cardShadowClass = isDark
       ? 'shadow-lg hover:shadow-2xl'
@@ -538,40 +540,84 @@ const Home = () => {
     const cardBgClass = isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-100'
 
     return (
-      <section className={`py-4 md:py-4 transition-colors duration-150 ${isDark ? 'bg-dark-900' : 'bg-gray-50'}`}>
+      <section className="transition-colors duration-150">
         <div className="container-custom">
           <motion.div
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="text-center max-w-4xl mx-auto mb-8 md:mb-10"
+            className="text-center max-w-4xl mx-auto mb-4 md:mb-5"
           >
-            <span className="text-yellow-500 font-bold text-xl tracking-wider uppercase">Testimonials</span>
-            <h2 className={`text-3xl md:text-xl font-bold mt-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              What Our Readers Say
+            <h2
+              className={`text-xl xs:text-2xl sm:text-2xl md:text-3xl font-bold ${isDark ? 'text-yellow-500' : 'text-gray-900'}`}
+            >
+              Testimonials
             </h2>
+            <p
+              className={`text-xs xs:text-sm sm:text-sm md:text-base font-medium mt-0.5 md:mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+            >
+              What Our Readers Say
+            </p>
           </motion.div>
 
           <Carousel ariaLabel="Testimonials">
             {TESTIMONIALS.map((testimonial, idx) => (
               <div
                 key={idx}
-                className={`flex-shrink-0 flex flex-col justify-center w-[62vw] xs:w-[54vw] sm:w-[240px] md:w-[260px] lg:w-[280px] min-h-[360px] sm:min-h-[380px] md:min-h-[400px] rounded-xl p-6 text-left border select-none cursor-default ${cardShadowClass} transition-shadow duration-300 ease-out ${cardBgClass}`}
+                className={`
+                  flex-shrink-0
+                  flex flex-col
+                  w-[62vw] xs:w-[54vw] sm:w-[240px] md:w-[260px] lg:w-[280px]
+                  min-h-[300px] sm:min-h-[320px] md:min-h-[340px]
+                  rounded-xl
+                  p-6
+                  border
+                  select-none
+                  cursor-default
+                  ${cardShadowClass}
+                  transition-shadow duration-300 ease-out
+                  ${cardBgClass}
+                `}
               >
-                <div className="flex text-yellow-400 mb-4">
+                {/* Stars */}
+                <div className="flex text-yellow-400 mb-5">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <svg
+                      key={i}
+                      className="w-5 h-5 fill-current"
+                      viewBox="0 0 24 24"
+                    >
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                   ))}
                 </div>
-                <p className={`italic mb-4 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+
+                {/* Quote */}
+                <p
+                  className={`
+                    italic
+                    leading-8
+                    min-h-[120px]
+                    md:min-h-[130px]
+                    ${isDark ? 'text-gray-400' : 'text-gray-600'}
+                  `}
+                >
                   "{testimonial.quote}"
                 </p>
-                <div>
-                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{testimonial.name}</p>
-                  <p className={isDark ? 'text-gray-500' : 'text-gray-400'}>{testimonial.role}</p>
+
+                {/* Author */}
+                <div className="mt-5">
+                  <p
+                    className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    {testimonial.name}
+                  </p>
+                  <p
+                    className={`mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+                  >
+                    {testimonial.role}
+                  </p>
                 </div>
               </div>
             ))}
@@ -586,25 +632,116 @@ const Home = () => {
   // ========================================
   const renderNewsletter = () => {
     return (
-      <section className={`py-14 md:py-20 transition-colors duration-150 ${isDark ? 'bg-dark-800' : 'bg-gray-50'}`}>
+      <section
+        className={`transition-colors duration-150 py-8 sm:py-10 md:py-14 lg:py-20 ${
+          isDark ? 'bg-dark-800' : 'bg-gray-50'
+        }`}
+      >
         <div className="container-custom">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="max-w-3xl mx-auto text-center">
-            <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Stay Updated With Automotive Technology
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="max-w-2xl lg:max-w-3xl mx-auto text-center"
+          >
+            {/* Heading */}
+            <h2
+              className={`font-bold leading-tight
+                text-2xl
+                sm:text-3xl
+                md:text-4xl
+                lg:text-5xl
+                mb-3 md:mb-4
+                ${isDark ? 'text-white' : 'text-gray-900'}
+              `}
+            >
+              Stay Updated With{" "}
+              <span className="text-yellow-500">Automotive</span>{" "}
+              Technology
             </h2>
-            <p className={`text-lg mb-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Receive the latest feature guides, technology updates, and vehicle insights directly in your inbox.
+
+            {/* Description */}
+            <p
+              className={`mx-auto
+                text-sm
+                sm:text-base
+                md:text-lg
+                leading-6
+                md:leading-8
+                max-w-md
+                md:max-w-2xl
+                mb-6
+                md:mb-8
+                ${
+                  isDark
+                    ? "text-gray-400"
+                    : "text-gray-600"
+                }
+              `}
+            >
+              Receive the latest feature guides, technology updates,
+              and vehicle insights directly in your inbox.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+
+            {/* Form */}
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md md:max-w-lg mx-auto">
               <input
                 type="email"
                 placeholder="Enter your email address"
-                className={`flex-1 px-5 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors duration-150 ${isDark ? 'bg-dark-700 border-dark-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'} border`}
+                className={`
+                  flex-1
+                  h-11 md:h-14
+                  px-4 md:px-6
+                  text-sm md:text-base
+                  rounded-lg
+                  border
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-yellow-500
+                  transition-colors
+                  duration-150
+                  ${
+                    isDark
+                      ? "bg-dark-700 border-dark-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }
+                `}
               />
-              <button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-all duration-150">
+
+              <button
+                className="
+                  h-11
+                  md:h-14
+                  px-6
+                  md:px-8
+                  text-sm
+                  md:text-base
+                  font-semibold
+                  rounded-lg
+                  whitespace-nowrap
+                  bg-yellow-500
+                  hover:bg-yellow-600
+                  text-gray-900
+                  transition-all
+                  duration-150
+                  hover:scale-[1.02]
+                "
+              >
                 Subscribe Now
               </button>
             </div>
+
+            {/* Footer text */}
+            <p
+              className={`mt-3 md:mt-4 text-xs md:text-sm ${
+                isDark
+                  ? "text-gray-500"
+                  : "text-gray-400"
+              }`}
+            >
+              No spam. Unsubscribe anytime.
+            </p>
           </motion.div>
         </div>
       </section>
@@ -626,26 +763,44 @@ const Home = () => {
           dynamic data via HeroSlider. */}
       <HeroSlider banners={heroBanners.length > 0 ? heroBanners : FALLBACK_BANNERS} />
 
-
-      <section className={`transition-colors duration-150 border-b ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-gray-50 border-gray-100'} pt-6 pb-6 md:pb-10`}>
-        {/* {renderSearchSection()} */}
+      {/* ========================================
+          STATS SECTION — Hero → Stats spacing
+          ======================================== */}
+      <section className={`transition-colors duration-150 border-b ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-gray-50 border-gray-100'} pt-6 pb-6 md:pt-8 md:pb-8`}>
         {renderStatsCards()}
       </section>
 
-      {/* Dynamic category carousels — Travelogue, Tech Insights, Buying
-          Guide, EV Guide, or any future category with >= 8 published
-          articles. Fully generated from `sections`; nothing here is
-          category-specific. */}
-      {loading
-        ? [0, 1].map((idx) => renderSkeletonSection(idx))
-        : sections.map((section, idx) => renderCategorySection(section, idx))}
+      {/* ========================================
+          DYNAMIC CATEGORY CAROUSELS
+          ======================================== */}
+      <div className={`
+        transition-colors duration-150
+        ${isDark ? 'bg-dark-900' : 'bg-gray-50'}
+      `}>
+        {loading
+          ? [0, 1].map((idx) => renderSkeletonSection(idx))
+          : sections.map((section, idx) => renderCategorySection(section, idx))}
+      </div>
 
-      {/* Testimonials Section — same horizontal Carousel component as
-          the category sections above, so mobile scrolling (native
-          swipe, arrows, no per-card fade delay) matches exactly. */}
-      {renderTestimonials()}
+      {/* ========================================
+          TESTIMONIALS SECTION
+          ======================================== */}
+      <div className={`
+        transition-colors duration-150
+        ${isDark ? 'bg-dark-900' : 'bg-gray-50'}
+      `}>
+        {renderTestimonials()}
+      </div>
 
-      {renderNewsletter()}
+      {/* ========================================
+          NEWSLETTER SECTION
+          ======================================== */}
+      <div className={`
+        transition-colors duration-150 border-t
+        ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-gray-50 border-gray-100'}
+      `}>
+        {renderNewsletter()}
+      </div>
     </>
   )
 }

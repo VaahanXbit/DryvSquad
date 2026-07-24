@@ -40,7 +40,7 @@ const HeroSlider = ({ banners, forceViewport }) => {
     if (!banners || banners.length === 0) return
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length)
-    }, 12000) // 10 seconds
+    }, 12000) // 12 seconds
     return () => clearInterval(interval)
   }, [banners])
 
@@ -60,7 +60,7 @@ const HeroSlider = ({ banners, forceViewport }) => {
         }
         @media (min-width: 1024px) {
           .ds-hero-box { 
-            aspect-ratio: 1024 / 440;
+            aspect-ratio: 1920 / 826;
           }
         }
         .ds-hero-media {
@@ -102,13 +102,12 @@ const HeroSlider = ({ banners, forceViewport }) => {
                 </picture>
               )}
 
-              <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-gradient-to-tl from-black/55 via-black/10 to-transparent pointer-events-none"></div>
-
+              {/* CTA Button - Now positioned on the LEFT side */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: index === currentSlide ? 1 : 0, y: index === currentSlide ? 0 : 12 }}
                 transition={{ duration: 0.5, delay: 0.25 }}
-                className="absolute bottom-2 right-2 xs:bottom-3 xs:right-3 sm:bottom-5 sm:right-5 md:bottom-8 md:right-8 z-10"
+                className="absolute bottom-2 left-2 xs:bottom-3 xs:left-3 sm:bottom-5 sm:left-5 md:bottom-8 md:left-8 z-10"
               >
                 <Link
                   to={banner.buttonLink || banner.link}

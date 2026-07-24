@@ -24,10 +24,12 @@ import { api } from '../../services/api'
 import HeroSlider from '../HeroSlider'
 
 // ========================================
-// Constants
+// Constants - Updated dimensions
 // ========================================
-const DESKTOP_TARGET = { width: 1920, height: 1080 } // ~16:9
-const MOBILE_TARGET = { width: 1080, height: 1350 } // ~4:5
+// Desktop: 1920 x 826 pixels (2.32:1 aspect ratio)
+// Mobile: 4:5 ratio (approximately 800 x 1000 pixels)
+const DESKTOP_TARGET = { width: 1920, height: 826 } // 2.32:1
+const MOBILE_TARGET = { width: 800, height: 1000 } // 4:5
 // Hero images render with object-contain (letterboxed, never cropped), so
 // they don't need to be pixel-exact — just close enough in shape and
 // resolution to look sharp. Accept anywhere from 60% to 300% of the target
@@ -409,7 +411,7 @@ const HeroBannerManager = ({ token }) => {
                 {/* Desktop image */}
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1 font-semibold">
-                    Desktop Image (~1920×1080, 16:9)
+                    Desktop Image (1920 × 826 px, 2.32:1)
                   </p>
                   {banner.desktopImage ? (
                     <img src={banner.desktopImage} alt="Desktop preview" className="w-full h-28 object-cover rounded-lg border border-slate-600 mb-2" />
@@ -424,6 +426,7 @@ const HeroBannerManager = ({ token }) => {
                     onChange={(e) => handleImageReplace(index, 'desktopImage', e.target.files[0])}
                     className="text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-slate-700 file:text-white file:text-xs file:font-semibold hover:file:bg-slate-600 file:cursor-pointer w-full"
                   />
+                  <p className="text-[9px] text-slate-500 mt-1">Recommended: 1920 × 826 pixels (2.32:1 aspect ratio)</p>
                   {uploadErrors[`${index}-desktopImage`] && (
                     <p className="text-red-400 text-xs mt-1">{uploadErrors[`${index}-desktopImage`]}</p>
                   )}
@@ -432,7 +435,7 @@ const HeroBannerManager = ({ token }) => {
                 {/* Mobile image */}
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1 font-semibold">
-                    Mobile Image (~1080×1350, 4:5)
+                    Mobile Image (4:5 ratio)
                   </p>
                   {banner.mobileImage ? (
                     <img src={banner.mobileImage} alt="Mobile preview" className="w-full h-28 object-cover rounded-lg border border-slate-600 mb-2" />
@@ -447,6 +450,7 @@ const HeroBannerManager = ({ token }) => {
                     onChange={(e) => handleImageReplace(index, 'mobileImage', e.target.files[0])}
                     className="text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-slate-700 file:text-white file:text-xs file:font-semibold hover:file:bg-slate-600 file:cursor-pointer w-full"
                   />
+                  <p className="text-[9px] text-slate-500 mt-1">Recommended: 800 × 1000 pixels (4:5 aspect ratio)</p>
                   {uploadErrors[`${index}-mobileImage`] && (
                     <p className="text-red-400 text-xs mt-1">{uploadErrors[`${index}-mobileImage`]}</p>
                   )}
