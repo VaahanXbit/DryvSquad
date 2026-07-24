@@ -95,6 +95,28 @@ const AiCarFinder = () => {
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState('')
   const [isLoaded, setIsLoaded] = useState(false)
+  const [loadingText, setLoadingText] = useState("Evaluating scoring matches...")
+
+  // Rotate loading messages to decrease perceived latency
+  useEffect(() => {
+    if (!loading) return
+    const steps = [
+      "Evaluating scoring matches...",
+      "Analyzing your budget, EMI comfort & maintenance preferences...",
+      "Processing lifestyle profile & daily driving reality...",
+      "Scoring 100+ cars against your non-negotiables...",
+      "Filtering fuel type & lease preferences...",
+      "Ranking matches to find your perfect car...",
+      "Preparing detailed car comparison report..."
+    ]
+    let index = 0
+    setLoadingText(steps[0])
+    const interval = setInterval(() => {
+      index = (index + 1) % steps.length
+      setLoadingText(steps[index])
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [loading])
 
   const scrollContainerRef = useRef(null)
 
@@ -1073,7 +1095,7 @@ const AiCarFinder = () => {
               >
                 <Loader2 className="w-10 h-10 animate-spin text-yellow-500 mx-auto" />
                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                  Evaluating scoring matches with AI advisor...
+                  {loadingText}
                 </p>
               </motion.div>
             ) : error ? (
