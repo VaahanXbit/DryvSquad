@@ -1,10 +1,13 @@
 // src/components/tools/evRangeCalculator/index.js
 export { default as VehicleSelect } from './VehicleSelect';
 export { default as BatterySlider } from './BatterySlider';
+export { default as TripDistanceInput } from './TripDistanceInput';
+export { default as TemperatureInput } from './TemperatureInput';
 export { default as ConditionDropdown } from './ConditionDropdown';
 export { default as AcToggle } from './AcToggle';
 export { default as PassengerCounter } from './PassengerCounter';
 export { default as AdvancedSettings } from './AdvancedSettings';
+export { default as FieldHint } from './FieldHint';
 export { default as InputsPanel } from './InputsPanel';
 export { default as RangeResultCard } from './RangeResultCard';
 export { default as StatMiniCard } from './StatMiniCard';

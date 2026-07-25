@@ -5,7 +5,9 @@ File Name : useEvRangeCalculator.js
 Description : Single entry point every EV Range Calculator component uses.
               Owns form state, the vehicle list/search, the calculation
               call, and the Trip Planner's from/to -> distance resolution.
-              No component talks to evRangeCalculatorService directly.
+              No component talks to evRangeCalculatorService directly, and
+              no calculation happens in the UI — this hook only sends
+              inputs and renders whatever the backend returns.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -27,8 +29,8 @@ export const useEvRangeCalculator = () => {
 
   const [tripPlanner, setTripPlanner] = useState({ from: '', to: '', status: 'idle', message: null });
 
-  // Load the initial vehicle list (and pre-select the first one, matching
-  // the approved design which always shows a vehicle already selected).
+  // Load the initial EV list (queried live from the existing Variant
+  // database, filtered to fuelType: Electric — see the backend service).
   useEffect(() => {
     (async () => {
       setVehicleSearchLoading(true);
@@ -61,12 +63,16 @@ export const useEvRangeCalculator = () => {
     setFormValues((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const updateAdvanced = useCallback((key, value) => {
-    setFormValues((prev) => ({ ...prev, advanced: { ...prev.advanced, [key]: value } }));
-  }, []);
+  // Dynamic validation: Calculate stays disabled until a vehicle is
+  // selected, battery level is entered, and trip distance is entered.
+  const canCalculate = Boolean(
+    formValues.vehicleId &&
+    formValues.batteryPercent !== '' && formValues.batteryPercent !== null && formValues.batteryPercent !== undefined &&
+    formValues.tripDistanceKm !== '' && formValues.tripDistanceKm !== null && formValues.tripDistanceKm !== undefined && Number(formValues.tripDistanceKm) > 0
+  );
 
   const calculate = useCallback(async () => {
-    if (!formValues.vehicleId) return;
+    if (!canCalculate) return;
     setStatus('loading');
     setError(null);
 
@@ -79,21 +85,19 @@ export const useEvRangeCalculator = () => {
       setStatus('error');
       setError({ message: response.message || 'Something went wrong. Please try again.' });
     }
-  }, [formValues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formValues, canCalculate]);
 
-  // Trip Planner: resolves a from/to route to a distance, then folds that
-  // distance into the shared tripDistanceKm used by the whole calculation
-  // (Cost Estimate, Charging Recommendation, Battery at Destination all
-  // read from the same value — single source of truth, per the algorithm).
+  // Trip Planner: resolves a from/to route to a distance, then updates the
+  // single shared Trip Distance field — everything downstream (Cost
+  // Estimate, Charging Recommendation, Battery at Destination) reads from
+  // that one value, so it can never disagree with the Trip Planner.
   const planTrip = useCallback(async (from, to) => {
     setTripPlanner({ from, to, status: 'loading', message: null });
     const response = await evRangeCalculatorService.getTripDistance(from, to);
 
     if (response.success && response.data) {
-      setFormValues((prev) => ({
-        ...prev,
-        advanced: { ...prev.advanced, tripDistanceKm: response.data.distanceKm },
-      }));
+      setFormValues((prev) => ({ ...prev, tripDistanceKm: response.data.distanceKm }));
       setTripPlanner({ from, to, status: 'success', message: null });
     } else {
       setTripPlanner({
@@ -105,14 +109,14 @@ export const useEvRangeCalculator = () => {
     }
   }, []);
 
-  // Recalculate whenever the trip distance changes via the Trip Planner,
-  // so the Charging Recommendation card stays in sync.
+  // Recalculate whenever trip distance changes (either typed directly or
+  // resolved via the Trip Planner), so every card stays in sync.
   useEffect(() => {
-    if (tripPlanner.status === 'success' && status === 'success') {
+    if (status === 'success') {
       calculate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formValues.advanced?.tripDistanceKm]);
+  }, [formValues.tripDistanceKm]);
 
   return {
     formValues,
@@ -123,13 +127,13 @@ export const useEvRangeCalculator = () => {
     isLoading: status === 'loading',
     isSuccess: status === 'success',
     isError: status === 'error',
+    canCalculate,
     result,
     error,
     tripPlanner,
     searchVehicles,
     selectVehicle,
     updateField,
-    updateAdvanced,
     calculate,
     planTrip,
   };

@@ -1,12 +1,13 @@
 // src/components/tools/evRangeCalculator/BatterySlider.jsx
 import { BatteryMedium } from 'lucide-react';
 import { MIN_BATTERY_PERCENT, MAX_BATTERY_PERCENT } from '../../../constants/evRangeCalculator';
+import FieldHint from './FieldHint';
 
 /**
  * "Current Battery Level" slider — battery icon + live percentage readout
  * above a range input, with min/max labels below.
  */
-const BatterySlider = ({ value, onChange }) => {
+const BatterySlider = ({ value, onChange, hint }) => {
   return (
     <div>
       <label className="block text-sm font-semibold text-theme-secondary mb-2">Current Battery Level</label>
@@ -30,6 +31,7 @@ const BatterySlider = ({ value, onChange }) => {
         <span>{MIN_BATTERY_PERCENT}%</span>
         <span>{MAX_BATTERY_PERCENT}%</span>
       </div>
+      <FieldHint>{hint}</FieldHint>
     </div>
   );
 };

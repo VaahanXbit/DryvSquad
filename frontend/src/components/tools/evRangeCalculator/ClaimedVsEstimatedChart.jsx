@@ -18,9 +18,11 @@ const ClaimedVsEstimatedChart = ({ claimedRangeKm, estimatedRangeKm, differenceK
         <div className="flex flex-col items-center justify-end h-40">
           <span className="text-sm font-bold text-theme-primary mb-1.5">{claimedRangeKm} km</span>
           <div
-            className="w-16 rounded-t-md"
-            style={{ height: `${claimedHeight}%`, backgroundColor: 'var(--bg-tertiary)' }}
-          />
+  className="w-16 rounded-t-md bg-gray-700 dark:bg-gray-300"
+  style={{
+    height: `${claimedHeight}%`
+  }}
+/>
         </div>
         <div className="flex flex-col items-center justify-end h-40">
           <span className="text-sm font-bold text-green-600 dark:text-green-400 mb-1.5">{estimatedRangeKm} km</span>

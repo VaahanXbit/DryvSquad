@@ -1,13 +1,21 @@
 // src/components/tools/evRangeCalculator/AdvancedSettings.jsx
 import { useState } from 'react';
-import { ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronDown, CircleDot } from 'lucide-react';
+
+// Lowest-priority, not-yet-active factors — shown collapsed, disabled,
+// clearly labeled "Coming Soon" so it's obvious they don't affect the
+// calculation yet. Adding a real one later only means adding its config
+// in evRangeCalculator.config.js and one entry in the reduction-factors
+// engine — no UI restructuring needed.
+const FUTURE_SETTINGS = ['Roof Box', 'Trailer', 'Tyre Pressure', 'Headwind', 'Rain', 'Snow'];
 
 /**
- * "Advanced Settings" — collapsed by default, per spec. Holds the fields
- * that aren't part of the main approved form but are needed by the
- * calculation engine: trip distance and charging rates.
+ * "Advanced Settings" — collapsed by default, lowest priority per the
+ * latest review. Currently a roadmap of future factors, since Trip
+ * Distance and charging rates have moved elsewhere (Trip Distance is now
+ * a primary input; charging rates are backend config, not user-facing).
  */
-const AdvancedSettings = ({ advanced, onChange }) => {
+const AdvancedSettings = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -23,40 +31,19 @@ const AdvancedSettings = ({ advanced, onChange }) => {
       </button>
 
       {isOpen && (
-        <div className="px-4 pb-4 space-y-4 border-t" style={{ borderColor: 'var(--border-primary)' }}>
-          <div className="pt-4">
-            <label className="block text-sm text-theme-tertiary mb-1.5">Trip Distance (km)</label>
-            <input
-              type="number"
-              min={1}
-              value={advanced.tripDistanceKm}
-              onChange={(e) => onChange('tripDistanceKm', Number(e.target.value))}
-              className="input-field w-full"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-theme-tertiary mb-1.5">Home Rate (₹/kWh)</label>
-              <input
-                type="number"
-                min={0}
-                step={0.1}
-                value={advanced.homeChargingRatePerKwh}
-                onChange={(e) => onChange('homeChargingRatePerKwh', Number(e.target.value))}
-                className="input-field w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-theme-tertiary mb-1.5">Public Rate (₹/kWh)</label>
-              <input
-                type="number"
-                min={0}
-                step={0.1}
-                value={advanced.publicChargingRatePerKwh}
-                onChange={(e) => onChange('publicChargingRatePerKwh', Number(e.target.value))}
-                className="input-field w-full"
-              />
-            </div>
+        <div className="px-4 pb-4 pt-1 border-t" style={{ borderColor: 'var(--border-primary)' }}>
+          <p className="text-xs text-theme-tertiary mb-3">More precision factors, coming soon:</p>
+          <div className="grid grid-cols-2 gap-2">
+            {FUTURE_SETTINGS.map((label) => (
+              <span
+                key={label}
+                className="flex items-center gap-1.5 text-xs text-theme-tertiary px-2.5 py-1.5 rounded-md opacity-60"
+                style={{ backgroundColor: 'var(--bg-tertiary)' }}
+              >
+                <CircleDot className="w-3 h-3" />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       )}

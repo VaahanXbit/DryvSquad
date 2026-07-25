@@ -2,19 +2,13 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.js
-Description : Static option lists for the EV Range Calculator form fields.
-              Purely presentational — the values map 1:1 to what the backend
-              validator/config expects (see evRangeCalculator.validator.js
-              and evRangeCalculator.config.js).
+Description : Static option lists + guidance copy for the EV Range
+              Calculator form fields, ordered by real-world impact on range
+              (see InputsPanel.jsx for how this drives field order).
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
-
-export const TEMPERATURE_OPTIONS = [0, 5, 10, 15, 20, 25, 30, 35, 38, 40, 45].map((v) => ({
-  value: v,
-  label: `${v} °C`,
-}));
 
 export const ROAD_TYPE_OPTIONS = [
   { value: 'city', label: 'City' },
@@ -57,25 +51,37 @@ export const TRAFFIC_OPTIONS = [
   { value: 'heavy', label: 'Heavy' },
 ];
 
+// Short explanation shown below each field, per the latest review.
+export const FIELD_GUIDANCE = {
+  batteryPercent: 'Your current charge level — the calculator uses this to work out how far you can go right now.',
+  tripDistanceKm: 'The distance you plan to drive. This decides whether a charging stop is needed.',
+  averageSpeedKmh: 'Higher average speeds increase aerodynamic drag and usually reduce practical EV range.',
+  outsideTemperatureC: 'Extreme hot or cold weather can reduce battery efficiency.',
+  roadType: 'Highway driving is typically less efficient than city driving for EVs.',
+  terrain: 'Hilly roads generally require more energy than flat roads.',
+  drivingStyle: 'Aggressive acceleration consumes more energy than smooth driving.',
+  airConditioning: 'Cabin cooling uses battery power and can slightly reduce practical range.',
+  traffic: 'Stop-and-go traffic may increase energy use, although regenerative braking can recover some energy.',
+  passengers: 'Additional vehicle load can increase energy consumption.',
+};
+
 export const DEFAULT_FORM_VALUES = {
   vehicleId: null,
   batteryPercent: 85,
+  tripDistanceKm: 220,
+  averageSpeedKmh: 95,
   outsideTemperatureC: 38,
   roadType: 'highway',
-  averageSpeedKmh: 95,
+  terrain: 'hilly',
   drivingStyle: 'normal',
   airConditioning: 'on',
-  passengers: 4,
-  terrain: 'hilly',
   traffic: 'moderate',
-  advanced: {
-    tripDistanceKm: 220,
-    homeChargingRatePerKwh: 8,
-    publicChargingRatePerKwh: 20.7,
-  },
+  passengers: 4,
 };
 
 export const MIN_PASSENGERS = 1;
 export const MAX_PASSENGERS = 7;
 export const MIN_BATTERY_PERCENT = 10;
 export const MAX_BATTERY_PERCENT = 100;
+export const MIN_TEMPERATURE_C = -30;
+export const MAX_TEMPERATURE_C = 55;

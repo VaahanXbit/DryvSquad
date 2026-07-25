@@ -2,24 +2,29 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.controller.js
-Description : HTTP layer for the EV Range Calculator. Thin — validates via
-              the validator, delegates to the service, maps results/errors
-              to HTTP responses. No calculation logic or vehicle data here.
+Description : HTTP layer. Thin — validates via the validator, delegates to
+              the service, maps results/errors (including the exact
+              user-facing validation messages required by spec) to HTTP
+              responses.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-const { searchVehicles } = require('./evRangeCalculator.vehicles');
 const { validateCalculateInput } = require('./evRangeCalculator.validator');
-const { calculateRange, resolveTripDistance, ServiceError } = require('./evRangeCalculator.service');
+const { calculateRange, searchElectricVehicles, ServiceError } = require('./evRangeCalculator.service');
+const { resolveTripDistance } = require('./evRangeCalculator.tripDistanceLookup');
 const { ERROR_CODES } = require('./constants');
 
 // GET /api/tools/ev-range-calculator/vehicles?search=
-const listVehicles = (req, res) => {
-  const { search } = req.query;
-  const vehicles = searchVehicles(search);
-  return res.status(200).json({ success: true, data: vehicles });
+const listVehicles = async (req, res) => {
+  try {
+    const vehicles = await searchElectricVehicles(req.query.search);
+    return res.status(200).json({ success: true, data: vehicles });
+  } catch (error) {
+    console.error('❌ EV vehicle search error:', error);
+    return res.status(500).json({ success: false, message: 'Something went wrong while loading vehicles.' });
+  }
 };
 
 // GET /api/tools/ev-range-calculator/trip-distance?from=&to=
@@ -27,11 +32,7 @@ const getTripDistance = (req, res) => {
   const { from, to } = req.query;
 
   if (!from || !to) {
-    return res.status(400).json({
-      success: false,
-      message: 'Both "from" and "to" are required',
-      errorCode: ERROR_CODES.INVALID_INPUT,
-    });
+    return res.status(400).json({ success: false, message: 'Both "from" and "to" are required', errorCode: ERROR_CODES.INVALID_INPUT });
   }
 
   const distanceKm = resolveTripDistance(from, to);
@@ -40,7 +41,6 @@ const getTripDistance = (req, res) => {
     return res.status(404).json({
       success: false,
       message: 'Could not resolve distance for this route. Please enter it manually.',
-      errorCode: ERROR_CODES.ROUTE_NOT_FOUND,
     });
   }
 
@@ -48,7 +48,7 @@ const getTripDistance = (req, res) => {
 };
 
 // POST /api/tools/ev-range-calculator/calculate
-const calculate = (req, res) => {
+const calculate = async (req, res) => {
   try {
     const { isValid, errors } = validateCalculateInput(req.body);
 
@@ -61,11 +61,11 @@ const calculate = (req, res) => {
       });
     }
 
-    const result = calculateRange(req.body);
+    const result = await calculateRange(req.body);
     return res.status(200).json({ success: true, data: result });
   } catch (error) {
     if (error instanceof ServiceError) {
-      const status = error.code === ERROR_CODES.VEHICLE_NOT_FOUND ? 404 : 400;
+      const status = error.code === ERROR_CODES.VEHICLE_NOT_FOUND ? 404 : 422;
       return res.status(status).json({ success: false, message: error.message, errorCode: error.code });
     }
 

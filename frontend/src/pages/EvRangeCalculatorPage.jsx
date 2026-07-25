@@ -12,7 +12,7 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-import { Info, PlayCircle, Share2 } from 'lucide-react';
+import { Info } from 'lucide-react';
 import useEvRangeCalculator from '../hooks/useEvRangeCalculator';
 import {
   InputsPanel,
@@ -30,13 +30,13 @@ const EvRangeCalculatorPage = () => {
     isLoading,
     isSuccess,
     isError,
+    canCalculate,
     result,
     error,
     tripPlanner,
     searchVehicles,
     selectVehicle,
     updateField,
-    updateAdvanced,
     calculate,
     planTrip,
   } = useEvRangeCalculator();
@@ -45,7 +45,7 @@ const EvRangeCalculatorPage = () => {
 
   return (
     <div className="bg-theme-primary min-h-screen">
-      <div className="container-custom pt-8 pb-6">
+      <div className="container-custom pb-6" style={{ paddingTop: 'calc(var(--header-height) + 2rem)' }}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="flex items-center gap-2 text-2xl sm:text-3xl">
@@ -54,7 +54,7 @@ const EvRangeCalculatorPage = () => {
             </h1>
             <p className="text-theme-tertiary mt-1">Calculate your real world driving range based on real conditions</p>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <button type="button" className="btn-secondary flex items-center gap-2 py-2 px-4 text-sm">
               <PlayCircle className="w-4 h-4" />
               How it works
@@ -63,7 +63,7 @@ const EvRangeCalculatorPage = () => {
               <Share2 className="w-4 h-4" />
               Share Result
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -77,9 +77,9 @@ const EvRangeCalculatorPage = () => {
             onSearchVehicles={searchVehicles}
             onSelectVehicle={selectVehicle}
             onUpdateField={updateField}
-            onUpdateAdvanced={updateAdvanced}
             onCalculate={calculate}
             isCalculating={isLoading}
+            canCalculate={canCalculate}
           />
 
           {isSuccess && result && <ResultsPanel result={result} batteryPercent={formValues.batteryPercent} />}
