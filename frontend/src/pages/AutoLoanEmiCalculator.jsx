@@ -107,19 +107,19 @@ const AutoLoanEmiCalculator = () => {
   )
 
   return (
-    <div className={`min-h-screen transition-colors duration-150 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
+    // CHANGE 1: Added `relative z-0` to the wrapper. This forces the content to sit on a 
+    // new stacking context, ensuring the flex-grow doesn't get pushed under the fixed header.
+    <div className={`relative z-0 min-h-screen transition-colors duration-150 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
+      
       {/* ==================== Minimal header ==================== */}
-     <div
-  className={`pt-46 sm:pt-36 pb-3 px-4 sm:px-6 lg:px-8 border-b ${
-    isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-gray-100'
-  }`}
->
+      {/* CHANGE 2: Changed pt-20 to pt-48 (192px) for mobile. Your header is 185px tall, 
+          and 192px ensures the title sits completely unobstructed with a tiny gap. */}
+      <div
+        className={`pt-48 sm:pt-36 pb-3 px-4 sm:px-6 lg:px-8 border-b ${
+          isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-gray-100'
+        }`}
+      >
         <div className="max-w-5xl mx-auto">
-          {/* <nav className={`text-[11px] mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} aria-label="Breadcrumb">
-            <Link to="/" className="hover:text-yellow-500 transition-colors">Home</Link>
-            <span className="mx-1">/</span>
-            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Auto Loan EMI Calculator</span>
-          </nav> */}
           <h1 className={`text-lg sm:text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Auto Loan EMI Calculator
           </h1>
@@ -159,10 +159,6 @@ const AutoLoanEmiCalculator = () => {
       </section>
 
       {/* ==================== FAQ ==================== */}
-      {/* Uses the same max-w-5xl / 5-col grid as the calculator above, and
-          sits in the lg:col-span-3 slot, so its left edge and width line up
-          exactly with the loan-inputs card rather than being independently
-          centered in a narrower container. */}
       <section className={`px-4 sm:px-6 lg:px-8 py-6 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-3">
