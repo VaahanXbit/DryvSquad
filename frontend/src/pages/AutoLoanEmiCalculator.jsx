@@ -109,8 +109,8 @@ const AutoLoanEmiCalculator = () => {
   return (
     <div className={`min-h-screen transition-colors duration-150 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
       {/* ==================== Minimal header ==================== */}
-      <div
-  className={`pt-28 sm:pt-32 pb-3 px-4 sm:px-6 lg:px-8 border-b ${
+     <div
+  className={`pt-46 sm:pt-36 pb-3 px-4 sm:px-6 lg:px-8 border-b ${
     isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-gray-100'
   }`}
 >

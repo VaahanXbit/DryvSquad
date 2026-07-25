@@ -614,7 +614,7 @@ const AiCarFinder = () => {
   }
 
   return (
-    <div className={`min-h-screen pt-[var(--header-height,72px)] lg:pt-24 pb-16 transition-colors duration-300 ${
+    <div className={`min-h-screen pt-[var(--header-height,72px)] lg:pt-40 pb-16 transition-colors duration-300 ${
       isDark ? 'bg-dark-950 text-white' : 'bg-[#FFFDFC] text-slate-900'
     }`}>
       <div className="container-custom max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
@@ -622,8 +622,8 @@ const AiCarFinder = () => {
         {/* Page Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 text-2xl font-bold text-yellow-500 uppercase tracking-wider">
-            <Sparkles className="w-4.5 h-4.5" />
-            Personalised Car Suggestions
+            {/* <Sparkles className="w-4.5 h-4.5" /> */}
+            Find Your Right Car
           </div>
           <p className={`text-sm sm:text-base max-w-xl mx-auto leading-relaxed ${
             isDark ? 'text-gray-400' : 'text-slate-500'

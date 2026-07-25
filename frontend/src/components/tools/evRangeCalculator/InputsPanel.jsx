@@ -146,7 +146,7 @@ const InputsPanel = ({
           className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60"
         >
           <Calculator className="w-5 h-5" />
-          {isCalculating ? 'Calculating...' : 'Calculate Real Range'}
+          {isCalculating ? 'Calculating...' : 'Calculate Projected Range'}
         </button>
         {!canCalculate && !isCalculating && (
           <p className="text-xs text-center text-theme-tertiary -mt-3">

@@ -98,7 +98,7 @@ const EvRangeCalculatorPage = () => {
             <div className="card flex flex-col items-center justify-center text-center px-6 py-20">
               <p className="font-semibold text-theme-primary mb-1">Your results will appear here</p>
               <p className="text-sm text-theme-tertiary max-w-sm">
-                Fill in your trip and driving conditions, then tap Calculate Real Range.
+                Fill in your trip and driving conditions, then tap Calculate Projected Range.
               </p>
             </div>
           )}
