@@ -86,7 +86,7 @@ const FAQS = [
 const RELATED_TOOLS = [
   { name: 'Auto Loan EMI Calculator', href: '/auto-loan-emi-calculator', active: true },
   { name: 'Mileage Calculator', href: null },
-  { name: 'EV Range Calculator', href: '/tools/ev-range-calculator', active: true },
+  { name: 'EV Range Calculator', href: '/ev-range-calculator', active: true },
   { name: 'Running Cost Calculator', href: null },
 ]
 
@@ -109,13 +109,17 @@ const AutoLoanEmiCalculator = () => {
   return (
     <div className={`min-h-screen transition-colors duration-150 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
       {/* ==================== Minimal header ==================== */}
-      <div className={`pt-20 sm:pt-24 pb-3 px-4 sm:px-6 lg:px-8 border-b ${isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-gray-100'}`}>
+      <div
+  className={`pt-28 sm:pt-32 pb-3 px-4 sm:px-6 lg:px-8 border-b ${
+    isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-gray-100'
+  }`}
+>
         <div className="max-w-5xl mx-auto">
-          <nav className={`text-[11px] mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} aria-label="Breadcrumb">
+          {/* <nav className={`text-[11px] mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} aria-label="Breadcrumb">
             <Link to="/" className="hover:text-yellow-500 transition-colors">Home</Link>
             <span className="mx-1">/</span>
             <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Auto Loan EMI Calculator</span>
-          </nav>
+          </nav> */}
           <h1 className={`text-lg sm:text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Auto Loan EMI Calculator
           </h1>
