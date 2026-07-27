@@ -20,7 +20,9 @@ const staticPaths = [
   '/ai-mode',
   '/ai-car-finder',
   '/loan-quotes',
-  '/insurance-quotes'
+  '/insurance-quotes',
+  '/ev-range-calculator',
+  '/auto-loan-emi-calculator'
 ];
 
 async function generate() {

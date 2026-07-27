@@ -51,6 +51,16 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://dryvsquad.com/ev-range-calculator</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dryvsquad.com/auto-loan-emi-calculator</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://dryvsquad.com/article/ev-reality-check-india-2026</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
