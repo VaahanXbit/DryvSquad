@@ -1,11 +1,12 @@
 // src/components/tools/evRangeCalculator/PassengerCounter.jsx
 import { Users, Minus, Plus } from 'lucide-react';
 import { MIN_PASSENGERS, MAX_PASSENGERS } from '../../../constants/evRangeCalculator';
+import FieldHint from './FieldHint';
 
 /**
  * "Passengers" field — a simple +/- counter.
  */
-const PassengerCounter = ({ value, onChange }) => {
+const PassengerCounter = ({ value, onChange, hint }) => {
   const decrement = () => onChange(Math.max(MIN_PASSENGERS, value - 1));
   const increment = () => onChange(Math.min(MAX_PASSENGERS, value + 1));
 
@@ -38,6 +39,7 @@ const PassengerCounter = ({ value, onChange }) => {
           <Plus className="w-4 h-4" />
         </button>
       </div>
+      <FieldHint>{hint}</FieldHint>
     </div>
   );
 };

@@ -2,47 +2,55 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.service.js
-Description : The calculation engine. Implements the algorithm exactly as
-              specified:
+Description : Orchestrates the full calculation. Fetches the Variant
+              document ONCE (populated with Model + Brand), parses it ONCE
+              via evRangeCalculator.dataExtraction.js, then runs every
+              downstream step off that single cached EvSpecData object —
+              no repeated DB calls, no repeated string parsing.
 
-                Step 1  Read Official Claimed Range (never modified)
-                Step 2  Convert each selected condition into an efficiency
-                        multiplier (read from evRangeCalculator.config.js —
-                        never hardcoded here)
-                Step 3  OverallEfficiency = product of all multipliers
-                Step 4  EstimatedPracticalRange = ClaimedRange x OverallEfficiency
-                Step 5  AvailableRange = EstimatedPracticalRange x (battery% / 100)
-                Step 6  Trip Possible vs Charging Required
-                Step 7  RemainingBattery %, clamped 0-100
+              Implements the algorithm exactly as specified:
+                Step 1  Official Claimed Range — read from the database,
+                        never modified (see dataExtraction.js for how it's
+                        located/parsed from whatever fields already exist).
+                Step 2  Every selected condition -> efficiency multiplier,
+                        read from evRangeCalculator.config.js (see
+                        evRangeCalculator.reductionFactors.js).
+                Step 3  OverallEfficiency = product of every multiplier.
+                Step 4  EstimatedPracticalRange = ClaimedRange x OverallEfficiency.
+                Step 5  AvailableRange = EstimatedPracticalRange x (battery% / 100).
+                        This is the single canonical "Estimated Real World
+                        Range" used everywhere in the UI (headline, bar,
+                        Claimed-vs-Estimated graph, Difference, Total
+                        Reduction) — see the note above buildResult() for
+                        why Total Reduction is measured against this value
+                        rather than EstimatedPracticalRange.
+                Step 6  Trip Possible vs Charging Required (evRangeCalculator.tripAnalysis.js)
+                Step 7  RemainingBattery% (evRangeCalculator.tripAnalysis.js)
 
-              Every other result card (Recommended Max Trip Distance, Usable
-              Battery Used, Cost Estimate, AI Insight, Trip Planner) is
-              layered on top of that same Step 1-7 output — nothing recomputes
-              the base range differently. See README at the repo root for
-              the full mapping of formula -> UI card.
-
-              Internal multipliers/factors are NEVER included in any
-              response payload — only human-readable labels and numbers the
-              approved UI is allowed to show.
+              Internal multipliers/formulas are NEVER included in any
+              response — only human-readable labels and numbers.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
-const { findVehicleById } = require('./evRangeCalculator.vehicles');
-const {
-  ROAD_TYPE_FACTORS,
-  TEMPERATURE_FACTOR_BANDS,
-  SPEED_FACTOR_BANDS,
-  DRIVING_STYLE_FACTORS,
-  AC_FACTORS,
-  TERRAIN_FACTORS,
-  TRAFFIC_FACTORS,
-  PASSENGER_FACTORS,
-  RECOMMENDED_TRIP_SAFETY_FACTOR,
-  ADVANCED_SETTINGS_DEFAULTS,
-} = require('./evRangeCalculator.config');
-const { ERROR_CODES, MOCK_CITY_DISTANCES_KM } = require('./constants');
+const Variant = require('../../models/Variant');
+const Model = require('../../models/Model');
+const Brand = require('../../models/Brand');
+
+const { extractEvSpecData } = require('./evRangeCalculator.dataExtraction');
+const { resolveFactors, buildReductionBreakdown } = require('./evRangeCalculator.reductionFactors');
+const { analyzeTrip } = require('./evRangeCalculator.tripAnalysis');
+const { calculateTripCost } = require('./evRangeCalculator.costCalculation');
+const { buildAiInsight } = require('./evRangeCalculator.aiInsight');
+const { RECOMMENDED_TRIP_SAFETY_FACTOR } = require('./evRangeCalculator.config');
+const { ERROR_CODES, MESSAGES } = require('./constants');
+
+// Referencing the Model/Brand exports keeps Mongoose's schema registration
+// happy when this file is required in isolation (e.g. in tests) before
+// app.js has had a chance to register every model.
+void Model;
+void Brand;
 
 class ServiceError extends Error {
   constructor(code, message) {
@@ -54,215 +62,148 @@ class ServiceError extends Error {
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const round1 = (value) => Math.round(value * 10) / 10;
 
-const getBandFactor = (bands, value) => {
-  const band = bands.find((b) => value < b.max) || bands[bands.length - 1];
-  return band;
-};
-
-const getPassengerFactor = (passengers) => {
-  const keys = Object.keys(PASSENGER_FACTORS).map(Number).sort((a, b) => a - b);
-  const cappedCount = Math.min(passengers, keys[keys.length - 1]);
-  const matchedKey = keys.find((k) => k >= cappedCount) ?? keys[keys.length - 1];
-  return PASSENGER_FACTORS[matchedKey];
-};
-
 /**
- * Step 2 + Step 3 — resolves every condition to a factor and multiplies
- * them together. Also returns the individual (label, factor) pairs so the
- * breakdown/AI insight can be built from the SAME numbers used in the math
- * (single source of truth — the UI never recomputes anything itself).
+ * Fetches a Variant by id ONCE, with Model + Brand populated, so every
+ * downstream step reads from the same in-memory document (no repeated
+ * queries, no repeated parsing).
  */
-const resolveFactors = (input) => {
-  const temperatureBand = getBandFactor(TEMPERATURE_FACTOR_BANDS, input.outsideTemperatureC);
-  const speedBand = getBandFactor(SPEED_FACTOR_BANDS, input.averageSpeedKmh);
-  const passengerFactor = getPassengerFactor(input.passengers);
+const fetchVehicle = async (vehicleId) => {
+  const variant = await Variant.findById(vehicleId).populate({
+    path: 'modelId',
+    populate: { path: 'brandId' },
+  });
 
-  const factors = [
-    { key: 'road', label: describeRoad(input.roadType), insightPhrase: describeRoad(input.roadType).toLowerCase(), value: ROAD_TYPE_FACTORS[input.roadType] },
-    { key: 'temperature', label: `${temperatureBand.label} (${input.outsideTemperatureC}°C)`, insightPhrase: `${temperatureBand.label.toLowerCase()} outside`, value: temperatureBand.factor },
-    { key: 'speed', label: speedBand.label, insightPhrase: speedBand.label.toLowerCase(), value: speedBand.factor },
-    { key: 'drivingStyle', label: describeDrivingStyle(input.drivingStyle), insightPhrase: describeDrivingStyle(input.drivingStyle).toLowerCase(), value: DRIVING_STYLE_FACTORS[input.drivingStyle] },
-    { key: 'ac', label: describeAc(input.airConditioning), insightPhrase: 'continuous air conditioning usage', value: AC_FACTORS[input.airConditioning] },
-    { key: 'terrain', label: describeTerrain(input.terrain), insightPhrase: describeTerrain(input.terrain).toLowerCase(), value: TERRAIN_FACTORS[input.terrain] },
-    { key: 'traffic', label: describeTraffic(input.traffic), insightPhrase: describeTraffic(input.traffic).toLowerCase(), value: TRAFFIC_FACTORS[input.traffic] },
-    { key: 'passengers', label: `${input.passengers} Passenger${input.passengers > 1 ? 's' : ''}`, insightPhrase: 'extra passenger load', value: passengerFactor },
-  ];
-
-  const overallEfficiency = factors.reduce((product, f) => product * f.value, 1);
-
-  return { factors, overallEfficiency };
-};
-
-const describeRoad = (roadType) => ({
-  city: 'City driving',
-  highway: 'Highway driving',
-  mixed: 'Mixed road driving',
-  hilly: 'Hilly roads',
-}[roadType] || 'Road conditions');
-
-const describeDrivingStyle = (style) => ({
-  eco: 'Eco driving style',
-  normal: 'Normal driving style',
-  aggressive: 'Aggressive driving style',
-}[style] || 'Driving style');
-
-const describeAc = (ac) => ({
-  off: 'AC off',
-  mixed: 'AC used occasionally',
-  on: 'AC is ON',
-}[ac] || 'Air conditioning');
-
-const describeTerrain = (terrain) => ({
-  flat: 'Flat terrain',
-  rolling: 'Rolling terrain',
-  hilly: 'Hilly terrain',
-}[terrain] || 'Terrain');
-
-const describeTraffic = (traffic) => ({
-  low: 'Light traffic',
-  moderate: 'Moderate traffic',
-  heavy: 'Heavy traffic',
-}[traffic] || 'Traffic');
-
-/**
- * Builds the human-readable Range Reduction Breakdown — only factors that
- * actually reduce range (value < 1) are shown, matching the approved
- * design where neutral/beneficial conditions don't get a line item.
- */
-const buildReductionBreakdown = (factors) => {
-  const items = factors
-    .filter((f) => f.value < 1)
-    .map((f) => ({ label: f.label, insightPhrase: f.insightPhrase, reductionPercent: round1((1 - f.value) * 100) }))
-    .sort((a, b) => b.reductionPercent - a.reductionPercent);
-
-  return items;
-};
-
-/**
- * Generates the natural-language AI Insight sentence from the top 2-3
- * reduction contributors. No formulas, multipliers or internal numbers are
- * ever surfaced here — human-readable only, per spec.
- */
-const buildAiInsight = (breakdown, totalReductionPercent, speedBand, input) => {
-  if (!breakdown.length) {
-    return "Today's conditions closely match ideal driving conditions, so your practical range is close to the manufacturer's claimed range.";
-  }
-
-  const top = breakdown.slice(0, 3).map((b) => b.insightPhrase);
-  const conditionsPhrase = top.length > 1
-    ? `${top.slice(0, -1).join(', ')} and ${top[top.length - 1]}`
-    : top[0];
-
-  let speedNote = '';
-  if (speedBand.factor < 1 && input.averageSpeedKmh > 100) {
-    const suggestedSpeed = 80;
-    speedNote = ` Driving at around ${suggestedSpeed} km/h instead of ${input.averageSpeedKmh} km/h could meaningfully improve your range.`;
-  }
-
-  return `Today's ${conditionsPhrase} reduce your practical range by around ${Math.round(totalReductionPercent)}% compared to the manufacturer's claimed range.${speedNote}`;
-};
-
-/**
- * Resolves a trip distance for the Trip Planner "From / To" fields using
- * the mock city-distance table. Falls back to null (unresolved) if the
- * route isn't in the table — the frontend then asks the user to enter the
- * distance manually via Advanced Settings.
- *
- * SWAP POINT: replace this lookup with a real routing provider call
- * (Google Maps Distance Matrix API, Mapbox Directions, etc) when available.
- * Nothing else in the engine needs to change.
- */
-const resolveTripDistance = (from, to) => {
-  const key = `${String(from).trim().toLowerCase()}|${String(to).trim().toLowerCase()}`;
-  const reverseKey = `${String(to).trim().toLowerCase()}|${String(from).trim().toLowerCase()}`;
-  return MOCK_CITY_DISTANCES_KM[key] ?? MOCK_CITY_DISTANCES_KM[reverseKey] ?? null;
-};
-
-/**
- * Runs the full Step 1-7 algorithm and assembles every result card's data.
- * @param {import('./evRangeCalculator.types').CalculateRangeInput} input
- * @returns {import('./evRangeCalculator.types').CalculateRangeResult}
- */
-const calculateRange = (input) => {
-  const vehicle = findVehicleById(input.vehicleId);
-  if (!vehicle) {
+  if (!variant) {
     throw new ServiceError(ERROR_CODES.VEHICLE_NOT_FOUND, 'Selected vehicle was not found');
   }
 
-  const advanced = { ...ADVANCED_SETTINGS_DEFAULTS, ...(input.advanced || {}) };
+  return variant;
+};
+
+/**
+ * Searches the existing Variant collection for Electric vehicles matching
+ * a free-text query — this IS the EV database; no separate/duplicate EV
+ * dataset is introduced.
+ */
+const searchElectricVehicles = async (search) => {
+  const variantQuery = { fuelType: 'Electric' };
+
+  const variants = await Variant.find(variantQuery)
+    .populate({ path: 'modelId', populate: { path: 'brandId' } })
+    .limit(200);
+
+  const normalizedSearch = String(search || '').trim().toLowerCase();
+
+  const results = variants
+    .map((variant) => extractEvSpecData(variant))
+    .filter((ev) => {
+      if (!normalizedSearch) return true;
+      const haystack = `${ev.manufacturer} ${ev.model} ${ev.variant}`.toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+
+  return results;
+};
+
+/**
+ * Runs Steps 1-7 plus every derived card, given already-validated request
+ * input and an already-fetched vehicle document.
+ */
+const calculateRange = async (input) => {
+  const variantDoc = await fetchVehicle(input.vehicleId);
+  const evData = extractEvSpecData(variantDoc); // parsed ONCE, reused for every step below
+
+  if (!evData.isElectric) {
+    throw new ServiceError(ERROR_CODES.NOT_ELECTRIC, MESSAGES.NOT_ELECTRIC);
+  }
 
   // ---- Step 1 ----
-  const claimedRangeKm = vehicle.officialClaimedRangeKm;
+  if (evData.officialClaimedRangeKm === null) {
+    // Developer warning already logged inside dataExtraction.js.
+    throw new ServiceError(ERROR_CODES.MISSING_CLAIMED_RANGE, MESSAGES.MISSING_CLAIMED_RANGE);
+  }
+  const claimedRangeKm = evData.officialClaimedRangeKm;
 
   // ---- Step 2 + 3 ----
-  const { factors, overallEfficiency } = resolveFactors(input);
-  const speedBand = getBandFactor(SPEED_FACTOR_BANDS, input.averageSpeedKmh);
+  const { factors, overallEfficiency, speedBand } = resolveFactors(input);
 
   // ---- Step 4 ----
   const estimatedPracticalRangeKm = claimedRangeKm * overallEfficiency;
 
   // ---- Step 5 ----
+  // This is the single number used everywhere downstream as "Estimated
+  // Real World Range" — see the file header for why Total Reduction is
+  // measured against this (battery-scaled) value rather than Step 4's
+  // conditions-only value: it keeps the headline number, the progress
+  // bar, the Claimed-vs-Estimated graph, the Difference figure, and Total
+  // Reduction all derived from one shared number, so they can never drift
+  // out of sync with each other.
   const availableRangeKm = estimatedPracticalRangeKm * (input.batteryPercent / 100);
 
-  // ---- Step 6 & 7 (Trip Planner / trip feasibility) ----
-  const tripDistanceKm = advanced.tripDistanceKm;
-  const tripPossible = availableRangeKm >= tripDistanceKm;
-  const remainingBatteryPercent = clamp(
-    ((availableRangeKm - tripDistanceKm) / availableRangeKm) * 100,
-    0,
-    100
-  );
+  // ---- Step 6 & 7 ----
+  const tripAnalysis = analyzeTrip(availableRangeKm, input.tripDistanceKm);
 
-  // ---- Derived result cards ----
-  const kwhPerKm = vehicle.batteryCapacityKwh / estimatedPracticalRangeKm;
-  const usableBatteryUsedKwh = round1(kwhPerKm * Math.min(tripDistanceKm, availableRangeKm));
+  // ---- Range Reduction Breakdown (condition factors only — battery level
+  // is a separate, already-visible input, not a "reduction" being
+  // explained here) ----
+  const rangeReductionBreakdownInternal = buildReductionBreakdown(factors);
+  const rangeReductionBreakdown = rangeReductionBreakdownInternal.map(({ label, reductionPercent }) => ({ label, reductionPercent }));
+
+  // ---- Total Reduction — per spec's exact formula, measured against the
+  // same availableRangeKm used everywhere else ----
+  const totalReductionPercent = round1(((claimedRangeKm - availableRangeKm) / claimedRangeKm) * 100);
 
   const recommendedMaxTripDistanceKm = Math.round(availableRangeKm * RECOMMENDED_TRIP_SAFETY_FACTOR);
-
-  const estimatedBatteryAtDestinationPercent = Math.round(
-    clamp(input.batteryPercent - (usableBatteryUsedKwh / vehicle.batteryCapacityKwh) * 100, 0, 100)
-  );
-
-  const rangeReductionBreakdown = buildReductionBreakdown(factors);
-  const totalReductionPercent = round1((1 - overallEfficiency) * 100);
-
   const rangeBarPercent = clamp(round1((availableRangeKm / claimedRangeKm) * 100), 0, 100);
 
-  const costEstimate = {
-    tripDistanceKm,
-    energyUsedKwh: usableBatteryUsedKwh,
-    homeChargingCost: Math.round(usableBatteryUsedKwh * advanced.homeChargingRatePerKwh),
-    publicChargingCost: Math.round(usableBatteryUsedKwh * advanced.publicChargingRatePerKwh),
-    homeChargingRatePerKwh: advanced.homeChargingRatePerKwh,
-    publicChargingRatePerKwh: advanced.publicChargingRatePerKwh,
-  };
+  // ---- Energy / cost (requires battery capacity — skipped gracefully if missing) ----
+  let costEstimate = null;
+  let usableBatteryUsedKwh = null;
+  let energyCalculationAvailable = false;
 
-  // Simple, transparent confidence heuristic: starts high, nudged down as
-  // conditions move further from "ideal" (bigger total reduction). Purely
-  // a UX signal, not a statistical model.
-  const confidencePercent = Math.round(clamp(97 - totalReductionPercent * 0.35, 70, 97));
+  if (evData.batteryCapacityKwh !== null) {
+    costEstimate = calculateTripCost({
+      batteryCapacityKwh: evData.batteryCapacityKwh,
+      estimatedPracticalRangeKm,
+      tripDistanceKm: input.tripDistanceKm,
+      availableRangeKm,
+    });
+    usableBatteryUsedKwh = costEstimate.energyUsedKwh;
+    energyCalculationAvailable = true;
+  }
 
-  const aiInsight = buildAiInsight(rangeReductionBreakdown, totalReductionPercent, speedBand, input);
-  const publicRangeReductionBreakdown = rangeReductionBreakdown.map(({ label, reductionPercent }) => ({ label, reductionPercent }));
+  // ---- AI Insight — dynamic, from the same breakdown used on screen ----
+  const aiInsight = buildAiInsight(rangeReductionBreakdownInternal, totalReductionPercent, speedBand, input);
+
+  // Simple, transparent confidence heuristic — a UX signal, not a
+  // statistical model. Reduced slightly further when charging/battery
+  // data is incomplete, since some downstream numbers are then estimates
+  // of a smaller, less-complete picture.
+  let confidencePercent = clamp(97 - totalReductionPercent * 0.35, 70, 97);
+  if (!energyCalculationAvailable) confidencePercent -= 5;
+  if (!evData.hasChargingInfo) confidencePercent -= 3;
+  confidencePercent = Math.round(clamp(confidencePercent, 60, 97));
 
   return {
     vehicle: {
-      id: vehicle.id,
-      manufacturer: vehicle.manufacturer,
-      model: vehicle.model,
-      variant: vehicle.variant,
-      batteryCapacityKwh: vehicle.batteryCapacityKwh,
-      drivetrain: vehicle.drivetrain,
-      image: vehicle.image,
+      id: evData.id,
+      manufacturer: evData.manufacturer,
+      model: evData.model,
+      variant: evData.variant,
+      image: evData.image,
+      batteryCapacityKwh: evData.batteryCapacityKwh,
+      batteryType: evData.batteryType,
+      chargingPort: evData.chargingPort,
+      rangeStandard: evData.rangeStandard,
     },
     confidencePercent,
     claimedRangeKm: Math.round(claimedRangeKm),
     estimatedRealWorldRangeKm: Math.round(availableRangeKm),
     rangeBarPercent,
-    estimatedBatteryAtDestinationPercent,
     recommendedMaxTripDistanceKm,
+    estimatedBatteryAtDestinationPercent: tripAnalysis.remainingBatteryPercent,
     usableBatteryUsedKwh,
-    rangeReductionBreakdown: publicRangeReductionBreakdown,
+    rangeReductionBreakdown,
     totalReductionPercent,
     claimedVsEstimated: {
       claimedRangeKm: Math.round(claimedRangeKm),
@@ -270,18 +211,26 @@ const calculateRange = (input) => {
       differenceKm: Math.round(claimedRangeKm - availableRangeKm),
     },
     costEstimate,
+    energyCalculationAvailable,
+    chargingInfoAvailable: evData.hasChargingInfo,
     aiInsight,
     tripPlanner: {
-      tripDistanceKm,
-      tripPossible,
-      chargingRequired: !tripPossible,
-      remainingBatteryPercent: Math.round(remainingBatteryPercent),
+      tripDistanceKm: input.tripDistanceKm,
+      tripPossible: tripAnalysis.tripPossible,
+      chargingRequired: tripAnalysis.chargingRequired,
+      remainingBatteryPercent: tripAnalysis.remainingBatteryPercent,
+      message: tripAnalysis.message,
+    },
+    warnings: {
+      batteryCapacityMissing: !energyCalculationAvailable ? MESSAGES.MISSING_BATTERY_CAPACITY : null,
+      chargingInfoMissing: !evData.hasChargingInfo ? MESSAGES.MISSING_CHARGING_INFO : null,
     },
   };
 };
 
 module.exports = {
   calculateRange,
-  resolveTripDistance,
+  searchElectricVehicles,
+  fetchVehicle,
   ServiceError,
 };

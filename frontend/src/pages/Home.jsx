@@ -36,35 +36,35 @@ const FALLBACK_BANNERS = [
   {
     id: 'fallback-1',
     desktopImage: "/1.png",
-    mobileImage: "/Hero1-mobile.png",
+    mobileImage: "/Mobile1.png",
     buttonLink: "/ai-car-finder",
     buttonText: "Launch Car Finder →"
   },
   {
     id: 'fallback-2',
     desktopImage: "/2.png",
-    mobileImage: "/Hero2-mobile.png",
+    mobileImage: "/Mobile2.png",
     buttonLink: "/ai-mode",
     buttonText: "Ask AI Advisor →"
   },
   {
     id: 'fallback-3',
     desktopImage: "/3.png",
-    mobileImage: "/Hero3-mobile2.png",
+    mobileImage: "/Mobile3.png",
     buttonLink: "/articles",
     buttonText: "Explore Articles →"
   },
   {
     id: 'fallback-4',
     desktopImage: "/4.png",
-    mobileImage: "/Hero1-mobile.png",
+    mobileImage: "/Mobile4.png",
     buttonLink: "/compare-cars",
     buttonText: "Compare Cars →"
   },
   {
     id: 'fallback-5',
     desktopImage: "/5.png",
-    mobileImage: "/Hero2-mobile.png",
+    mobileImage: "/Mobile5.png",
     buttonLink: "/travelogues",
     buttonText: "Read Travel Stories →"
   }

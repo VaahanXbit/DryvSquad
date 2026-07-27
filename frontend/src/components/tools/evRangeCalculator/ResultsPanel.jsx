@@ -17,8 +17,7 @@ const ResultsPanel = ({ result, batteryPercent }) => {
       <div className="flex items-start justify-between mb-1">
         <div className="flex items-center gap-2">
           <span
-            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-            style={{ backgroundColor: 'var(--brand-navy)' }}
+            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-brand-navy dark:text-black bg-yellow-500 flex-shrink-0"
           >
             2
           </span>
@@ -58,12 +57,16 @@ const ResultsPanel = ({ result, batteryPercent }) => {
             icon={Zap}
             iconColorClass="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
             label="Usable Battery Used"
-            value={`${result.usableBatteryUsedKwh} kWh`}
+            value={result.usableBatteryUsedKwh !== null ? `${result.usableBatteryUsedKwh} kWh` : '—'}
           />
         </div>
 
+        {result.warnings?.batteryCapacityMissing && (
+          <p className="text-xs text-amber-700 dark:text-amber-400 -mt-2 px-1">{result.warnings.batteryCapacityMissing}</p>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <RangeReductionBreakdown items={result.rangeReductionBreakdown} totalReductionPercent={result.totalReductionPercent} />
+          <RangeReductionBreakdown items={result.rangeReductionBreakdown} />
           <ClaimedVsEstimatedChart
             claimedRangeKm={result.claimedVsEstimated.claimedRangeKm}
             estimatedRangeKm={result.claimedVsEstimated.estimatedRangeKm}

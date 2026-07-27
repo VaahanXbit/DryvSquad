@@ -1,12 +1,12 @@
 // src/components/tools/evRangeCalculator/ConditionDropdown.jsx
+import FieldHint from './FieldHint';
 
 /**
  * Generic labeled dropdown, reused for every simple select field in the
- * form (Outside Temperature, Road Type, Average Speed, Driving Style,
- * Terrain, Traffic) so the six identical-looking inputs share one
- * implementation instead of being duplicated six times.
+ * form (Road Type, Driving Style, Terrain, Traffic) so identical-looking
+ * inputs share one implementation instead of being duplicated.
  */
-const ConditionDropdown = ({ icon: Icon, label, value, options, onChange }) => {
+const ConditionDropdown = ({ icon: Icon, label, value, options, onChange, hint }) => {
   return (
     <div>
       <label className="flex items-center gap-1.5 text-sm font-semibold text-theme-secondary mb-2">
@@ -24,6 +24,7 @@ const ConditionDropdown = ({ icon: Icon, label, value, options, onChange }) => {
           </option>
         ))}
       </select>
+      <FieldHint>{hint}</FieldHint>
     </div>
   );
 };

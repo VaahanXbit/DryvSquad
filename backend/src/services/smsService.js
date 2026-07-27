@@ -4,9 +4,9 @@
 File Name : smsService.js
 Author : Tahseen Raza
 Created Date : 2026-06-23
-Description : SMS service for sending OTP via Brevo (Sendinblue)
-Company : Vaahan International
-Copyright : (c) 2026 Vaahan International. All rights reserved.
+Description : SMS service for sending OTP via Brevo API
+Company : DryvSquad
+Copyright : (c) 2026 DryvSquad. All rights reserved.
 ================================================================================
 */
 
@@ -15,7 +15,7 @@ const axios = require('axios');
 // Brevo SMS API endpoint
 const BREVO_SMS_API_URL = 'https://api.brevo.com/v3/transactionalSMS/sms';
 
-// Send SMS via Brevo
+// Send SMS via Brevo API
 const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
   try {
     console.log(`📱 Attempting to send SMS to ${phoneNumber}...`);
@@ -36,7 +36,7 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
       };
     }
 
-    // Check for SMS credits (if using Brevo)
+    // ✅ Check for API key
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
       console.error('❌ BREVO_API_KEY not found in .env');
@@ -46,21 +46,25 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
       };
     }
 
-    // Customize message based on purpose
+    // ✅ Get sender name
+    const senderName = process.env.SENDER_NAME || 'DryvSquad';
+    const sender = process.env.BREVO_SMS_SENDER || 'DRYVSQ';
+
+    // Customize message based on purpose (without emojis for SMS)
     let message = '';
     if (purpose === 'login') {
-      message = `🔐 Dryvsquad\nYour login OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP with anyone.\n\n- Dryvsquad`;
+      message = `${senderName}\nYour login OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP.\n\n- ${senderName}`;
     } else if (purpose === 'verify_phone') {
-      message = `🔐 Dryvsquad\nYour mobile verification OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP with anyone.\n\n- Dryvsquad`;
+      message = `${senderName}\nYour mobile verification OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP.\n\n- ${senderName}`;
     } else if (purpose === 'verify') {
-      message = `🔐 Dryvsquad\nYour verification OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP with anyone.\n\n- Dryvsquad`;
+      message = `${senderName}\nYour verification OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP.\n\n- ${senderName}`;
     } else {
-      message = `🔐 Dryvsquad\nYour OTP is: ${otp}\nValid for 10 minutes.\n\n- Dryvsquad`;
+      message = `${senderName}\nYour OTP is: ${otp}\nValid for 10 minutes.\n\n- ${senderName}`;
     }
 
     // Prepare request data for Brevo SMS API
     const smsData = {
-      sender: process.env.BREVO_SMS_SENDER || 'VAAHAN',
+      sender: sender,
       recipient: formattedNumber,
       content: message,
       type: 'transactional',
@@ -68,14 +72,15 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
     };
 
     console.log(`📤 Sending SMS to ${formattedNumber}...`);
+    console.log(`📤 Sender: ${sender}`);
 
-    // Send SMS via Brevo API
+    // ✅ Send SMS via Brevo API (HTTPS - port 443)
     const response = await axios.post(BREVO_SMS_API_URL, smsData, {
       headers: {
         'Content-Type': 'application/json',
         'api-key': apiKey,
       },
-      timeout: 10000,
+      timeout: 15000,
     });
 
     console.log(`✅ SMS sent successfully to ${formattedNumber}`);
@@ -106,9 +111,18 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
           error: 'SMS not enabled for this account. Please enable SMS in Brevo.',
         };
       } else if (error.response.status === 400) {
+        const errorMsg = error.response.data?.message || 'Invalid SMS request';
+        if (errorMsg.includes('sender')) {
+          return {
+            success: false,
+            error: 'Invalid Sender ID. Please register a sender in Brevo.',
+          };
+        }
+        return { success: false, error: errorMsg };
+      } else if (error.response.status === 401) {
         return {
           success: false,
-          error: error.response.data?.message || 'Invalid SMS request',
+          error: 'Invalid API key. Please check your BREVO_API_KEY.',
         };
       }
     } else if (error.code === 'ECONNABORTED') {
@@ -125,52 +139,22 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
   }
 };
 
-// Alternative: Use Twilio if you prefer (fallback)
-const sendSMSViaTwilio = async (phoneNumber, otp, purpose = 'verify') => {
-  try {
-    // Only use Twilio if configured
-    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
-      console.log('⚠️ Twilio not configured, falling back to Brevo');
-      return await sendSMSOTP(phoneNumber, otp, purpose);
-    }
-
-    const twilio = require('twilio');
-    const client = twilio(
-      process.env.TWILIO_ACCOUNT_SID,
-      process.env.TWILIO_AUTH_TOKEN
-    );
-
-    let formattedNumber = phoneNumber.replace(/\s/g, '');
-    if (!formattedNumber.startsWith('+')) {
-      formattedNumber = `+${formattedNumber}`;
-    }
-
-    const message = `🔐 Dryvsquad\nYour OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP with anyone.`;
-
-    const result = await client.messages.create({
-      body: message,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: formattedNumber,
-    });
-
-    console.log(`✅ SMS sent via Twilio to ${formattedNumber}: ${result.sid}`);
-    return {
-      success: true,
-      messageId: result.sid,
-      status: result.status,
-    };
-  } catch (error) {
-    console.error('❌ Twilio SMS failed:', error.message);
-    // Fallback to Brevo
-    console.log('🔄 Falling back to Brevo SMS...');
-    return await sendSMSOTP(phoneNumber, otp, purpose);
-  }
+// For development - log OTP instead of sending
+const sendSMSOTPDev = async (phoneNumber, otp, purpose = 'verify') => {
+  console.log(`📱 [DEV] SMS OTP for ${phoneNumber}: ${otp}`);
+  console.log(`📱 [DEV] Purpose: ${purpose}`);
+  return { success: true, messageId: 'dev-mode' };
 };
 
-// Main SMS sending function (auto-selects provider)
+// Main SMS function - auto-detects environment
 const sendSMS = async (phoneNumber, otp, purpose = 'verify') => {
-  // Try Brevo first (since we already use it for email)
+  // If in development mode, just log
+  if (process.env.NODE_ENV === 'development') {
+    return await sendSMSOTPDev(phoneNumber, otp, purpose);
+  }
+
+  // Production - send via Brevo API
   return await sendSMSOTP(phoneNumber, otp, purpose);
 };
 
-module.exports = { sendSMSOTP, sendSMS, sendSMSViaTwilio };
+module.exports = { sendSMSOTP, sendSMS };

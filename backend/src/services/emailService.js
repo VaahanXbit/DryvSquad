@@ -4,136 +4,34 @@
 File Name : emailService.js
 Author : Tahseen Raza
 Created Date : 2026-06-19
-Description : Email service for sending OTP and notifications
+Description : Email service for sending OTP and notifications via Brevo API
 Company : DryvSquad
 Copyright : (c) 2026 DryvSquad. All rights reserved.
 ================================================================================
 */
 
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 
-const createTransporter = () => {
-  // Development - Use Ethereal
-  if (process.env.NODE_ENV === 'development' || !process.env.EMAIL_PROVIDER) {
-    console.log('📧 Using Ethereal email service (test mode)');
-
-    if (process.env.ETHEREAL_EMAIL && process.env.ETHEREAL_PASSWORD) {
-      return nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.ETHEREAL_EMAIL,
-          pass: process.env.ETHEREAL_PASSWORD,
-        },
-      });
-    }
-
-    console.log('📧 Creating new Ethereal test account...');
-    return nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'your-ethereal-email@ethereal.email',
-        pass: 'your-ethereal-password',
-      },
-    });
-  }
-
-  // Production email providers
-  console.log('📧 Using production email service');
-
-  // Brevo (Sendinblue)
-  if (process.env.EMAIL_PROVIDER === 'brevo') {
-    console.log('📧 Using Brevo email service');
-    return nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_SMTP_USER,
-        pass: process.env.BREVO_SMTP_PASSWORD,
-      },
-    });
-  }
-
-  // Gmail
-  if (process.env.EMAIL_PROVIDER === 'gmail') {
-    console.log('📧 Using Gmail email service');
-    return nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-  }
-
-  // SendGrid
-  if (process.env.EMAIL_PROVIDER === 'sendgrid') {
-    console.log('📧 Using SendGrid email service');
-    return nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY,
-      },
-    });
-  }
-
-  // Mailgun
-  if (process.env.EMAIL_PROVIDER === 'mailgun') {
-    console.log('📧 Using Mailgun email service');
-    return nodemailer.createTransport({
-      host: 'smtp.mailgun.org',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.MAILGUN_SMTP_USER,
-        pass: process.env.MAILGUN_SMTP_PASSWORD,
-      },
-    });
-  }
-
-  // Default fallback to Ethereal
-  console.log('📧 Falling back to Ethereal email service');
-  return nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.ETHEREAL_EMAIL || 'your-ethereal-email@ethereal.email',
-      pass: process.env.ETHEREAL_PASSWORD || 'your-ethereal-password',
-    },
-  });
-};
+// Brevo Email API endpoint
+const BREVO_EMAIL_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 const sendOTPEmail = async (email, otp, purpose = 'verify') => {
   try {
     console.log(`📧 Attempting to send OTP to ${email}...`);
 
-    const transporter = createTransporter();
+    // ✅ Check for API key
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) {
+      console.error('❌ BREVO_API_KEY not found in .env');
+      return { 
+        success: false, 
+        error: 'Email service not configured. Please add BREVO_API_KEY to .env' 
+      };
+    }
 
-    // Verify connection
-    // try {
-    //   await transporter.verify();
-    //   console.log('✅ Email transporter verified successfully');
-    // } catch (verifyError) {
-    //   console.error('❌ Email transporter verification failed:', verifyError.message);
-    //   return { success: false, error: 'Email service not configured properly' };
-    // }
-
-    // ✅ FIX: Get sender details from .env
+    // ✅ Get sender details from .env
     const senderName = process.env.SENDER_NAME || 'DryvSquad';
     const senderEmail = process.env.EMAIL_FROM || 'contact@dryvsquad.com';
-
-    // ✅ FIX: Combine to proper format: "Display Name" <email@domain.com>
-    const fromAddress = `"${senderName}" <${senderEmail}>`;
 
     const subject = `Your OTP for ${senderName}`;
 
@@ -226,50 +124,55 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
       </html>
     `;
 
-    // ✅ FIX: Use the formatted from address with display name
-    const mailOptions = {
-      from: fromAddress,  // This is now: "DryvSquad" <contact@dryvsquad.com>
-      to: email,
-      subject,
-      html,
+    // ✅ Use Brevo API (HTTPS) instead of SMTP
+    const requestData = {
+      sender: {
+        name: senderName,
+        email: senderEmail,
+      },
+      to: [{ email }],
+      subject: subject,
+      htmlContent: html,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ OTP email sent to ${email}: ${info.messageId}`);
+    console.log(`📤 Sending email via Brevo API to ${email}...`);
 
-    // Get preview URL for Ethereal (development only)
-    let previewUrl = null;
-    if (process.env.NODE_ENV === 'development') {
-      previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log(`📧 OTP Preview URL: ${previewUrl}`);
-        console.log(`🔑 OTP Code: ${otp} (for testing)`);
-      }
-    }
+    const response = await axios.post(BREVO_EMAIL_API_URL, requestData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': apiKey,
+      },
+      timeout: 15000,
+    });
+
+    console.log(`✅ OTP email sent to ${email}: ${response.data?.messageId}`);
+    console.log(`📊 Response:`, response.data);
 
     return {
       success: true,
-      messageId: info.messageId,
-      preview: previewUrl,
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      messageId: response.data?.messageId || 'email_sent',
     };
   } catch (error) {
-    console.error("FULL ERROR:", error);
-    console.error("CODE:", error.code);
-    console.error("COMMAND:", error.command);
-    console.error("MESSAGE:", error.message);
-
-    // Provide more specific error messages
-    let errorMessage = error.message;
-    if (errorMessage.includes('sender')) {
-      errorMessage = 'Sender email not verified. Please verify your email in Brevo.';
-    } else if (errorMessage.includes('auth')) {
-      errorMessage = 'SMTP authentication failed. Check your credentials.';
-    } else if (errorMessage.includes('connect')) {
-      errorMessage = 'Could not connect to email server. Check your internet.';
+    console.error("❌ Email sending failed:");
+    console.error("FULL ERROR:", error.message);
+    
+    if (error.response) {
+      console.error("📊 Brevo API Response:", error.response.data);
+      console.error("📊 Status Code:", error.response.status);
+      
+      // Handle specific error codes
+      if (error.response.status === 401) {
+        return { success: false, error: 'Invalid API key. Please check your BREVO_API_KEY.' };
+      } else if (error.response.status === 429) {
+        return { success: false, error: 'Rate limit exceeded. Please try again later.' };
+      } else if (error.response.status === 400) {
+        return { success: false, error: error.response.data?.message || 'Invalid email request.' };
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      return { success: false, error: 'Email service timeout. Please try again.' };
     }
 
-    return { success: false, error: errorMessage };
+    return { success: false, error: error.message || 'Failed to send email' };
   }
 };
 

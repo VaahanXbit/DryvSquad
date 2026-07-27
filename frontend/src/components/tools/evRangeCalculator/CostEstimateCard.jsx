@@ -17,6 +17,17 @@ const CostItem = ({ icon: Icon, label, value, sublabel }) => (
  * home vs public charging rates.
  */
 const CostEstimateCard = ({ costEstimate }) => {
+  if (!costEstimate) {
+    return (
+      <div className="card p-5 sm:p-6 h-full flex flex-col">
+        <h3 className="font-semibold text-theme-primary mb-2">Cost Estimate for this Trip</h3>
+        <p className="text-sm text-theme-tertiary">
+          Cost estimate unavailable — battery capacity isn't published for this vehicle.
+        </p>
+      </div>
+    );
+  }
+
   const { tripDistanceKm, energyUsedKwh, homeChargingCost, publicChargingCost, homeChargingRatePerKwh, publicChargingRatePerKwh } = costEstimate;
 
   return (

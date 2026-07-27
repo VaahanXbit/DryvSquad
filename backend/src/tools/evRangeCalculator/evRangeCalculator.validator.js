@@ -2,9 +2,10 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.validator.js
-Description : Input validation for the EV Range Calculator. Kept isolated
-              from the controller/service so validation rules can evolve
-              independently.
+Description : Validates the shape/ranges of incoming request data (NOT
+              vehicle data completeness — that's evRangeCalculator.service.js
+              reading from evRangeCalculator.dataExtraction.js, per the
+              spec's validation-message rules for missing vehicle specs).
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -20,10 +21,13 @@ const {
   MAX_BATTERY_PERCENT,
   MIN_PASSENGERS,
   MAX_PASSENGERS,
+  MIN_TRIP_DISTANCE_KM,
+  MIN_TEMPERATURE_C,
+  MAX_TEMPERATURE_C,
 } = require('./constants');
 
 /**
- * @param {import('./evRangeCalculator.types').CalculateRangeInput} input
+ * @param {Object} input
  * @returns {{ isValid: boolean, errors: string[] }}
  */
 const validateCalculateInput = (input) => {
@@ -39,17 +43,27 @@ const validateCalculateInput = (input) => {
     errors.push(`Battery level must be between ${MIN_BATTERY_PERCENT}% and ${MAX_BATTERY_PERCENT}%`);
   }
 
-  if (typeof body.outsideTemperatureC !== 'number' || Number.isNaN(body.outsideTemperatureC)) {
-    errors.push('Outside temperature is required');
+  const tripDistance = Number(body.tripDistanceKm);
+  if (Number.isNaN(tripDistance) || tripDistance < MIN_TRIP_DISTANCE_KM) {
+    errors.push('Please enter a valid trip distance');
+  }
+
+  const temperature = Number(body.outsideTemperatureC);
+  if (Number.isNaN(temperature) || temperature < MIN_TEMPERATURE_C || temperature > MAX_TEMPERATURE_C) {
+    errors.push(`Outside temperature must be between ${MIN_TEMPERATURE_C}°C and ${MAX_TEMPERATURE_C}°C`);
+  }
+
+  const speed = Number(body.averageSpeedKmh);
+  if (Number.isNaN(speed) || speed <= 0) {
+    errors.push('Please enter a valid average speed');
   }
 
   if (!VALID_ROAD_TYPES.includes(body.roadType)) {
     errors.push('Please select a valid road type');
   }
 
-  const speed = Number(body.averageSpeedKmh);
-  if (Number.isNaN(speed) || speed <= 0) {
-    errors.push('Please select a valid average speed');
+  if (!VALID_TERRAINS.includes(body.terrain)) {
+    errors.push('Please select a valid terrain');
   }
 
   if (!VALID_DRIVING_STYLES.includes(body.drivingStyle)) {
@@ -60,24 +74,13 @@ const validateCalculateInput = (input) => {
     errors.push('Please select a valid air conditioning setting');
   }
 
-  const passengers = Number(body.passengers);
-  if (Number.isNaN(passengers) || passengers < MIN_PASSENGERS || passengers > MAX_PASSENGERS) {
-    errors.push(`Passengers must be between ${MIN_PASSENGERS} and ${MAX_PASSENGERS}`);
-  }
-
-  if (!VALID_TERRAINS.includes(body.terrain)) {
-    errors.push('Please select a valid terrain');
-  }
-
   if (!VALID_TRAFFIC_LEVELS.includes(body.traffic)) {
     errors.push('Please select a valid traffic level');
   }
 
-  if (body.advanced && body.advanced.tripDistanceKm !== undefined) {
-    const tripDistance = Number(body.advanced.tripDistanceKm);
-    if (Number.isNaN(tripDistance) || tripDistance <= 0) {
-      errors.push('Trip distance must be a positive number');
-    }
+  const passengers = Number(body.passengers);
+  if (Number.isNaN(passengers) || passengers < MIN_PASSENGERS || passengers > MAX_PASSENGERS) {
+    errors.push(`Passengers must be between ${MIN_PASSENGERS} and ${MAX_PASSENGERS}`);
   }
 
   return { isValid: errors.length === 0, errors };

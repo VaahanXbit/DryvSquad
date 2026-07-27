@@ -1,6 +1,6 @@
 // src/components/tools/evRangeCalculator/TripPlanner.jsx
-import { useState } from 'react';
-import { ArrowLeftRight, Route, Car, Clock, CheckCircle2, AlertTriangle, Zap } from 'lucide-react';
+// import { useState } from 'react';
+import { Route, Car, Clock, CheckCircle2, AlertTriangle} from 'lucide-react';
 
 const CIRCLE_RADIUS = 32;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
@@ -34,31 +34,35 @@ const BatteryGauge = ({ percent }) => {
 };
 
 /**
- * "Trip Planner" — From/To fields resolve a distance via planTrip(), and
- * the Charging Recommendation reflects whether the current estimated
- * range can cover that trip.
+ * "Trip Planner" — the From/To fields are an optional convenience that
+ * fill in the shared Trip Distance field (via a mock city lookup); the
+ * canonical distance the whole calculation uses is always
+ * formValues.tripDistanceKm, entered directly higher up in Your Inputs.
+ * The Charging Recommendation here is just result.tripPlanner rendered —
+ * no independent logic, per spec.
  */
-const TripPlanner = ({ vehicleName, result, tripPlannerState, onPlanTrip }) => {
-  const [from, setFrom] = useState('Delhi');
-  const [to, setTo] = useState('Jaipur');
-  const [showChargingStops, setShowChargingStops] = useState(false);
+const TripPlanner = ({ vehicleName, result, tripPlannerState}) => {
+  // const [from, setFrom] = useState('Delhi');
+  // const [to, setTo] = useState('Jaipur');
+  // const [showChargingStops, setShowChargingStops] = useState(false);
 
-  const handleSwap = () => {
-    setFrom(to);
-    setTo(from);
-  };
+  // const handleSwap = () => {
+  //   setFrom(to);
+  //   setTo(from);
+  // };
 
-  const handlePlan = () => {
-    if (from.trim() && to.trim()) onPlanTrip(from.trim(), to.trim());
-  };
+  // const handlePlan = () => {
+  //   if (from.trim() && to.trim()) onPlanTrip(from.trim(), to.trim());
+  // };
 
   const tripPlan = result?.tripPlanner;
+  // const chargingInfoMissing = result?.warnings?.chargingInfoMissing;
 
   return (
     <div className="card p-5 sm:p-6">
-      <h3 className="font-semibold text-theme-primary mb-4">Trip Planner</h3>
+      <h3 className="font-semibold text-theme-primary mb-4">Trip Summary</h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 items-end mb-5">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 items-end mb-5">
         <div>
           <label className="block text-xs text-theme-tertiary mb-1.5">From</label>
           <input
@@ -88,7 +92,7 @@ const TripPlanner = ({ vehicleName, result, tripPlannerState, onPlanTrip }) => {
             className="input-field w-full"
           />
         </div>
-      </div>
+      </div> */}
 
       {tripPlannerState.status === 'error' && (
         <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">{tripPlannerState.message}</p>
@@ -134,7 +138,7 @@ const TripPlanner = ({ vehicleName, result, tripPlannerState, onPlanTrip }) => {
               )}
               <div>
                 <p className={`font-bold ${tripPlan.tripPossible ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
-                  {tripPlan.tripPossible ? 'No Charging Required' : 'Charging Required'}
+                  {tripPlan.message}
                 </p>
                 <p className="text-sm text-theme-tertiary mt-0.5">
                   {tripPlan.tripPossible
@@ -149,23 +153,30 @@ const TripPlanner = ({ vehicleName, result, tripPlannerState, onPlanTrip }) => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-4">
-            <span className="text-sm text-theme-tertiary">Want to see charging stops just in case?</span>
-            <button
-              type="button"
-              onClick={() => setShowChargingStops((prev) => !prev)}
-              className="btn-secondary flex items-center gap-2 py-2 px-4 text-sm"
-            >
-              <Zap className="w-4 h-4" />
-              Show Charging Stops
-            </button>
-          </div>
+          {/* {chargingInfoMissing ? (
+            <p className="flex items-start gap-2 text-sm text-theme-tertiary mt-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+              <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              {chargingInfoMissing}
+            </p>
+          ) : (
+            <div className="flex items-center justify-between mt-4">
+              <span className="text-sm text-theme-tertiary">Want to see charging stops just in case?</span>
+              <button
+                type="button"
+                onClick={() => setShowChargingStops((prev) => !prev)}
+                className="btn-secondary flex items-center gap-2 py-2 px-4 text-sm"
+              >
+                <Zap className="w-4 h-4" />
+                Show Charging Stops
+              </button>
+            </div>
+          )} */}
 
-          {showChargingStops && (
+          {/* {showChargingStops && !chargingInfoMissing && (
             <p className="text-sm text-theme-tertiary mt-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
               Charging station lookup is coming soon for this route.
             </p>
-          )}
+          )} */}
         </>
       )}
     </div>

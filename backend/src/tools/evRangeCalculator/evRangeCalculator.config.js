@@ -3,20 +3,17 @@
 ================================================================================
 File Name : evRangeCalculator.config.js
 Description : Every efficiency multiplier used by the calculation engine
-              lives here — NOT hardcoded inside evRangeCalculator.service.js.
-              This is the file your team recalibrates after real-world
-              testing/telemetry, without touching any business logic.
+              lives here — NEVER hardcoded inside the engine itself. This is
+              the file to recalibrate after real-world testing/telemetry.
 
               Multiplier meaning: 1.00 = no effect on range. Below 1.00 =
               reduces range by that percentage. Above 1.00 = slightly
               improves range (e.g. eco driving, light traffic).
 
-              Every "neutral" bucket (the one matching typical/average
-              conditions) is intentionally set to 1.00, so the Range
-              Reduction Breakdown UI only surfaces factors that actually
-              move the needle — matching the approved design, which never
-              shows a reduction line for a condition that isn't hurting
-              range.
+              Temperature and speed are user-entered as free numeric input
+              (no fixed dropdown), so they're resolved through banded
+              lookups here — the band boundaries are config, not the input
+              itself, so any temperature/speed value works automatically.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -29,7 +26,9 @@ const ROAD_TYPE_FACTORS = {
   hilly: 0.85,
 };
 
-// Bucketed by outside temperature in °C. `max` is exclusive.
+// Bucketed by outside temperature in °C. `max` is exclusive. Since the
+// frontend now accepts any numeric temperature, this band table is what
+// makes "any numeric temperature" resolve to a factor dynamically.
 const TEMPERATURE_FACTOR_BANDS = [
   { max: 0, factor: 0.82, label: 'Freezing temperature' },
   { max: 10, factor: 0.90, label: 'Cold temperature' },
@@ -73,7 +72,7 @@ const TRAFFIC_FACTORS = {
 };
 
 // Keyed by passenger count; anything above the highest key uses that key's
-// factor (i.e. 5+ passengers all use the "5" bucket below).
+// factor.
 const PASSENGER_FACTORS = {
   1: 1.00,
   2: 0.99,
@@ -82,19 +81,16 @@ const PASSENGER_FACTORS = {
   5: 0.97,
 };
 
-// Used for "Recommended Max Trip Distance" — a safety margin subtracted
-// from the estimated real-world range so the recommendation always leaves
-// a buffer rather than cutting it exactly at empty.
+// Safety margin subtracted from the estimated real-world range for the
+// "Recommended Max Trip Distance" card.
 const RECOMMENDED_TRIP_SAFETY_FACTOR = 0.895;
 
-// Defaults for the fields that live inside the collapsed "Advanced
-// Settings" panel (not itemized in the approved design mock, so sensible
-// defaults are configured here — recalibrate freely).
-const ADVANCED_SETTINGS_DEFAULTS = {
-  tripDistanceKm: 220,
+// Charging rates used for Cost Estimate. These are business config (not a
+// per-vehicle spec, and no longer a user-facing input per the latest
+// review — the visible inputs are all driving-condition fields).
+const CHARGING_RATES = {
   homeChargingRatePerKwh: 8,
   publicChargingRatePerKwh: 20.7,
-  reserveBatteryBufferPercent: 10,
 };
 
 module.exports = {
@@ -107,5 +103,5 @@ module.exports = {
   TRAFFIC_FACTORS,
   PASSENGER_FACTORS,
   RECOMMENDED_TRIP_SAFETY_FACTOR,
-  ADVANCED_SETTINGS_DEFAULTS,
+  CHARGING_RATES,
 };

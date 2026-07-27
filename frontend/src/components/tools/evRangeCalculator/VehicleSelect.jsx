@@ -43,6 +43,21 @@ const VehicleSelect = ({ selectedVehicle, options, isSearching, onSearch, onSele
             <p className="text-sm text-theme-tertiary truncate">
               {selectedVehicle.batteryCapacityKwh} kWh &middot; {selectedVehicle.drivetrain}
             </p>
+            {selectedVehicle.officialClaimedRangeKm ? (
+              <p className="text-xs text-theme-tertiary truncate mt-0.5">
+                Official Claimed Range{' '}
+                <span className="font-semibold text-theme-secondary">
+                  {selectedVehicle.officialClaimedRangeKm} km
+                  {selectedVehicle.rangeStandard && selectedVehicle.rangeStandard !== 'Unknown'
+                    ? ` (${selectedVehicle.rangeStandard})`
+                    : ''}
+                </span>
+              </p>
+            ) : (
+              <p className="text-xs text-amber-600 dark:text-amber-400 truncate mt-0.5">
+                Official claimed range unavailable
+              </p>
+            )}
             <span className="text-sm font-medium" style={{ color: 'var(--brand-navy)' }}>
               Change Vehicle
             </span>

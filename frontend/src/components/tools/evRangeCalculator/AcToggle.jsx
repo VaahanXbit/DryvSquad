@@ -1,11 +1,12 @@
 // src/components/tools/evRangeCalculator/AcToggle.jsx
 import { Snowflake } from 'lucide-react';
 import { AC_OPTIONS } from '../../../constants/evRangeCalculator';
+import FieldHint from './FieldHint';
 
 /**
  * "Air Conditioning" field — a 3-way segmented control (OFF / Mixed / ON).
  */
-const AcToggle = ({ value, onChange }) => {
+const AcToggle = ({ value, onChange, hint }) => {
   return (
     <div>
       <label className="flex items-center gap-1.5 text-sm font-semibold text-theme-secondary mb-2">
@@ -27,18 +28,16 @@ const AcToggle = ({ value, onChange }) => {
               role="radio"
               aria-checked={isActive}
               onClick={() => onChange(opt.value)}
-              className="flex-1 py-1.5 rounded-full text-sm font-semibold transition-colors"
-              style={
-                isActive
-                  ? { backgroundColor: 'var(--brand-navy)', color: '#fff' }
-                  : { color: 'var(--text-tertiary)' }
-              }
+              className={`flex-1 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                isActive ? 'bg-yellow-500 text-brand-navy dark:text-black' : 'text-theme-tertiary'
+              }`}
             >
               {opt.label}
             </button>
           );
         })}
       </div>
+      <FieldHint>{hint}</FieldHint>
     </div>
   );
 };
