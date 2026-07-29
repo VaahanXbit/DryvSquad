@@ -21,7 +21,7 @@ const LoanQuoteCTA = () => {
   const navigate = useNavigate()
 
   const handleClick = () => {
-    navigate('/lead-loan', { state: { fromArticle: '/auto-loan-emi-calculator' } })
+    navigate('/loan-quotes', { state: { fromArticle: '/auto-loan-emi-calculator' } })
   }
 
   return (

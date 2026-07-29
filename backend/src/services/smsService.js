@@ -15,28 +15,50 @@ const axios = require('axios');
 // Brevo SMS API endpoint
 const BREVO_SMS_API_URL = 'https://api.brevo.com/v3/transactionalSMS/sms';
 
+// ✅ Format phone number to E.164 format (works for all Indian numbers)
+const formatPhoneNumber = (phoneNumber) => {
+  // Remove all spaces, brackets, dashes, and special characters
+  let cleaned = phoneNumber.replace(/\s/g, '').replace(/[()\-]/g, '');
+  
+  // If it starts with 0 (e.g., 07646074286), remove the leading 0
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1);
+  }
+  
+  // If it already has +, return as is (already in E.164 format)
+  if (cleaned.startsWith('+')) {
+    return cleaned;
+  }
+  
+  // If it starts with 91 (India country code without +), add +
+  if (cleaned.startsWith('91')) {
+    return `+${cleaned}`;
+  }
+  
+  // Default: assume Indian number without country code, add +91
+  return `+91${cleaned}`;
+};
+
 // Send SMS via Brevo API
 const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
   try {
-    console.log(`📱 Attempting to send SMS to ${phoneNumber}...`);
+    console.log(`📱 Original number: ${phoneNumber}`);
 
-    // Format phone number - ensure it's in international format
-    let formattedNumber = phoneNumber.replace(/\s/g, '');
-    if (!formattedNumber.startsWith('+')) {
-      formattedNumber = `+${formattedNumber}`;
-    }
+    // ✅ Format phone number properly
+    const formattedNumber = formatPhoneNumber(phoneNumber);
+    console.log(`📱 Formatted number: ${formattedNumber}`);
 
-    // Validate phone number (basic validation)
+    // Validate phone number (E.164 format: + followed by 8-15 digits)
     const phoneRegex = /^\+[0-9]{8,15}$/;
     if (!phoneRegex.test(formattedNumber)) {
-      console.error('❌ Invalid phone number format:', formattedNumber);
+      console.error('❌ Invalid phone number format after formatting:', formattedNumber);
       return {
         success: false,
-        error: 'Invalid phone number format. Please include country code.',
+        error: 'Invalid phone number format. Please use format: +919876543210',
       };
     }
 
-    // ✅ Check for API key
+    // Check for API key
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
       console.error('❌ BREVO_API_KEY not found in .env');
@@ -46,11 +68,11 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
       };
     }
 
-    // ✅ Get sender name
+    // Get sender name
     const senderName = process.env.SENDER_NAME || 'DryvSquad';
     const sender = process.env.BREVO_SMS_SENDER || 'DRYVSQ';
 
-    // Customize message based on purpose (without emojis for SMS)
+    // Customize message based on purpose
     let message = '';
     if (purpose === 'login') {
       message = `${senderName}\nYour login OTP is: ${otp}\nValid for 10 minutes. Do not share this OTP.\n\n- ${senderName}`;
@@ -74,7 +96,7 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
     console.log(`📤 Sending SMS to ${formattedNumber}...`);
     console.log(`📤 Sender: ${sender}`);
 
-    // ✅ Send SMS via Brevo API (HTTPS - port 443)
+    // Send SMS via Brevo API
     const response = await axios.post(BREVO_SMS_API_URL, smsData, {
       headers: {
         'Content-Type': 'application/json',
@@ -112,6 +134,12 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
         };
       } else if (error.response.status === 400) {
         const errorMsg = error.response.data?.message || 'Invalid SMS request';
+        if (errorMsg.includes('telephone') || errorMsg.includes('number')) {
+          return {
+            success: false,
+            error: 'Invalid phone number. Please use format: +919876543210',
+          };
+        }
         if (errorMsg.includes('sender')) {
           return {
             success: false,
@@ -141,7 +169,8 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
 
 // For development - log OTP instead of sending
 const sendSMSOTPDev = async (phoneNumber, otp, purpose = 'verify') => {
-  console.log(`📱 [DEV] SMS OTP for ${phoneNumber}: ${otp}`);
+  const formatted = formatPhoneNumber(phoneNumber);
+  console.log(`📱 [DEV] SMS OTP for ${formatted}: ${otp}`);
   console.log(`📱 [DEV] Purpose: ${purpose}`);
   return { success: true, messageId: 'dev-mode' };
 };

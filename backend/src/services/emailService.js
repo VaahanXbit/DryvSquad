@@ -19,7 +19,7 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
   try {
     console.log(`📧 Attempting to send OTP to ${email}...`);
 
-    // ✅ Check for API key
+    // Check for API key
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
       console.error('❌ BREVO_API_KEY not found in .env');
@@ -29,9 +29,14 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
       };
     }
 
-    // ✅ Get sender details from .env
+    // Get sender details from .env
     const senderName = process.env.SENDER_NAME || 'DryvSquad';
     const senderEmail = process.env.EMAIL_FROM || 'contact@dryvsquad.com';
+
+    // ✅ Logo URL - using your frontend public folder
+    // For production, use your deployed frontend URL
+    const LOGO_URL = process.env.LOGO_URL || 'https://dryvsquad.com/EmailLogo.png';
+    // For local development, you can use: http://localhost:5173/EmailLogo.png
 
     const subject = `Your OTP for ${senderName}`;
 
@@ -45,9 +50,27 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; }
           .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-          .header { background: linear-gradient(135deg, #CFB32B, #e8c84c); padding: 30px 40px; text-align: center; }
-          .header h1 { color: #1a1a1a; font-size: 28px; font-weight: 800; }
-          .header p { color: rgba(26, 26, 26, 0.8); font-size: 14px; }
+          .header { 
+            background: linear-gradient(135deg, #CFB32B, #e8c84c); 
+            padding: 30px 40px; 
+            text-align: center; 
+          }
+          .header-logo {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+          }
+          .header h1 { 
+            color: #1a1a1a; 
+            font-size: 28px; 
+            font-weight: 800; 
+            margin: 0;
+          }
+          .header p { 
+            color: rgba(26, 26, 26, 0.8); 
+            font-size: 14px; 
+            margin-top: 4px;
+          }
           .content { padding: 40px; }
           .greeting { font-size: 18px; color: #1a1a1a; margin-bottom: 8px; }
           .message { color: #555; font-size: 16px; margin-bottom: 24px; }
@@ -70,7 +93,13 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🚗 ${senderName}</h1>
+            <!-- ✅ Logo from frontend public folder -->
+            <img 
+              src="${LOGO_URL}" 
+              alt="${senderName}" 
+              class="header-logo"
+            />
+            <h1>${senderName}</h1>
             <p>Your trusted automotive partner</p>
           </div>
           <div class="content">
@@ -124,7 +153,7 @@ const sendOTPEmail = async (email, otp, purpose = 'verify') => {
       </html>
     `;
 
-    // ✅ Use Brevo API (HTTPS) instead of SMTP
+    // Use Brevo API (HTTPS) instead of SMTP
     const requestData = {
       sender: {
         name: senderName,
