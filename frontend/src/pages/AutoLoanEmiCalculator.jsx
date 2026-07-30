@@ -85,9 +85,9 @@ const FAQS = [
 
 const RELATED_TOOLS = [
   { name: 'Auto Loan EMI Calculator', href: '/auto-loan-emi-calculator', active: true },
-  { name: 'Mileage Calculator', href: null },
+  { name: 'Used Car Valuation Tool', href: '/used-car-valuation',active:true},
   { name: 'EV Range Calculator', href: '/ev-range-calculator', active: true },
-  { name: 'Running Cost Calculator', href: null },
+  // { name: 'Running Cost Calculator', href: null },
 ]
 
 const AutoLoanEmiCalculator = () => {
@@ -109,17 +109,20 @@ const AutoLoanEmiCalculator = () => {
   return (
     // CHANGE 1: Added `relative z-0` to the wrapper. This forces the content to sit on a 
     // new stacking context, ensuring the flex-grow doesn't get pushed under the fixed header.
-    <div className={`relative z-0 min-h-screen transition-colors duration-150 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
+    <div
+      className={`relative z-0 min-h-screen transition-colors duration-150 ${isDark ? 'bg-black' : 'bg-gray-50'}`}
+      style={{ fontFamily: "'Inter', sans-serif" }}
+    >
       
       {/* ==================== Minimal header ==================== */}
       {/* CHANGE 2: Changed pt-20 to pt-48 (192px) for mobile. Your header is 185px tall, 
           and 192px ensures the title sits completely unobstructed with a tiny gap. */}
       <div
-        className={`pt-48 sm:pt-36 pb-3 px-4 sm:px-6 lg:px-8 border-b ${
+        className={`pt-48 sm:pt-36 pb-3 px-3 sm:px-4 md:px-6 lg:px-8 border-b ${
           isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-gray-100'
         }`}
       >
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto px-0">
           <h1 className={`text-lg sm:text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Auto Loan EMI Calculator
           </h1>
@@ -130,8 +133,8 @@ const AutoLoanEmiCalculator = () => {
       </div>
 
       {/* ==================== Calculator — two-column, above the fold ==================== */}
-      <section className="px-4 sm:px-6 lg:px-8 pt-5 pb-6">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <section className="px-3 sm:px-4 md:px-6 lg:px-8 pt-5 pb-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* Inputs */}
           <div className="lg:col-span-3">
             <div className={`rounded-xl border p-3 ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-200'}`}>
@@ -159,10 +162,10 @@ const AutoLoanEmiCalculator = () => {
       </section>
 
       {/* ==================== FAQ ==================== */}
-      <section className={`px-4 sm:px-6 lg:px-8 py-6 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <section className={`px-3 sm:px-4 md:px-6 lg:px-8 pt-4 pb-4 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-3">
-            <h2 className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Frequently asked questions
             </h2>
             <div className={`rounded-xl border divide-y ${isDark ? 'bg-dark-800 border-dark-700 divide-dark-700' : 'bg-white border-gray-200 divide-gray-100'}`}>
@@ -175,14 +178,14 @@ const AutoLoanEmiCalculator = () => {
                       aria-expanded={isOpen}
                       className="w-full flex items-center justify-between gap-3 text-left px-4 py-3"
                     >
-                      <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.q}</span>
+                      <span className={`text-base font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.q}</span>
                       <ChevronDown
                         className={`w-4 h-4 shrink-0 transition-transform ${isOpen ? 'rotate-180 text-yellow-500' : (isDark ? 'text-gray-500' : 'text-gray-400')}`}
                       />
                     </button>
                     {isOpen && (
                       <div className="px-4 pb-3">
-                        <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{item.a}</p>
+                        <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{item.a}</p>
                       </div>
                     )}
                   </div>
@@ -194,14 +197,14 @@ const AutoLoanEmiCalculator = () => {
       </section>
 
       {/* ==================== Related Tools ==================== */}
-      <section className={`px-4 sm:px-6 lg:px-8 py-6 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
-        <div className="max-w-5xl mx-auto">
-          <h2 className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      <section className={`px-3 sm:px-4 md:px-6 lg:px-8 pt-4 pb-6 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
+        <div className="max-w-7xl mx-auto">
+          <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             More tools
           </h2>
           <div className="flex flex-wrap gap-2">
             {RELATED_TOOLS.map(({ name, href, active }) => {
-              const className = `text-xs font-medium px-3 py-1.5 rounded-lg border ${
+              const className = `text-sm font-medium px-3 py-1.5 rounded-lg border ${
                 active
                   ? 'border-yellow-500/40 text-yellow-500 bg-yellow-500/5'
                   : isDark

@@ -38,6 +38,18 @@ const ModelSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+
+   launchYear: {
+    type: Number,
+    min: 1900, // A simple validation to ensure it's a sensible year
+    required: false, // Set to true if you want to make it mandatory for all new data
+  },
+  discontinuedYear: {
+    type: Number,
+    min: 1900,
+    required: false, // This should definitely be optional
+  },
+  
   createdAt: {
     type: Date,
     default: Date.now,

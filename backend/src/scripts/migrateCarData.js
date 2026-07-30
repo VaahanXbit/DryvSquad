@@ -165,11 +165,13 @@ const processBrand = async (brandData) => {
           image: modelData.image || '/images/default.png',
           bodyType: modelData.bodyType || 'SUV',
           seatingCapacity: modelData.seatingCapacity || 5,
+          launchYear: modelData.launchYear || null,           // <-- NEW FIELD
+          discontinuedYear: modelData.discontinuedYear || null, // <-- NEW FIELD
           description: modelData.description || '',
         })
         await modelDoc.save()
         results.modelsProcessed++
-        console.log(`   ✅ Model created: ${modelData.name || modelData.model}`)
+        console.log(`   ✅ Model created: ${modelData.name || modelData.model} (Launch: ${modelData.launchYear || 'N/A'})`)
 
         // 3. Process Variants
         for (const variantData of (modelData.variants || [])) {

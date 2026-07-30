@@ -20,6 +20,7 @@ const heroBannerRoutes = require('./routes/heroBannerRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const evRangeCalculatorRoutes = require('./tools/evRangeCalculator/evRangeCalculator.route');
 const toolRoutes = require('./routes/toolRoutes');
+const usedCarValuationRoutes = require('./tools/usedCarValuation/usedCarValuation.route');
 
 const connectDB = require('./config/database');
 
@@ -117,6 +118,7 @@ app.use('/api/hero-banners', heroBannerRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/tools/ev-range-calculator', evRangeCalculatorRoutes);
 app.use('/api/tools', toolRoutes);
+app.use('/api/tools/used-car-valuation', usedCarValuationRoutes);
 
 
 

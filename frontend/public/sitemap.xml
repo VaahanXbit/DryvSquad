@@ -61,6 +61,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://dryvsquad.com/used-car-valuation</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://dryvsquad.com/article/ev-reality-check-india-2026</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -316,27 +321,27 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://dryvsquad.com/travelogue/first-highway-lesson</loc>
+    <loc>https://dryvsquad.com/article/first-highway-lesson</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://dryvsquad.com/travelogue/first-long-drive-beginner-tips</loc>
+    <loc>https://dryvsquad.com/article/first-long-drive-beginner-tips</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://dryvsquad.com/travelogue/renting-vs-buying-car-true-cost</loc>
+    <loc>https://dryvsquad.com/article/renting-vs-buying-car-true-cost</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://dryvsquad.com/travelogue/first-car-sedan-vs-suv-vs-hatchback</loc>
+    <loc>https://dryvsquad.com/article/first-car-sedan-vs-suv-vs-hatchback</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://dryvsquad.com/travelogue/first-job-bike-vs-car</loc>
+    <loc>https://dryvsquad.com/article/first-job-bike-vs-car</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
