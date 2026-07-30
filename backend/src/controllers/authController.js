@@ -398,11 +398,24 @@ exports.verifyPhone = async (req, res) => {
       });
     }
 
-    // Format phone number
-    let formattedPhone = phoneNumber.replace(/\s/g, '');
-    if (!formattedPhone.startsWith('+')) {
-      formattedPhone = `+${formattedPhone}`;
+    // ✅ Format phone number properly
+    let formattedPhone = phoneNumber.replace(/\s/g, '').replace(/[()\-]/g, '');
+    
+    // Remove leading 0 if present
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = formattedPhone.substring(1);
     }
+    
+    // Add +91 if no country code
+    if (!formattedPhone.startsWith('+')) {
+      if (formattedPhone.startsWith('91')) {
+        formattedPhone = `+${formattedPhone}`;
+      } else {
+        formattedPhone = `+91${formattedPhone}`;
+      }
+    }
+
+    console.log(`📱 Formatted phone number: ${formattedPhone}`);
 
     // Validate phone number
     const phoneRegex = /^\+[0-9]{8,15}$/;
@@ -444,7 +457,7 @@ exports.verifyPhone = async (req, res) => {
 
     console.log(`📱 Phone verification OTP for ${formattedPhone}: ${otp}`);
 
-    // Send SMS - FIXED: Use sendSMSOTP
+    // Send SMS
     const smsResult = await sendSMSOTP(formattedPhone, otp, 'verify_phone');
 
     if (!smsResult || !smsResult.success) {

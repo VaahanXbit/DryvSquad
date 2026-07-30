@@ -88,6 +88,42 @@ const LocationSchema = new mongoose.Schema({
     type: Number,
     default: null,
   },
+
+  // ----- Optional used-car-valuation fields -----
+  // Added to support tools/usedCarValuation's Market Adjustment step
+  // without introducing a separate city configuration file. All four are
+  // nullable/optional — engines fall back to a generic config default
+  // when a location hasn't been tuned yet. Populate these per-location as
+  // real resale market data becomes available (e.g. via an admin tool or
+  // a future seed script), the same way handlingChargeOverride is set.
+  marketAdjustment: {
+    // Fraction of a vehicle's value added/removed for resale demand in
+    // this location, e.g. 0.02 = metro city premium, -0.04 = smaller
+    // market discount. See usedCarValuation/marketAdjustment.js.
+    type: Number,
+    default: null,
+  },
+  marketDemand: {
+    // Coarse resale-demand signal for this location, surfaced in the
+    // valuation's confidence/insight output.
+    type: String,
+    enum: ['low', 'medium', 'high', null],
+    default: null,
+  },
+  averageAnnualKm: {
+    // Regional driving norm (km/year) used by the Mileage Engine's
+    // Expected KM calculation. Overrides the body-type default in
+    // usedCarValuation.config.js when set for this location.
+    type: Number,
+    default: null,
+  },
+  averageSellingDays: {
+    // Typical days-to-sell for a used car in this location — informational
+    // for now (surfaced via confidence/insights), reserved for a future
+    // liquidity-based adjustment.
+    type: Number,
+    default: null,
+  },
 }, { timestamps: true });
 
 LocationSchema.index({ searchText: 'text' });
