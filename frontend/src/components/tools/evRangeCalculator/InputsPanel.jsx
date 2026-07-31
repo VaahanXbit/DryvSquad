@@ -7,7 +7,7 @@ import TemperatureInput from './TemperatureInput';
 import ConditionDropdown from './ConditionDropdown';
 import AcToggle from './AcToggle';
 import PassengerCounter from './PassengerCounter';
-import AdvancedSettings from './AdvancedSettings';
+// import AdvancedSettings from './AdvancedSettings';
 import {
   ROAD_TYPE_OPTIONS,
   SPEED_OPTIONS,
@@ -136,8 +136,8 @@ const InputsPanel = ({
           hint={FIELD_GUIDANCE.passengers}
         />
 
-        {/* Priority 5 — future factors */}
-        <AdvancedSettings />
+        {/* Priority 5 — future factors
+        <AdvancedSettings /> */}
 
         <button
           type="button"

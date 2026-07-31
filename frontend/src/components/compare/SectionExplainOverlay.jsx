@@ -27,17 +27,37 @@ const SectionExplainOverlay = ({ isOpen, section, labelColWidthClass, onClose })
           <div className={`${labelColWidthClass} shrink-0`} />
 
           <motion.div
-            initial={{ x: '100%', opacity: 0.4 }}
+            initial={{ x: '100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0.4 }}
-            transition={{ duration: 0.28, ease: 'easeInOut' }}
-            className="flex-1 min-w-0 pointer-events-auto overflow-hidden bg-white dark:bg-dark-800"
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ 
+              type: 'tween', 
+              duration: 2.0,  // 5 seconds
+              ease: [0.32, 0, 0.48, 1],  // Smooth ease-in-out for even more refined feel
+            }}
+            className="flex-1 min-w-0 pointer-events-auto overflow-hidden bg-white dark:bg-dark-800 shadow-2xl"
+            style={{ 
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
           >
-            <SectionExplanationPanel 
-              section={section} 
-              onClose={onClose} 
-              showHeader={true}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              transition={{ 
+                type: 'tween', 
+                duration: 2.0,  
+                delay: 2.0,     // Content appears at 2 seconds (40% through the animation)
+                ease: [0.25, 1, 0.5, 1]  // Smooth bounce-like ease-out
+              }}
+              className="h-full"
+            >
+              <SectionExplanationPanel 
+                section={section} 
+                onClose={onClose} 
+                showHeader={true}
+              />
+            </motion.div>
           </motion.div>
         </div>
       )}
