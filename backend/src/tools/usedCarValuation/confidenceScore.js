@@ -2,49 +2,10 @@
 /*
 ================================================================================
 File Name : confidenceScore.js
-Description : "Valuation Confidence" — a customer-facing CONDITION
-              INDICATOR, not a weighted reliability score. Per business
-              requirement, this module never adds/subtracts/averages
-              points. Instead, every input signal is classified into
-              exactly one of three buckets:
-
-                BEST | AVERAGE | POOR
-
-              and the dominant bucket across all classified parameters
-              decides which of exactly three fixed confidence values is
-              returned:
-
-                95%  -> BEST is dominant       ("Best Condition")
-                90%  -> mixed / no clear winner ("Average / Mixed Condition")
-                80%  -> POOR is dominant       ("Poor Condition")
-
-              Nine parameters are classified (see
-              CONFIDENCE_CONDITION_BUCKETS / CONFIDENCE_AGE_BANDS /
-              CONFIDENCE_OWNER_BANDS / CONFIDENCE_MILEAGE_TOLERANCE in
-              usedCarValuation.config.js for every threshold/mapping):
-
-                1. Vehicle Age (from Registration Year)
-                2. Owner Number
-                3. Mileage — Actual KM vs. Expected KM (Vehicle Age x
-                   Average Annual KM, as already computed by
-                   mileageEngine.js — this module does not recompute it)
-                4. Exterior Condition        \
-                5. Engine Condition           |
-                6. Accident History           |- optional Advanced Details;
-                7. Service History            |  a field left blank is
-                8. Insurance Status           |  simply skipped, not
-                9. Loan Status               /   counted in any bucket
-
-              Dominance rule: the bucket with the highest count wins.
-              Ties are resolved conservatively, per business sign-off:
-                - BEST ties AVERAGE            -> 90 (never promote a tie to 95)
-                - POOR ties AVERAGE            -> 80 (be conservative)
-                - BEST ties POOR               -> 90 (can't confidently call it either way)
-                - all three counts equal       -> 90
-
-              This module does NOT touch, read, or influence the
-              estimated value, price range, or any calculation engine —
-              it only classifies already-known inputs/results.
+Description : Calculates the vehicle's Valuation Confidence by classifying 
+              key vehicle condition parameters into Best, Average, or Poor 
+              categories and returning a fixed confidence score (95%, 90%, or 80%) 
+              based on the dominant condition.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

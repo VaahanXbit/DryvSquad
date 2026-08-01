@@ -4,14 +4,9 @@
 File Name : WhyThisPriceDrawer.jsx
 Description : Side drawer opened by the "Why This Price?" link beside the
               Estimated Market Value — replaces the old permanently-visible
-              Price Breakdown per the product review. Renders the
-              backend's `drawerRows` (Original Price, Age Impact, Mileage
-              Impact, Ownership Impact, Location Adjustment, and one row
-              per filled-in Optional Adjustment) via PriceBreakdown.jsx.
-
-              Positioned relative to the ResultCard container so it opens
-              from the same vertical position as the Estimated Market Value
-              card, not covering the header.
+              Price Breakdown per the product review.
+Company : Vaahan International
+Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 

@@ -8,15 +8,6 @@ Description : Extracts and normalizes EV data from the EXISTING database
               vehicle spec — it only parses whatever free-text values are
               already stored, so it keeps working automatically as new EVs
               are added to the database.
-
-              Why this file exists: across the real brand data, the same
-              concept is stored under different keys per brand/import batch
-              (e.g. range appears as specifications.range for most brands
-              but only as top-level mileage/mileageNumeric for Tata; AC
-              charging time appears as chargingTimeAC, chargingAC, or
-              acCharging depending on brand). Centralizing the parsing here
-              means the calculation engine never has to know about any of
-              that — it only ever sees a normalized EvSpecData object.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

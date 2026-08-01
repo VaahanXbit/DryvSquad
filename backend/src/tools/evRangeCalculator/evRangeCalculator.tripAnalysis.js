@@ -2,11 +2,9 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.tripAnalysis.js
-Description : Trip feasibility ("Trip Possible" vs "Charging Required") and
-              remaining-battery calculation. Pure functions operating on
+Description : Trip feasibility and remaining-battery calculation. Pure functions operating on
               the AvailableRange + TripDistance already computed by the
-              calculation engine — no independent logic, no separate
-              re-derivation of range.
+              calculation engine.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

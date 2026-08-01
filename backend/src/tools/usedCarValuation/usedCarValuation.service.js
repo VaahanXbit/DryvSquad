@@ -6,28 +6,6 @@ Description : Orchestrates the full valuation flow against EXISTING
               collections only — Brand -> Model -> Variant (same as
               evRangeCalculator) and Location (same as the site-wide
               location picker). No separate/duplicate dataset anywhere.
-
-              Flow, per the product review (Registration Year FIRST so an
-              impossible Year + Model combination can never be selected):
-
-                Registration Year -> Brand -> Model (filtered by
-                launchYear/discontinuedYear) -> Variant (NOT year-filtered
-                — every variant of a valid Model loads normally) -> fetch
-                complete Variant document -> use exShowroomPrice as Base
-                Price -> resolve Location -> run every engine, including
-                optional Advanced Details -> aggregate into the Final
-                Formula + all dashboard sections.
-
-              Model availability for a given year is:
-                launchYear <= registrationYear
-                AND (discontinuedYear is null OR registrationYear <= discontinuedYear)
-              read directly from Model.launchYear / Model.discontinuedYear
-              — see resolveLaunchYear() / resolveDiscontinuedYear() /
-              isAvailableInYear() below, the only place this rule lives.
-
-              Controller stays thin — every business rule lives in
-              usedCarValuation.config.js or a single-purpose engine module,
-              never duplicated here.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
@@ -65,11 +43,6 @@ class ServiceError extends Error {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Launch-year resolution — the ONE place this tool decides "was this
-// model available in the selected registration year?" Reads Model's
-// `launchYear` and `discontinuedYear` fields directly — never hardcoded.
-// ---------------------------------------------------------------------------
 const resolveLaunchYear = (doc) => {
   const year = doc?.launchYear;
   return typeof year === 'number' && !Number.isNaN(year) ? year : null;
@@ -80,13 +53,6 @@ const resolveDiscontinuedYear = (doc) => {
   return typeof year === 'number' && !Number.isNaN(year) ? year : null;
 };
 
-/**
- * A model is available for a given registration year when:
- *   launchYear <= registrationYear
- *   AND (discontinuedYear is null OR registrationYear <= discontinuedYear)
- * No launchYear on record -> don't block the model from showing; absence
- * of data should never silently hide an otherwise valid model.
- */
 const isAvailableInYear = (doc, registrationYear) => {
   const launchYear = resolveLaunchYear(doc);
   if (launchYear === null) return true;
@@ -98,10 +64,6 @@ const isAvailableInYear = (doc, registrationYear) => {
   return true;
 };
 
-// ---------------------------------------------------------------------------
-// Brand -> Model -> Variant lookups (dynamic, never hardcoded), filtered
-// by Registration Year once one has been selected.
-// ---------------------------------------------------------------------------
 
 /** GET /brands — brands are never year-filtered; a brand can't "not exist" for a year. */
 const listBrands = async () => {
@@ -111,12 +73,6 @@ const listBrands = async () => {
 
 /**
  * GET /models?brandId=&registrationYear=
- * Only models whose launchYear is on/before the selected registration
- * year are returned — a model launched after that year can never appear.
- * registrationYear is REQUIRED here (not optional-with-fallback) — a
- * missing/invalid year must never silently return every model
- * unfiltered, which was the actual root cause of invalid combinations
- * still being selectable.
  */
 const listModels = async (brandId, registrationYear) => {
   if (!brandId) throw new ServiceError(ERROR_CODES.INVALID_INPUT, 'brandId is required');
@@ -140,10 +96,6 @@ const listModels = async (brandId, registrationYear) => {
 
 /**
  * GET /variants?modelId=
- * Variants are NOT filtered by Registration Year — only Models are (the
- * Variant schema has no launchYear/discontinuedYear field of its own).
- * Once a valid, year-available Model has been selected, every variant
- * belonging to it loads normally.
  */
 const listVariants = async (modelId) => {
   if (!modelId) throw new ServiceError(ERROR_CODES.INVALID_INPUT, 'modelId is required');
@@ -158,10 +110,6 @@ const listVariants = async (modelId) => {
   }));
 };
 
-/**
- * Fetches a Variant by id ONCE, populated with Model + Brand, so every
- * downstream engine reads from the same in-memory document.
- */
 const fetchVehicle = async (variantId) => {
   const variant = await Variant.findById(variantId).populate({
     path: 'modelId',
@@ -174,11 +122,6 @@ const fetchVehicle = async (variantId) => {
 
   return variant;
 };
-
-// ---------------------------------------------------------------------------
-// Location — reuses the EXISTING Location collection/site-wide location
-// picker. No separate city list, dropdown data, or tier mapping.
-// ---------------------------------------------------------------------------
 
 const resolveLocation = async (input) => {
   const { locationId, city, state, stateCode, pincode } = input || {};
@@ -305,10 +248,7 @@ const valuateVehicle = async (input) => {
   };
 
   // ---- Valuation Confidence — a customer-facing CONDITION indicator
-  // (Best / Average / Poor), fixed to exactly 95 / 90 / 80. Purely a
-  // classification of already-known inputs and the mileage engine's own
-  // expected-vs-actual KM result — nothing here alters basePrice,
-  // estimatedValue, or any calculation engine's output.
+  
   const advancedDetails = input.advancedDetails || {};
 
   const confidence = calculateConfidenceScore({
@@ -350,17 +290,11 @@ const valuateVehicle = async (input) => {
       kilometersDriven: Number(input.kilometersDriven),
       city: location.city,
       valuePerVariant: (variant) => {
-        // Reuses the SAME age/ownership-neutral estimate approach — a
-        // lightweight re-application of the age factor to that variant's
-        // own ex-showroom price, so the comparison stays proportionate
-        // without duplicating the full engine pipeline for each row.
         const variantBase = variant.exShowroomPrice || basePrice;
         return variantBase * (estimatedValue / basePrice);
       },
     });
   } catch (err) {
-    // Similar Cars is a "nice to have" dashboard section — never fail the
-    // whole valuation if this lookup has trouble.
     console.error('⚠️ Similar cars lookup failed:', err);
     similarCars = [];
   }

@@ -8,11 +8,6 @@ Description : "Similar Cars in Market". Renders the backend's
               KM Driven / Days Listed are demo-jittered values, clearly
               flagged as such in the footnote, until a real used-listings
               feed is available.
-
-              Model Name is clickable — calls `onSelectCar(car)`, which
-              the hook's `selectSimilarCar()` uses to repopulate Brand /
-              Model / Variant and recalculate the valuation on this same
-              page (no navigation to another page).
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

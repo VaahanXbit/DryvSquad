@@ -5,9 +5,7 @@ File Name : InputsPanel.jsx
 Description : Left column — "Vehicle Details". Registration Year comes
               FIRST (per the product review), Brand/Model/Variant are
               disabled until it's set, and City/Kilometers/Owner follow —
-              exactly the 7 required fields, nothing more. Advanced
-              Details (Optional) is a separate collapsed section below,
-              never required to submit.
+              exactly the 7 required fields, nothing more.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

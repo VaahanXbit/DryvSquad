@@ -4,13 +4,7 @@
 File Name : depreciationEngine.js
 Description : STEP 2 — Age Depreciation. Pure function: vehicle age in, a
               fully-explained depreciation result out. Every rate is read
-              from usedCarValuation.config.js — nothing is hardcoded here.
-
-              Uses a declining-balance model: each year in
-              AGE_DEPRECIATION_SCHEDULE erodes whatever value is LEFT after
-              the previous year (not the original base price), which is how
-              real depreciation curves behave — steep early, flattening out.
-              Years beyond the schedule fall back to a flat annual rate.
+              from usedCarValuation.config.js.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

@@ -2,18 +2,7 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.config.js
-Description : Every efficiency multiplier used by the calculation engine
-              lives here — NEVER hardcoded inside the engine itself. This is
-              the file to recalibrate after real-world testing/telemetry.
-
-              Multiplier meaning: 1.00 = no effect on range. Below 1.00 =
-              reduces range by that percentage. Above 1.00 = slightly
-              improves range (e.g. eco driving, light traffic).
-
-              Temperature and speed are user-entered as free numeric input
-              (no fixed dropdown), so they're resolved through banded
-              lookups here — the band boundaries are config, not the input
-              itself, so any temperature/speed value works automatically.
+Description :The configuration of the EV range data.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

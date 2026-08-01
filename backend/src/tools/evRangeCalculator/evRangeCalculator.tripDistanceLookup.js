@@ -2,17 +2,9 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.tripDistanceLookup.js
-Description : Powers the Trip Planner's optional "From / To" convenience
-              fields — resolves a rough city-to-city distance so the user
-              doesn't have to know the exact km figure. This is a MOCK
-              lookup table, separate from vehicle data (never touches the
-              EV database). The canonical value the calculation engine
-              actually uses is always the explicit Trip Distance field the
-              user can see and edit directly.
-
-              SWAP POINT: replace this lookup with a real routing provider
-              (Google Maps Distance Matrix API, Mapbox Directions, etc.)
-              when available — nothing else needs to change.
+Description :Provides a simple utility to look up predefined road 
+            distances between supported city pairs (in both directions) for the EV Range Calculator, 
+            returning the distance in kilometers or null if no match is found.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

@@ -7,15 +7,6 @@ Description : "Price Trend (Last 12 Months)". Renders the backend's
               priceTrend.js — architected so a live data source can be
               swapped in later without this component changing at all,
               since it only ever consumes { month, value } points).
-
-              Interactive hover/touch tooltip — follows the cursor,
-              snapping to the nearest month, showing Month / Estimated
-              Price / Price Change (vs. the previous point). Works with
-              mouse (desktop) and touch (mobile) on the same handlers.
-
-              Built as a small dependency-free inline SVG line chart, so
-              this doesn't require adding a charting library to the
-              project just for one chart.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

@@ -11,15 +11,6 @@ Description : "Registration City" field — a searchable, debounced
               /api/location/search + Location collection every other
               search-driven location UI in the project uses) — no new
               city dataset, no new API.
-
-              The suggestion list renders through a React portal into
-              document.body, positioned with getBoundingClientRect() —
-              this is deliberate: an in-place `absolute` dropdown gets
-              trapped inside whatever stacking context its parent `card`
-              establishes, so a later sibling card (e.g. Advanced Details)
-              can paint over it even with a high z-index. Rendering at the
-              document root sidesteps that entirely, regardless of any
-              ancestor's CSS.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

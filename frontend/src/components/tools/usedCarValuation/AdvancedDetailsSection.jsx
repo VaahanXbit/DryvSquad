@@ -4,15 +4,7 @@
 File Name : AdvancedDetailsSection.jsx
 Description : "Advanced Details (Optional)" — expanded by default per
               the latest product review (users may still collapse it
-              manually). Renders the six optional fields from
-              ADVANCED_FIELD_OPTIONS (constants/usedCarValuation.js).
-              Leaving all of them blank still produces a complete
-              valuation; filling any of them in refines it. To add a new
-              optional field later (Interior Condition, Tyre Condition,
-              Battery Health, etc.), add one entry to
-              ADVANCED_FIELD_OPTIONS and one matching entry to the
-              backend's OPTIONAL_ADJUSTMENTS config — this component loops
-              over the config, so no JSX changes are needed here.
+              manually).
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

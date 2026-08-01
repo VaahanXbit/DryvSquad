@@ -15,6 +15,7 @@ const OTP = require('../models/OTP');
 const { sendOTPEmail } = require('../services/emailService');
 const { sendSMSOTP } = require('../services/smsService'); // FIXED: Use sendSMSOTP
 const jwt = require('jsonwebtoken');
+const { sendVerificationCode } = require('../services/whatsappService');
 
 const generateToken = (userId) => {
   const jwtSecret = process.env.JWT_SECRET || 'vaahan_jwt_secret_fallback_key';
@@ -764,6 +765,100 @@ exports.adminLogin = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Admin login error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.',
+    });
+  }
+};
+
+// Send WhatsApp verification code
+exports.sendWhatsAppCode = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required',
+      });
+    }
+
+    const formattedPhone = formatPhoneNumber(phone);
+    console.log(`📱 Sending WhatsApp code to: ${formattedPhone}`);
+
+    // Validate phone number
+    const phoneRegex = /^\+[0-9]{8,15}$/;
+    if (!phoneRegex.test(formattedPhone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid phone number (e.g., +919876543210)',
+      });
+    }
+
+    // Check if user exists with this phone
+    const existingUser = await User.findOne({ phoneNumber: formattedPhone });
+    if (existingUser) {
+      // If user exists, still send code for login
+      console.log(`📱 User exists: ${formattedPhone}`);
+    }
+
+    // Delete any existing unverified codes
+    await VerificationCode.deleteMany({
+      phoneNumber: formattedPhone,
+      verified: false,
+    });
+
+    // Generate secure 6-digit code
+    const code = crypto.randomInt(100000, 999999).toString();
+    console.log(`🔑 Generated code: ${code}`);
+
+    // Save to database
+    const verificationCode = new VerificationCode({
+      phoneNumber: formattedPhone,
+      code: code,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    });
+    await verificationCode.save();
+
+    // Send WhatsApp message via Twilio
+    const result = await sendVerificationCode(formattedPhone, code);
+
+    if (!result.success) {
+      // Fallback: Show code in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`⚠️ [DEV] Code would be sent to ${formattedPhone}: ${code}`);
+        return res.status(200).json({
+          success: true,
+          message: 'Verification code generated (DEV mode)',
+          code: code,
+        });
+      }
+      return res.status(500).json({
+        success: false,
+        message: result.error || 'Failed to send WhatsApp message',
+      });
+    }
+
+    // ✅ Save phone number for marketing later
+    // Store in user's marketing consent collection
+    await MarketingConsent.findOneAndUpdate(
+      { phoneNumber: formattedPhone },
+      { 
+        phoneNumber: formattedPhone,
+        consentedAt: new Date(),
+        consented: true,
+        lastMessageAt: new Date(),
+      },
+      { upsert: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Verification code sent via WhatsApp.',
+    });
+  } catch (error) {
+    console.error('❌ Send WhatsApp code error:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error. Please try again.',

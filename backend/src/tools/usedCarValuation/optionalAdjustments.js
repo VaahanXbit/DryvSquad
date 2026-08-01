@@ -2,7 +2,7 @@
 /*
 ================================================================================
 File Name : optionalAdjustments.js
-Description : STEP 6 — Advanced Details (all optional). Reads whichever of
+Description : Advanced Details (all optional). Reads whichever of
               exteriorCondition / accidentHistory / engineCondition /
               serviceHistory / insuranceStatus / loanStatus the user
               filled in and converts each into a { label, impact, reason }
@@ -10,12 +10,6 @@ Description : STEP 6 — Advanced Details (all optional). Reads whichever of
               usedCarValuation.config.js. Fields left blank contribute
               nothing — valuation works with zero, some, or all of them
               filled in.
-
-              To add a new optional field later (Interior Condition, Tyre
-              Condition, Battery Health, Documents, Accessories, etc.):
-              add one table to OPTIONAL_ADJUSTMENTS in config, then one
-              line to the `FIELDS` list below. The core valuation engine
-              (depreciation/mileage/ownership/market) never changes.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

@@ -3,11 +3,7 @@
 ================================================================================
 File Name : constants.js
 Description : Shared constants for the Used Car Valuation module — error
-              codes, user-facing messages, and request-shape limits. Business
-              tuning values (rates, factors, adjustments) do NOT live here —
-              those belong in usedCarValuation.config.js. This file only
-              holds things that are structural, not something a business
-              user would tune (matches the evRangeCalculator convention).
+              codes, user-facing messages, and request-shape limits.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

@@ -4,19 +4,6 @@
 File Name : marketAdjustment.js
 Description : STEP 5 — Market Adjustment. Combines Location, Vehicle
               Category and Brand into a single adjustment.
-
-              Location is NOT resolved, searched, or mapped here — this
-              engine only receives the already-resolved Location document
-              (from the existing `Location` collection, fetched by
-              usedCarValuation.service.js's resolveLocation()) and reads
-              its optional `marketAdjustment` field. This keeps the
-              calculation module fully independent of how/where the
-              location was looked up, so the search implementation can
-              change freely without touching this file.
-
-              Category and Brand adjustments remain config-driven — they
-              aren't location data, they're vehicle-attribute business
-              rules — see usedCarValuation.config.js.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

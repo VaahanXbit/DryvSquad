@@ -4,19 +4,7 @@
 File Name : similarCars.js
 Description : "Similar Cars in Market" table. Queries the SAME Variant/
               Model collections the rest of this tool uses — no separate
-              dataset. Excludes the vehicle just valued, prefers other
-              variants of the same Model, and falls back to the same
-              Brand + category if there aren't enough.
-
-              KM Driven / Days Listed are DEMO values (jittered off the
-              user's own kilometersDriven, from config ranges) since the
-              vehicle catalog is a NEW-car database, not a live used-
-              listings feed — there's no real "days listed" or "actual KM"
-              for another seller's car to read yet. Location Adjustment
-              is skipped here entirely for the same reason. Swapping in a
-              real used-listings collection later only means rewriting
-              this module — the response shape (`Array<{ model, year, km,
-              price, location, daysListed }>`) can stay the same.
+              dataset.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

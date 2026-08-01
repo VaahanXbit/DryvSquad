@@ -4,12 +4,9 @@
 File Name : PriceBreakdown.jsx
 Description : Row renderer for the "Why This Price?" drawer ONLY — per
               the product review, this is no longer shown permanently on
-              the main result screen. Renders the backend's `drawerRows`
-              array automatically: each row is already
-              { label, impact, reason, finalContribution } — this
-              component never computes anything, only displays.
-              
-              Updated with better spacing and clearer visual hierarchy.
+              the main result screen.
+Company : Vaahan International
+Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 

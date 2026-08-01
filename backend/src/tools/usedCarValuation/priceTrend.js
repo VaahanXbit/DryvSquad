@@ -5,13 +5,6 @@ File Name : priceTrend.js
 Description : "Price Trend (Last 12 Months)" chart data. Currently backed
               by a DEMO generator (PRICE_TREND_DEMO_MONTHLY_MULTIPLIERS in
               config) — no live market-data source is wired in yet.
-
-              Written so swapping in live data later means writing a new
-              function with this exact same return shape
-              (Array<{ month, value }>) and calling it instead of
-              generateDemoPriceTrend() in usedCarValuation.service.js.
-              Nothing downstream (controller, response shape, frontend
-              chart) needs to change.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

@@ -2,11 +2,7 @@
 /*
 ================================================================================
 File Name : evRangeCalculator.aiInsight.js
-Description : Builds the single natural-language "AI Insight" sentence from
-              whichever factors the user actually selected — never static
-              text, never mentions internal formulas/multipliers. Purely a
-              function of the same reduction breakdown every other card
-              uses, so it can never disagree with them.
+Description : Implemented the AI insights Explanation.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

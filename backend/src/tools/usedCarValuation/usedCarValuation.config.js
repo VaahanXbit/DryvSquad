@@ -15,10 +15,7 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 // ---------------------------------------------------------------------------
 // STEP 2 — Age Depreciation
 // ---------------------------------------------------------------------------
-// Year-by-year depreciation rate applied to the REMAINING value (declining
-// balance), not to the original base price — this mirrors how vehicles
-// actually lose value (steepest in year 1, flattening out later).
-// Any year beyond the schedule falls back to AGE_DEPRECIATION_RATE_BEYOND.
+
 const AGE_DEPRECIATION_SCHEDULE = [
   { year: 1, rate: 0.15, label: 'Year 1 depreciation' },
   { year: 2, rate: 0.12, label: 'Year 2 depreciation' },
@@ -30,17 +27,12 @@ const AGE_DEPRECIATION_SCHEDULE = [
 // Applied to every year beyond the schedule above (year 6 onward).
 const AGE_DEPRECIATION_RATE_BEYOND = 0.06;
 
-// Resale value never depreciates below this fraction of the original
 // ex-showroom price, regardless of age — reflects scrap/parts value floor.
 const MIN_REMAINING_VALUE_FACTOR = 0.15;
 
 // ---------------------------------------------------------------------------
 // STEP 3 — Mileage Engine
 // ---------------------------------------------------------------------------
-// Expected KM = Vehicle Age x AVERAGE_ANNUAL_KM (per body type, falls back
-// to `default` when the vehicle's category isn't listed). A matched
-// Location document's `averageAnnualKm` field, when set, takes priority
-// over this table entirely — see mileageEngine.js.
 const AVERAGE_ANNUAL_KM = {
   default: 12000,
   Hatchback: 10000,
@@ -50,23 +42,16 @@ const AVERAGE_ANNUAL_KM = {
   Truck: 18000,
 };
 
-// Impact per 1,000 km of difference between Actual KM and Expected KM,
-// expressed as a fraction of Base Price. Running MORE than expected costs
-// more (penalty rate); running LESS than expected is worth less of a bonus
-// (bonus rate) since low usage only partially offsets other wear factors.
 const MILEAGE_PENALTY_RATE_PER_1000KM = 0.0025; // 0.25% of base price per 1000 km over
 const MILEAGE_BONUS_RATE_PER_1000KM = 0.0015; // 0.15% of base price per 1000 km under
 
-// Caps so a single outlier reading (e.g. odometer error) can't swing the
-// valuation too far in either direction.
 const MAX_MILEAGE_PENALTY_PERCENT = 0.15; // max 15% of base price
 const MAX_MILEAGE_BONUS_PERCENT = 0.08; // max 8% of base price
 
 // ---------------------------------------------------------------------------
 // STEP 4 — Ownership Engine
 // ---------------------------------------------------------------------------
-// Adjustment as a fraction of base price, keyed by owner number. Anything
-// beyond the highest key uses that key's value.
+
 const OWNERSHIP_ADJUSTMENT = {
   1: 0,
   2: -0.05,
@@ -86,17 +71,8 @@ const OWNERSHIP_LABELS = {
 // ---------------------------------------------------------------------------
 // STEP 5 — Market Adjustment (Location + Category + Brand)
 // ---------------------------------------------------------------------------
-// City/location data is NOT configured here. It comes from the existing
-// `Location` collection (models/Location.js), which has been extended with
-// optional `marketAdjustment` / `marketDemand` / `averageAnnualKm` /
-// `averageSellingDays` fields — see usedCarValuation.service.js's
-// `resolveLocation()`. This fallback is only used when a matched Location
-// document exists but hasn't had `marketAdjustment` tuned yet (still null).
 const DEFAULT_LOCATION_MARKET_ADJUSTMENT = 0;
 
-// Adjustment as a fraction of base price, keyed by vehicle body type
-// (Model.bodyType from the vehicle document). Reflects relative resale
-// demand for each body style. `default` covers any category not listed.
 const CATEGORY_DEMAND_ADJUSTMENT = {
   SUV: 0.01,
   MUV: 0.005,
@@ -105,10 +81,6 @@ const CATEGORY_DEMAND_ADJUSTMENT = {
   default: 0,
 };
 
-// Adjustment as a fraction of base price, keyed by brand name (exact match
-// against Brand.name). Premium/luxury brands typically depreciate faster
-// in the used market; mass-market brands with strong service networks
-// tend to hold value better. `default` covers any brand not listed.
 const BRAND_RESALE_ADJUSTMENT = {
   Honda: 0.02,
   Suzuki: 0.02,
@@ -127,19 +99,13 @@ const BRAND_RESALE_ADJUSTMENT = {
 // ---------------------------------------------------------------------------
 // Estimated Price Range
 // ---------------------------------------------------------------------------
-// The "Estimated Price Range" shown alongside the average value is the
-// final value +/- this fraction.
+
 const PRICE_RANGE_SPREAD_PERCENT = 0.05;
 
 // ---------------------------------------------------------------------------
 // Valuation Confidence — Condition-Based Indicator (fixed 95 / 90 / 80)
 // ---------------------------------------------------------------------------
-// Per business requirement, this is now a customer-facing condition
-// indicator, NOT a weighted/points-based reliability score. Every input
-// signal is classified into one of three buckets — BEST / AVERAGE / POOR
-// — and the dominant bucket decides which of exactly three fixed values
-// is returned. See confidenceScore.js for how these are applied; every
-// threshold and mapping lives here so retuning never touches code.
+
 const CONFIDENCE_LEVELS = {
   BEST: 95,
   MIXED: 90,
@@ -152,7 +118,6 @@ const CONFIDENCE_LABELS = {
   80: 'Low Confidence',
 };
 
-// Vehicle Age (registration year -> current age in years)
 const CONFIDENCE_AGE_BANDS = {
   bestMaxYears: 3, // 0-3 years -> BEST
   averageMaxYears: 7, // 4-7 years -> AVERAGE; beyond -> POOR
@@ -165,16 +130,12 @@ const CONFIDENCE_OWNER_BANDS = {
 };
 
 // Mileage — compared against Expected KM (Vehicle Age x Average Annual KM,
-// from mileageEngine.js). Actual KM at/under expected -> BEST; up to this
-// percentage above expected -> AVERAGE; further above -> POOR.
+// from mileageEngine.js).
 const CONFIDENCE_MILEAGE_TOLERANCE = {
   averageMaxOveragePercent: 0.20,
 };
 
-// Advanced Details -> bucket, keyed by the exact option strings already
-// used in OPTIONAL_ADJUSTMENTS above. A field left blank by the user is
-// simply skipped (not counted in any bucket) — same "optional means
-// optional" convention as the rest of this tool.
+// Advanced Details 
 const CONFIDENCE_CONDITION_BUCKETS = {
   exteriorCondition: { Excellent: 'BEST', Good: 'AVERAGE', Fair: 'POOR', Poor: 'POOR' },
   engineCondition: { Excellent: 'BEST', Good: 'AVERAGE', Fair: 'POOR', Poor: 'POOR' },
@@ -187,12 +148,7 @@ const CONFIDENCE_CONDITION_BUCKETS = {
 // ---------------------------------------------------------------------------
 // STEP 6 — Optional Advanced Details (Phase 2 fields, all optional)
 // ---------------------------------------------------------------------------
-// Each field maps a chosen option to a fraction-of-base-price adjustment.
-// A field the user leaves blank contributes nothing — see
-// optionalAdjustments.js. Adding a NEW optional field later (Interior
-// Condition, Tyre Condition, Battery Health, etc.) means adding one more
-// table here plus one line in optionalAdjustments.js — the core engine
-// (depreciation/mileage/ownership/market) never changes.
+
 const OPTIONAL_ADJUSTMENTS = {
   exteriorCondition: {
     label: 'Exterior Condition',
@@ -248,9 +204,7 @@ const OPTIONAL_ADJUSTMENTS = {
 // ---------------------------------------------------------------------------
 // Vehicle Health Score
 // ---------------------------------------------------------------------------
-// A 0-100 score built from whichever Advanced Details fields the user
-// filled in (Exterior/Engine Condition, Accident/Service History). When
-// none are filled, a neutral default score is shown instead of guessing.
+
 const VEHICLE_HEALTH_SCORE_WEIGHTS = {
   exteriorCondition: 25,
   engineCondition: 30,
@@ -278,10 +232,7 @@ const VEHICLE_HEALTH_LABEL_BANDS = [
 // ---------------------------------------------------------------------------
 // Value Comparison — Selling Channels
 // ---------------------------------------------------------------------------
-// Fraction applied to the final Estimated Value to approximate what each
-// selling channel typically nets a seller. Config-driven so these can be
-// retuned as real channel data becomes available, without touching the
-// calculation module.
+
 const CHANNEL_ADJUSTMENT = {
   dealerExchange: { label: 'Dealer Exchange', rate: -0.08 },
   directBuyer: { label: 'Direct Buyer', rate: 0 },
@@ -292,11 +243,6 @@ const CHANNEL_ADJUSTMENT = {
 // ---------------------------------------------------------------------------
 // Price Trend (Last 12 Months)
 // ---------------------------------------------------------------------------
-// DEMO data — a relative multiplier per month applied to the current
-// Estimated Value to draw a plausible depreciation trend line until this
-// tool is wired to a live market-data source. priceTrend.js is written so
-// swapping this static generator for a live data source later requires no
-// change to the response shape.
 const PRICE_TREND_DEMO_MONTHLY_MULTIPLIERS = [
   1.10, 1.09, 1.07, 1.06, 1.045, 1.03, 1.02, 1.01, 1.00, 1.005, 1.00, 1.00,
 ];
@@ -305,8 +251,7 @@ const PRICE_TREND_DEMO_MONTHLY_MULTIPLIERS = [
 // Similar Cars in Market
 // ---------------------------------------------------------------------------
 const SIMILAR_CARS_LIMIT = 3;
-// DEMO listing-detail ranges (KM driven / days listed) since the vehicle
-// catalog doesn't (yet) hold live used-listing data — see similarCars.js.
+
 const SIMILAR_CARS_DEMO_KM_JITTER = { min: -15000, max: 15000 };
 const SIMILAR_CARS_DEMO_DAYS_LISTED_RANGE = { min: 3, max: 20 };
 

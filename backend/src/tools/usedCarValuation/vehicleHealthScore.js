@@ -6,8 +6,7 @@ Description : "Vehicle Health Score" mini card. Built ONLY from whichever
               Advanced Details condition fields the user filled in
               (Exterior/Engine Condition, Accident/Service History) —
               config-driven weights and per-option sub-scores live in
-              usedCarValuation.config.js. If none were filled in, a
-              neutral default score is returned rather than guessing.
+              usedCarValuation.config.js.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

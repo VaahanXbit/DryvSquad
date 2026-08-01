@@ -14,15 +14,11 @@ Copyright : (c) 2026 Vaahan International. All rights reserved.
 /**
  * Standard reducing-balance EMI formula:
  *
- *   R   = annualInterestRate / (12 * 100)      (monthly rate, decimal)
- *   EMI = P * R * (1 + R)^N / ((1 + R)^N - 1)
- *
  * @param {Object} params
  * @param {number} params.loanAmount     - Principal (P), in rupees
  * @param {number} params.interestRate   - Annual interest rate (%), e.g. 8.5
  * @param {number} params.tenureMonths   - Tenure in months (N)
  * @returns {{ monthlyEmi: number, totalInterest: number, totalAmount: number }}
- *          Unrounded values — rounding/formatting is the formatter's job.
  */
 function calculateEmi({ loanAmount, interestRate, tenureMonths }) {
   const P = Number(loanAmount);

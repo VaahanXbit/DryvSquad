@@ -2,17 +2,10 @@
 /*
 ================================================================================
 File Name : mileageEngine.js
-Description : STEP 3 — Mileage Engine. Compares Actual KM driven against
+Description : Mileage Engine. Compares Actual KM driven against
               Expected KM (Vehicle Age x Average Annual KM) and returns a
               bonus (below-expected usage) or penalty (above-expected
               usage), scaled and capped from usedCarValuation.config.js.
-
-              Average Annual KM normally comes from the body-type table in
-              config, but a resolved Location document's `averageAnnualKm`
-              field (regional driving norms — e.g. higher in spread-out
-              cities) takes priority when set. This engine only reads that
-              already-resolved value; it never looks up or searches for a
-              location itself.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

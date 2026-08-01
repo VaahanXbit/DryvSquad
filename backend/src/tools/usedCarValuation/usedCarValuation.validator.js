@@ -27,11 +27,6 @@ const validateValuationInput = (input) => {
   const body = input || {};
   const currentYear = new Date().getFullYear();
 
-  // Registration Year is validated FIRST — every downstream field (Model,
-  // Variant) depends on it. usedCarValuation.service.js additionally
-  // rejects a variantId whose launch year is after this year (the
-  // "2015 + XUV700" case) — that check needs the fetched Variant document
-  // so it happens in the service, not here.
   const registrationYear = Number(body.registrationYear);
   if (Number.isNaN(registrationYear) || registrationYear < MIN_REGISTRATION_YEAR || registrationYear > currentYear) {
     errors.push(`Registration year must be between ${MIN_REGISTRATION_YEAR} and ${currentYear}`);
@@ -55,8 +50,6 @@ const validateValuationInput = (input) => {
     errors.push(`Owner number must be between ${MIN_OWNER_NUMBER} and ${MAX_OWNER_NUMBER}`);
   }
 
-  // Advanced Details are entirely optional — only validate its shape if
-  // the field was sent at all, never require it or any key inside it.
   if (body.advancedDetails !== undefined && body.advancedDetails !== null) {
     if (typeof body.advancedDetails !== 'object' || Array.isArray(body.advancedDetails)) {
       errors.push('Advanced details, if provided, must be a set of key-value selections');

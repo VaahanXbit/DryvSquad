@@ -4,17 +4,6 @@
 File Name : ResultCard.jsx
 Description : Right column — the valuation dashboard. Composes, top to
               bottom, exactly what the product review asked for:
-
-                1. Estimated Market Value + Confidence Score (directly
-                   below the price) + "Why This Price?" (opens the
-                   drawer instead of a permanently-visible breakdown) +
-                   Recommended Price Range gradient bar.
-                2. Market Demand / Expected Selling Time / Vehicle Health
-                   Score mini cards.
-                3. Value Comparison + Depreciation Summary.
-                4. Price Trend (Last 12 Months).
-                5. Similar Cars in Market.
-
               Every section renders a piece of the single `result` object
               returned from POST /valuate — no card recomputes anything.
 ================================================================================

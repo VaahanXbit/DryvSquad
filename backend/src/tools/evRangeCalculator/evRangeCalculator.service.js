@@ -5,30 +5,8 @@ File Name : evRangeCalculator.service.js
 Description : Orchestrates the full calculation. Fetches the Variant
               document ONCE (populated with Model + Brand), parses it ONCE
               via evRangeCalculator.dataExtraction.js, then runs every
-              downstream step off that single cached EvSpecData object —
+              downstream step off that single cached EvSpecData object
               no repeated DB calls, no repeated string parsing.
-
-              Implements the algorithm exactly as specified:
-                Step 1  Official Claimed Range — read from the database,
-                        never modified (see dataExtraction.js for how it's
-                        located/parsed from whatever fields already exist).
-                Step 2  Every selected condition -> efficiency multiplier,
-                        read from evRangeCalculator.config.js (see
-                        evRangeCalculator.reductionFactors.js).
-                Step 3  OverallEfficiency = product of every multiplier.
-                Step 4  EstimatedPracticalRange = ClaimedRange x OverallEfficiency.
-                Step 5  AvailableRange = EstimatedPracticalRange x (battery% / 100).
-                        This is the single canonical "Estimated Real World
-                        Range" used everywhere in the UI (headline, bar,
-                        Claimed-vs-Estimated graph, Difference, Total
-                        Reduction) — see the note above buildResult() for
-                        why Total Reduction is measured against this value
-                        rather than EstimatedPracticalRange.
-                Step 6  Trip Possible vs Charging Required (evRangeCalculator.tripAnalysis.js)
-                Step 7  RemainingBattery% (evRangeCalculator.tripAnalysis.js)
-
-              Internal multipliers/formulas are NEVER included in any
-              response — only human-readable labels and numbers.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
