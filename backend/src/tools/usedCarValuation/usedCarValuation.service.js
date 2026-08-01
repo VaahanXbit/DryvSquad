@@ -42,7 +42,7 @@ const { calculateAgeDepreciation } = require('./depreciationEngine');
 const { calculateMileageImpact } = require('./mileageEngine');
 const { calculateOwnershipAdjustment } = require('./ownerEngine');
 const { calculateMarketAdjustment } = require('./marketAdjustment');
-const { calculateOptionalAdjustments, FIELDS: OPTIONAL_ADJUSTMENT_FIELDS } = require('./optionalAdjustments');
+const { calculateOptionalAdjustments } = require('./optionalAdjustments');
 const { buildValuationBreakdown } = require('./valuationBreakdown');
 const { calculateConfidenceScore } = require('./confidenceScore');
 const { calculateVehicleHealthScore } = require('./vehicleHealthScore');
@@ -52,9 +52,6 @@ const { generateDemoPriceTrend } = require('./priceTrend');
 const { findSimilarCars } = require('./similarCars');
 const {
   PRICE_RANGE_SPREAD_PERCENT,
-  CATEGORY_DEMAND_ADJUSTMENT,
-  BRAND_RESALE_ADJUSTMENT,
-  CONFIDENCE_PENALTIES,
 } = require('./usedCarValuation.config');
 const { ERROR_CODES, MESSAGES } = require('./constants');
 
@@ -307,50 +304,24 @@ const valuateVehicle = async (input) => {
     max: round2(estimatedValue * (1 + PRICE_RANGE_SPREAD_PERCENT)),
   };
 
-  // ---- Valuation Confidence — reflects trust in the ESTIMATE itself (data
-  // quality, market coverage, predictability), never database completeness.
-  // Purely a read of already-computed results + one lightweight catalog
-  // lookup below — nothing here alters basePrice, estimatedValue, or any
-  // calculation engine's output.
-  const comparableVariantCount = await Variant.countDocuments({ modelId: model?._id, _id: { $ne: variantDoc._id } });
+  // ---- Valuation Confidence — a customer-facing CONDITION indicator
+  // (Best / Average / Poor), fixed to exactly 95 / 90 / 80. Purely a
+  // classification of already-known inputs and the mileage engine's own
+  // expected-vs-actual KM result — nothing here alters basePrice,
+  // estimatedValue, or any calculation engine's output.
+  const advancedDetails = input.advancedDetails || {};
 
   const confidence = calculateConfidenceScore({
-    // 1. Vehicle Identification
-    hasExactBrand: Boolean(vehicleLabel.brand && vehicleLabel.brand !== 'Unknown'),
-    hasExactModel: Boolean(vehicleLabel.model && vehicleLabel.model !== 'Unknown'),
-    hasExactVariant: Boolean(vehicleLabel.variant),
-    isInferredVehicle: false, // this tool always resolves an exact variant by id — never a "closest match" fallback
-
-    // 2. Pricing Reliability
-    hasOfficialPrice: true, // would have thrown MISSING_BASE_PRICE above otherwise
-    hasVariantSpecificPrice: true, // exShowroomPrice read directly from this exact Variant document
-    isWellCatalogedModel: Boolean(vehicleLabel.category),
-    isSupportedSegment: Object.prototype.hasOwnProperty.call(CATEGORY_DEMAND_ADJUSTMENT, vehicleLabel.category),
-
-    // 3. Market Reliability
-    hasCityMarketAdjustment: location.matched,
-    hasBrandResaleAdjustment: Object.prototype.hasOwnProperty.call(BRAND_RESALE_ADJUSTMENT, vehicleLabel.brand),
-    hasCategoryDemandAdjustment: Object.prototype.hasOwnProperty.call(CATEGORY_DEMAND_ADJUSTMENT, vehicleLabel.category),
-
-    // 4. Vehicle Predictability
     vehicleAgeYears: vehicleAge,
-    kilometersDriven: Number(input.kilometersDriven),
-    comparableVariantCount,
-    isDiscontinuedModel: modelDiscontinuedYear !== null,
-    isLuxuryBrand: CONFIDENCE_PENALTIES.predictability.luxuryBrand.brands.includes(vehicleLabel.brand),
-    isCommercialCategory: CONFIDENCE_PENALTIES.predictability.commercialCategory.categories.includes(vehicleLabel.category),
-
-    // 5. User Input Quality — required fields are the baseline (already
-    // enforced by the validator); only the optional split matters here.
-    optionalDetailsFilledCount: optionalResult.filledCount,
-    optionalDetailsTotalCount: OPTIONAL_ADJUSTMENT_FIELDS.length,
-
-    // 6. Valuation Execution Quality
-    ageStageExecuted: true,
-    mileageStageUsedRealNorm: Boolean(location.averageAnnualKm),
-    ownershipStageExecuted: true,
-    marketStageContributed: marketResult.totalRate !== 0,
-    optionalStageContributed: optionalResult.filledCount > 0,
+    ownerNumber: Number(input.ownerNumber),
+    expectedKm: mileageResult.expectedKm,
+    actualKm: mileageResult.actualKm,
+    exteriorCondition: advancedDetails.exteriorCondition,
+    engineCondition: advancedDetails.engineCondition,
+    accidentHistory: advancedDetails.accidentHistory,
+    serviceHistory: advancedDetails.serviceHistory,
+    insuranceStatus: advancedDetails.insuranceStatus,
+    loanStatus: advancedDetails.loanStatus,
   });
 
   // ---- Vehicle Health Score ----

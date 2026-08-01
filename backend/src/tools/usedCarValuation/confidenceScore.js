@@ -2,221 +2,194 @@
 /*
 ================================================================================
 File Name : confidenceScore.js
-Description : "Valuation Confidence" — a Valuation Reliability Index, not
-              a form-completion score. Answers ONE question: "how
-              trustworthy is this estimated market value?" — modeled on
-              how commercial valuation platforms (Cars24, Spinny,
-              CarDekho, KBB, Edmunds) communicate confidence: start from a
-              realistic ceiling (CONFIDENCE_BASE_SCORE, e.g. 98 — never
-              100, since this is a rule-based engine, not a
-              transaction-backed statistical model) and subtract points
-              for genuine uncertainty signals. It never checks "does this
-              field exist in the database" — every signal below reflects
-              something a person actually cares about when deciding
-              whether to trust a number.
+Description : "Valuation Confidence" — a customer-facing CONDITION
+              INDICATOR, not a weighted reliability score. Per business
+              requirement, this module never adds/subtracts/averages
+              points. Instead, every input signal is classified into
+              exactly one of three buckets:
 
-              Seven signal groups, each independently penalized (every
-              threshold/point value lives in CONFIDENCE_PENALTIES in
-              usedCarValuation.config.js — nothing here is a magic
-              number):
+                BEST | AVERAGE | POOR
 
-                1. Vehicle Identification  — exact match vs. inferred/fallback
-                2. Pricing Reliability     — official, variant-specific, well-catalogued
-                3. Market Reliability      — real city/brand/category data vs. generic defaults
-                4. Vehicle Predictability  — age, mileage, rarity, luxury, discontinued, commercial
-                5. User Input Quality      — required fields are the baseline; optional
-                                             details only shave a SMALL penalty, never grant
-                                             a bonus above the base score
-                6. Execution Quality       — did every valuation stage contribute with real
-                                             signal, or fall through to a generic default?
-                7. Comparable Availability — catalog-derived today; swappable for real
-                                             transaction/listing data later without this
-                                             module's shape changing
+              and the dominant bucket across all classified parameters
+              decides which of exactly three fixed confidence values is
+              returned:
+
+                95%  -> BEST is dominant       ("Best Condition")
+                90%  -> mixed / no clear winner ("Average / Mixed Condition")
+                80%  -> POOR is dominant       ("Poor Condition")
+
+              Nine parameters are classified (see
+              CONFIDENCE_CONDITION_BUCKETS / CONFIDENCE_AGE_BANDS /
+              CONFIDENCE_OWNER_BANDS / CONFIDENCE_MILEAGE_TOLERANCE in
+              usedCarValuation.config.js for every threshold/mapping):
+
+                1. Vehicle Age (from Registration Year)
+                2. Owner Number
+                3. Mileage — Actual KM vs. Expected KM (Vehicle Age x
+                   Average Annual KM, as already computed by
+                   mileageEngine.js — this module does not recompute it)
+                4. Exterior Condition        \
+                5. Engine Condition           |
+                6. Accident History           |- optional Advanced Details;
+                7. Service History            |  a field left blank is
+                8. Insurance Status           |  simply skipped, not
+                9. Loan Status               /   counted in any bucket
+
+              Dominance rule: the bucket with the highest count wins.
+              Ties are resolved conservatively, per business sign-off:
+                - BEST ties AVERAGE            -> 90 (never promote a tie to 95)
+                - POOR ties AVERAGE            -> 80 (be conservative)
+                - BEST ties POOR               -> 90 (can't confidently call it either way)
+                - all three counts equal       -> 90
 
               This module does NOT touch, read, or influence the
               estimated value, price range, or any calculation engine —
-              it only interprets already-computed results as reliability
-              signals. Extensible by design: a future signal (historical
-              transactions, live market demand, dealer sales, a real
-              statistical confidence interval/standard error, AI
-              prediction uncertainty) plugs in as one more penalized
-              group — the frontend response shape never needs to change.
+              it only classifies already-known inputs/results.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
 */
 
 const {
-  CONFIDENCE_BASE_SCORE,
-  CONFIDENCE_MIN_SCORE,
-  CONFIDENCE_LABEL_BANDS,
-  CONFIDENCE_PENALTIES,
+  CONFIDENCE_LEVELS,
+  CONFIDENCE_LABELS,
+  CONFIDENCE_AGE_BANDS,
+  CONFIDENCE_OWNER_BANDS,
+  CONFIDENCE_MILEAGE_TOLERANCE,
+  CONFIDENCE_CONDITION_BUCKETS,
 } = require('./usedCarValuation.config');
 
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-const round1 = (value) => Math.round(value * 10) / 10;
+// ---- Individual parameter classifiers — each returns 'BEST' | 'AVERAGE' | 'POOR' ----
 
-const resolveLabel = (score) => {
-  const band = CONFIDENCE_LABEL_BANDS.find((b) => score >= b.min);
-  return band ? band.label : CONFIDENCE_LABEL_BANDS[CONFIDENCE_LABEL_BANDS.length - 1].label;
+const classifyVehicleAge = (vehicleAgeYears) => {
+  const age = vehicleAgeYears ?? 0;
+  if (age <= CONFIDENCE_AGE_BANDS.bestMaxYears) return 'BEST';
+  if (age <= CONFIDENCE_AGE_BANDS.averageMaxYears) return 'AVERAGE';
+  return 'POOR';
+};
+
+const classifyOwnerNumber = (ownerNumber) => {
+  const owner = ownerNumber ?? 1;
+  if (owner <= CONFIDENCE_OWNER_BANDS.bestMaxOwner) return 'BEST';
+  if (owner <= CONFIDENCE_OWNER_BANDS.averageMaxOwner) return 'AVERAGE';
+  return 'POOR';
+};
+
+const classifyMileage = (actualKm, expectedKm) => {
+  const actual = actualKm ?? 0;
+  const expected = Math.max(expectedKm ?? 0, 0);
+  if (actual <= expected) return 'BEST';
+  const averageCeiling = expected * (1 + CONFIDENCE_MILEAGE_TOLERANCE.averageMaxOveragePercent);
+  if (actual <= averageCeiling) return 'AVERAGE';
+  return 'POOR';
+};
+
+// Generic classifier for the six optional Advanced Details fields — a
+// blank/unselected field returns null and is excluded from the count.
+const classifyCondition = (field, value) => {
+  if (!value) return null;
+  const mapping = CONFIDENCE_CONDITION_BUCKETS[field];
+  return mapping?.[value] ?? null;
+};
+
+// ---- Dominance decision (counts only — no points) ----
+const decideConfidence = (counts) => {
+  const { BEST: best, AVERAGE: average, POOR: poor } = counts;
+  const max = Math.max(best, average, poor);
+  const bestIsMax = best === max;
+  const averageIsMax = average === max;
+  const poorIsMax = poor === max;
+
+  if (bestIsMax && !averageIsMax && !poorIsMax) return CONFIDENCE_LEVELS.BEST; // 95
+  if (poorIsMax && !bestIsMax && !averageIsMax) return CONFIDENCE_LEVELS.POOR; // 80
+  if (averageIsMax && !bestIsMax && !poorIsMax) return CONFIDENCE_LEVELS.MIXED; // 90
+  if (poorIsMax && averageIsMax && !bestIsMax) return CONFIDENCE_LEVELS.POOR; // POOR ties AVERAGE -> 80
+
+  // Remaining cases: BEST ties AVERAGE, BEST ties POOR, or all three tie
+  // — all conservatively resolve to 90 per the sign-off above.
+  return CONFIDENCE_LEVELS.MIXED;
+};
+
+const CONDITION_FIELD_LABELS = {
+  exteriorCondition: 'Exterior Condition',
+  engineCondition: 'Engine Condition',
+  accidentHistory: 'Accident History',
+  serviceHistory: 'Service History',
+  insuranceStatus: 'Insurance',
+  loanStatus: 'Loan Status',
 };
 
 /**
  * @param {Object} signals
- * -- Vehicle Identification --
- * @param {boolean} signals.hasExactBrand
- * @param {boolean} signals.hasExactModel
- * @param {boolean} signals.hasExactVariant
- * @param {boolean} [signals.isInferredVehicle] - reserved for a future "closest match" flow
- * -- Pricing Reliability --
- * @param {boolean} signals.hasOfficialPrice
- * @param {boolean} signals.hasVariantSpecificPrice
- * @param {boolean} signals.isWellCatalogedModel - has a known body category on record
- * @param {boolean} signals.isSupportedSegment - category has a dedicated (non-`default`) demand-adjustment entry
- * -- Market Reliability --
- * @param {boolean} signals.hasCityMarketAdjustment - resolved against a matched Location document
- * @param {boolean} signals.hasBrandResaleAdjustment - brand has a dedicated (non-`default`) resale entry
- * @param {boolean} signals.hasCategoryDemandAdjustment - category has a dedicated (non-`default`) demand entry
- * -- Vehicle Predictability --
- * @param {number}  signals.vehicleAgeYears
- * @param {number}  signals.kilometersDriven
- * @param {number}  signals.comparableVariantCount - sibling variants under the same model
- * @param {boolean} signals.isDiscontinuedModel
- * @param {boolean} signals.isLuxuryBrand
- * @param {boolean} signals.isCommercialCategory
- * -- User Input Quality --
- * @param {number}  signals.optionalDetailsFilledCount
- * @param {number}  signals.optionalDetailsTotalCount
- * -- Execution Quality --
- * @param {boolean} signals.ageStageExecuted
- * @param {boolean} signals.mileageStageUsedRealNorm - a location-specific averageAnnualKm was used, not the generic body-type default
- * @param {boolean} signals.ownershipStageExecuted
- * @param {boolean} signals.marketStageContributed - the combined market adjustment was non-zero (some real signal found)
- * @param {boolean} signals.optionalStageContributed - at least one Advanced Details field influenced the price
+ * @param {number} signals.vehicleAgeYears
+ * @param {number} signals.ownerNumber
+ * @param {number} signals.expectedKm - from mileageEngine.js's calculateMileageImpact()
+ * @param {number} signals.actualKm
+ * @param {string} [signals.exteriorCondition]
+ * @param {string} [signals.engineCondition]
+ * @param {string} [signals.accidentHistory]
+ * @param {string} [signals.serviceHistory]
+ * @param {string} [signals.insuranceStatus]
+ * @param {string} [signals.loanStatus]
  * @returns {{ score: number, label: string, description: string, positiveFactors: string[], negativeFactors: string[], breakdown: Object }}
  */
 const calculateConfidenceScore = (signals) => {
-  const P = CONFIDENCE_PENALTIES;
-  const positiveFactors = [];
-  const negativeFactors = [];
-  const breakdown = {};
+  const classifications = [];
 
-  let score = CONFIDENCE_BASE_SCORE;
-  const deduct = (group, amount, reason) => {
-    if (amount <= 0) return;
-    score -= amount;
-    breakdown[group] = (breakdown[group] || 0) + amount;
-    negativeFactors.push(reason);
+  classifications.push({
+    parameter: 'vehicleAge',
+    label: 'Vehicle Age',
+    bucket: classifyVehicleAge(signals.vehicleAgeYears),
+  });
+  classifications.push({
+    parameter: 'ownerNumber',
+    label: 'Owner Number',
+    bucket: classifyOwnerNumber(signals.ownerNumber),
+  });
+  classifications.push({
+    parameter: 'mileage',
+    label: 'Mileage',
+    bucket: classifyMileage(signals.actualKm, signals.expectedKm),
+  });
+
+  Object.keys(CONDITION_FIELD_LABELS).forEach((field) => {
+    const bucket = classifyCondition(field, signals[field]);
+    if (bucket) {
+      classifications.push({ parameter: field, label: CONDITION_FIELD_LABELS[field], bucket });
+    }
+  });
+
+  const counts = { BEST: 0, AVERAGE: 0, POOR: 0 };
+  classifications.forEach((c) => { counts[c.bucket] += 1; });
+
+  const score = decideConfidence(counts);
+  const label = CONFIDENCE_LABELS[score];
+
+  const positiveFactors = classifications
+    .filter((c) => c.bucket === 'BEST')
+    .map((c) => `${c.label} falls under Best Condition.`);
+  const negativeFactors = classifications
+    .filter((c) => c.bucket === 'POOR')
+    .map((c) => `${c.label} falls under Poor Condition.`);
+
+  const descriptionByScore = {
+    95: 'This vehicle falls under Best Condition overall.',
+    90: 'This vehicle falls under Average / Mixed Condition overall.',
+    80: 'This vehicle falls under Poor Condition overall.',
   };
 
-  // ---- 1. Vehicle Identification ----
-  if (!signals.hasExactBrand) deduct('vehicleIdentification', P.vehicleIdentification.missingBrand, 'The vehicle brand could not be exactly identified.');
-  if (!signals.hasExactModel) deduct('vehicleIdentification', P.vehicleIdentification.missingModel, 'The vehicle model could not be exactly identified.');
-  if (!signals.hasExactVariant) deduct('vehicleIdentification', P.vehicleIdentification.missingVariant, 'The exact variant could not be identified.');
-  if (signals.isInferredVehicle) deduct('vehicleIdentification', P.vehicleIdentification.inferredOrFallbackVehicle, 'A closely-matched vehicle was used instead of an exact catalog match.');
-  if (signals.hasExactBrand && signals.hasExactModel && signals.hasExactVariant && !signals.isInferredVehicle) {
-    positiveFactors.push('Exact vehicle variant identified.');
-  }
-
-  // ---- 2. Pricing Reliability ----
-  if (!signals.hasOfficialPrice) deduct('pricingReliability', P.pricingReliability.noOfficialPrice, 'Official manufacturer pricing was not available for this vehicle.');
-  else positiveFactors.push('Official manufacturer pricing available.');
-  if (!signals.hasVariantSpecificPrice) deduct('pricingReliability', P.pricingReliability.noVariantSpecificPrice, 'Pricing had to be estimated rather than read directly from this exact variant.');
-  if (!signals.isWellCatalogedModel) deduct('pricingReliability', P.pricingReliability.poorlyCatalogedModel, 'Limited catalog information is available for this vehicle.');
-  if (!signals.isSupportedSegment) deduct('pricingReliability', P.pricingReliability.unsupportedSegment, 'This vehicle segment has limited pricing coverage.');
-
-  // ---- 3. Market Reliability ----
-  const marketSignalsUsed = [signals.hasCityMarketAdjustment, signals.hasBrandResaleAdjustment, signals.hasCategoryDemandAdjustment];
-  if (!signals.hasCityMarketAdjustment) deduct('marketReliability', P.marketReliability.noCityMarketAdjustment, 'Limited local market information is available for this area.');
-  else positiveFactors.push('Local market adjustments applied.');
-  if (!signals.hasBrandResaleAdjustment) deduct('marketReliability', P.marketReliability.noBrandResaleAdjustment, 'Generic resale assumptions were used for this brand.');
-  if (!signals.hasCategoryDemandAdjustment) deduct('marketReliability', P.marketReliability.noCategoryDemandAdjustment, 'Generic demand assumptions were used for this vehicle category.');
-  if (marketSignalsUsed.every((s) => !s)) {
-    deduct('marketReliability', P.marketReliability.allMarketDataGeneric, 'Generic market assumptions were used where localized data was unavailable.');
-  }
-
-  // ---- 4. Vehicle Predictability ----
-  const { ageYears, mileageKm, rareVariant, discontinuedModel, luxuryBrand, commercialCategory } = P.predictability;
-  const age = signals.vehicleAgeYears ?? 0;
-  if (age > ageYears.oldThreshold) {
-    deduct('predictability', ageYears.moderatePenalty + ageYears.oldPenalty, 'This is an older vehicle, which makes resale value harder to predict precisely.');
-  } else if (age > ageYears.moderateThreshold) {
-    deduct('predictability', ageYears.moderatePenalty, 'This vehicle is a few years old, adding some uncertainty to the estimate.');
-  } else {
-    positiveFactors.push('Vehicle age falls within a well-predicted range.');
-  }
-
-  const km = signals.kilometersDriven ?? 0;
-  if (km > mileageKm.veryHighThreshold) {
-    deduct('predictability', mileageKm.highPenalty + mileageKm.veryHighPenalty, 'This vehicle has unusually high mileage.');
-  } else if (km > mileageKm.highThreshold) {
-    deduct('predictability', mileageKm.highPenalty, 'This vehicle has higher-than-typical mileage.');
-  } else {
-    positiveFactors.push('Mileage falls within an expected range for its age.');
-  }
-
-  if ((signals.comparableVariantCount ?? 0) <= rareVariant.maxComparableForRare) {
-    deduct('predictability', rareVariant.penalty, 'This is a rare variant with few comparable vehicles.');
-  }
-  if (signals.isDiscontinuedModel) {
-    deduct('predictability', discontinuedModel.penalty, 'This model has been discontinued, which adds resale uncertainty.');
-  }
-  if (signals.isLuxuryBrand) {
-    deduct('predictability', luxuryBrand.penalty, 'Luxury vehicles typically have more volatile resale values.');
-  }
-  if (signals.isCommercialCategory) {
-    deduct('predictability', commercialCategory.penalty, 'Market coverage for commercial vehicles is more limited.');
-  }
-
-  // ---- 5. User Input Quality — small effect only, never a bonus above base ----
-  const totalOptional = signals.optionalDetailsTotalCount || 0;
-  const filledOptional = signals.optionalDetailsFilledCount || 0;
-  const filledRatio = totalOptional > 0 ? clamp(filledOptional / totalOptional, 0, 1) : 0;
-  if (filledOptional === 0) {
-    deduct('inputQuality', P.inputQuality.noOptionalDetailsPenalty, 'Some condition details were not provided.');
-  } else if (filledRatio < 1) {
-    deduct('inputQuality', round1(P.inputQuality.partialOptionalDetailsMaxPenalty * (1 - filledRatio)), 'Some condition details were not provided.');
-    positiveFactors.push('Some vehicle condition details were provided.');
-  } else {
-    positiveFactors.push('All optional condition details were provided.');
-  }
-
-  // ---- 6. Valuation Execution Quality ----
-  const executionChecks = [
-    signals.ageStageExecuted,
-    signals.mileageStageUsedRealNorm,
-    signals.ownershipStageExecuted,
-    signals.marketStageContributed,
-    signals.optionalStageContributed,
-  ];
-  const executedRatio = executionChecks.filter(Boolean).length / executionChecks.length;
-  if (executedRatio < 1) {
-    deduct('executionQuality', round1(P.executionQuality.maxPenalty * (1 - executedRatio)), 'Some valuation factors used general assumptions instead of vehicle-specific data.');
-  } else {
-    positiveFactors.push('Multiple valuation factors were successfully analyzed.');
-  }
-
-  // ---- 7. Comparable Vehicle Availability ----
-  const { highThreshold, mediumThreshold, mediumPenalty, lowPenalty } = P.comparableAvailability;
-  const comparableCount = signals.comparableVariantCount ?? 0;
-  if (comparableCount < mediumThreshold) {
-    deduct('comparableAvailability', lowPenalty, 'Very few comparable vehicles are available for this model.');
-  } else if (comparableCount < highThreshold) {
-    deduct('comparableAvailability', mediumPenalty, 'A limited number of comparable vehicles are available for this model.');
-  }
-
-  const finalScore = Math.round(clamp(score, CONFIDENCE_MIN_SCORE, CONFIDENCE_BASE_SCORE));
-  const label = resolveLabel(finalScore);
-
   return {
-    score: finalScore,
+    score,
     label,
-    description: 'Reflects how trustworthy this estimate is, based on vehicle identification, pricing data quality, local market information, and how predictable this vehicle\u2019s resale value typically is.',
+    description: descriptionByScore[score],
     positiveFactors,
     negativeFactors,
-    // Per-group point deductions — not shown to users directly, kept for
-    // internal QA/debugging and for future signals to extend cleanly.
-    breakdown,
+    // Per-bucket counts and each parameter's classification — not shown
+    // to users directly, kept for internal QA/debugging.
+    breakdown: {
+      counts,
+      classifications,
+    },
   };
 };
 

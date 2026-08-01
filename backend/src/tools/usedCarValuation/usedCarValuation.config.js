@@ -132,90 +132,56 @@ const BRAND_RESALE_ADJUSTMENT = {
 const PRICE_RANGE_SPREAD_PERCENT = 0.05;
 
 // ---------------------------------------------------------------------------
-// Valuation Confidence — "Valuation Reliability Index"
+// Valuation Confidence — Condition-Based Indicator (fixed 95 / 90 / 80)
 // ---------------------------------------------------------------------------
-// Represents how TRUSTWORTHY the estimated value is — never database
-// completeness or how many fields were filled in. Modeled after how
-// commercial valuation platforms (Cars24, Spinny, CarDekho, KBB, Edmunds)
-// communicate confidence: start from a realistic ceiling (never 100 —
-// this is a rule-based engine, not a transaction-backed statistical
-// model) and subtract points for genuine uncertainty signals. See
-// confidenceScore.js for how every signal below is applied; every
-// threshold and point value lives here so retuning never touches code.
-const CONFIDENCE_BASE_SCORE = 98; // ceiling — a perfect-signal valuation still tops out here, never 100
-const CONFIDENCE_MIN_SCORE = 45; // floor — a valuation is still shown, just flagged clearly as low confidence
+// Per business requirement, this is now a customer-facing condition
+// indicator, NOT a weighted/points-based reliability score. Every input
+// signal is classified into one of three buckets — BEST / AVERAGE / POOR
+// — and the dominant bucket decides which of exactly three fixed values
+// is returned. See confidenceScore.js for how these are applied; every
+// threshold and mapping lives here so retuning never touches code.
+const CONFIDENCE_LEVELS = {
+  BEST: 95,
+  MIXED: 90,
+  POOR: 80,
+};
 
-const CONFIDENCE_LABEL_BANDS = [
-  { min: 93, label: 'High Confidence' },
-  { min: 85, label: 'Good Confidence' },
-  { min: 70, label: 'Medium Confidence' },
-  { min: 0, label: 'Low Confidence' },
-];
+const CONFIDENCE_LABELS = {
+  95: 'High Confidence',
+  90: 'Good Confidence',
+  80: 'Low Confidence',
+};
 
-const CONFIDENCE_PENALTIES = {
-  // 1. Vehicle Identification — inference/fallback vehicles are
-  // meaningfully less trustworthy than an exact catalog match.
-  vehicleIdentification: {
-    missingBrand: 8,
-    missingModel: 8,
-    missingVariant: 6,
-    inferredOrFallbackVehicle: 15, // reserved for a future "closest match" flow, unused today (this tool always resolves an exact variant)
-  },
+// Vehicle Age (registration year -> current age in years)
+const CONFIDENCE_AGE_BANDS = {
+  bestMaxYears: 3, // 0-3 years -> BEST
+  averageMaxYears: 7, // 4-7 years -> AVERAGE; beyond -> POOR
+};
 
-  // 2. Pricing Reliability — was the price official and variant-specific,
-  // from a well-catalogued record in a supported segment?
-  pricingReliability: {
-    noOfficialPrice: 20, // would already fail before reaching confidence scoring; kept for completeness/extensibility
-    noVariantSpecificPrice: 10, // price had to be estimated from the model/category rather than this exact variant
-    poorlyCatalogedModel: 5, // no body category on record for this model
-    unsupportedSegment: 4, // category has no dedicated demand-adjustment entry (falls back to `default`)
-  },
+// Owner Number
+const CONFIDENCE_OWNER_BANDS = {
+  bestMaxOwner: 1, // 1st owner -> BEST
+  averageMaxOwner: 2, // 2nd owner -> AVERAGE; 3rd+ -> POOR
+};
 
-  // 3. Market Reliability — how much of the Market Adjustment came from
-  // real, tuned data vs. generic defaults.
-  marketReliability: {
-    noCityMarketAdjustment: 6, // selected location didn't match a seeded Location document
-    noBrandResaleAdjustment: 3, // brand has no tuned resale entry (using `default`)
-    noCategoryDemandAdjustment: 3, // category has no tuned demand entry (using `default`)
-    allMarketDataGeneric: 2, // extra penalty when city, brand AND category are all untuned — no real market signal at all
-  },
+// Mileage — compared against Expected KM (Vehicle Age x Average Annual KM,
+// from mileageEngine.js). Actual KM at/under expected -> BEST; up to this
+// percentage above expected -> AVERAGE; further above -> POOR.
+const CONFIDENCE_MILEAGE_TOLERANCE = {
+  averageMaxOveragePercent: 0.20,
+};
 
-  // 4. Vehicle Predictability — not every vehicle is equally easy to
-  // price accurately; normal mass-market vehicles with average mileage
-  // should naturally land at the higher end.
-  predictability: {
-    ageYears: { moderateThreshold: 3, moderatePenalty: 2, oldThreshold: 10, oldPenalty: 5 }, // oldPenalty stacks on top of moderatePenalty past 10 years
-    mileageKm: { highThreshold: 100000, highPenalty: 3, veryHighThreshold: 150000, veryHighPenalty: 4 }, // veryHighPenalty stacks past 150k
-    rareVariant: { maxComparableForRare: 1, penalty: 4 }, // fewer than 2 sibling variants under the same model
-    discontinuedModel: { penalty: 5 },
-    luxuryBrand: { penalty: 6, brands: ['Audi', 'BMW', 'Mercedes-Benz'] },
-    commercialCategory: { penalty: 5, categories: ['Truck'] },
-  },
-
-  // 5. User Input Quality — required fields are the baseline (already
-  // enforced by the validator); optional Advanced Details only shave a
-  // SMALL penalty, never grant a bonus above the base score.
-  inputQuality: {
-    noOptionalDetailsPenalty: 4, // none of the optional fields were filled
-    partialOptionalDetailsMaxPenalty: 4, // scales down toward 0 as more optional fields are filled; fully filled = 0 penalty, never a bonus
-  },
-
-  // 6. Valuation Execution Quality — did every stage (age, mileage,
-  // ownership, market, optional) contribute using real signal, or did
-  // one silently fall through to a generic default?
-  executionQuality: {
-    maxPenalty: 4, // scaled by how many of the 5 stages executed with real (non-generic) data
-  },
-
-  // 7. Comparable Vehicle Availability — using the existing catalog as a
-  // proxy today; swap the signal source for real transaction/listing
-  // data later without changing this module's shape.
-  comparableAvailability: {
-    highThreshold: 5, // 5+ sibling variants under the same model -> no penalty
-    mediumThreshold: 2, // 2-4 siblings -> small penalty
-    mediumPenalty: 2,
-    lowPenalty: 5, // fewer than 2 siblings
-  },
+// Advanced Details -> bucket, keyed by the exact option strings already
+// used in OPTIONAL_ADJUSTMENTS above. A field left blank by the user is
+// simply skipped (not counted in any bucket) — same "optional means
+// optional" convention as the rest of this tool.
+const CONFIDENCE_CONDITION_BUCKETS = {
+  exteriorCondition: { Excellent: 'BEST', Good: 'AVERAGE', Fair: 'POOR', Poor: 'POOR' },
+  engineCondition: { Excellent: 'BEST', Good: 'AVERAGE', Fair: 'POOR', Poor: 'POOR' },
+  accidentHistory: { 'No Accident': 'BEST', 'Minor Accident': 'AVERAGE', 'Major Accident': 'POOR' },
+  serviceHistory: { 'Regularly Serviced': 'BEST', 'Partially Serviced': 'AVERAGE', 'No Service Record': 'POOR' },
+  insuranceStatus: { Active: 'BEST', Expired: 'POOR', 'Not Available': 'POOR' },
+  loanStatus: { 'No Loan': 'BEST', 'Loan Active': 'AVERAGE' },
 };
 
 // ---------------------------------------------------------------------------
@@ -359,10 +325,12 @@ module.exports = {
   CATEGORY_DEMAND_ADJUSTMENT,
   BRAND_RESALE_ADJUSTMENT,
   PRICE_RANGE_SPREAD_PERCENT,
-  CONFIDENCE_BASE_SCORE,
-  CONFIDENCE_MIN_SCORE,
-  CONFIDENCE_LABEL_BANDS,
-  CONFIDENCE_PENALTIES,
+  CONFIDENCE_LEVELS,
+  CONFIDENCE_LABELS,
+  CONFIDENCE_AGE_BANDS,
+  CONFIDENCE_OWNER_BANDS,
+  CONFIDENCE_MILEAGE_TOLERANCE,
+  CONFIDENCE_CONDITION_BUCKETS,
   OPTIONAL_ADJUSTMENTS,
   VEHICLE_HEALTH_SCORE_WEIGHTS,
   VEHICLE_HEALTH_SCORE_OPTIONS,

@@ -118,11 +118,11 @@ const AutoLoanEmiCalculator = () => {
       {/* CHANGE 2: Changed pt-20 to pt-48 (192px) for mobile. Your header is 185px tall, 
           and 192px ensures the title sits completely unobstructed with a tiny gap. */}
       <div
-        className={`pt-48 sm:pt-36 pb-3 px-3 sm:px-4 md:px-6 lg:px-8 border-b ${
+        className={`pt-48 sm:pt-36 pb-3 border-b ${
           isDark ? 'bg-dark-900 border-dark-700' : 'bg-white border-gray-100'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <h1 className={`text-lg sm:text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Auto Loan EMI Calculator
           </h1>
@@ -133,8 +133,8 @@ const AutoLoanEmiCalculator = () => {
       </div>
 
       {/* ==================== Calculator — two-column, above the fold ==================== */}
-      <section className="px-3 sm:px-4 md:px-6 lg:px-8 pt-5 pb-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <section className="pt-5 pb-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* Inputs */}
           <div className="lg:col-span-3">
             <div className={`rounded-xl border p-3 ${isDark ? 'bg-dark-800 border-dark-700' : 'bg-white border-gray-200'}`}>
@@ -162,8 +162,8 @@ const AutoLoanEmiCalculator = () => {
       </section>
 
       {/* ==================== FAQ ==================== */}
-      <section className={`px-3 sm:px-4 md:px-6 lg:px-8 pt-4 pb-4 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <section className={`pt-4 pb-4 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-3">
             <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Frequently asked questions
@@ -197,8 +197,8 @@ const AutoLoanEmiCalculator = () => {
       </section>
 
       {/* ==================== Related Tools ==================== */}
-      <section className={`px-3 sm:px-4 md:px-6 lg:px-8 pt-4 pb-6 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
-        <div className="max-w-7xl mx-auto">
+      <section className={`pt-4 pb-6 border-t ${isDark ? 'border-dark-700' : 'border-gray-100'}`}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             More tools
           </h2>

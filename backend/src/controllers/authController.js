@@ -384,7 +384,7 @@ exports.completeProfile = async (req, res) => {
 };
 
 // ========================================
-// Verify Phone Number - Send OTP (FIXED)
+// Verify Phone Number - Send OTP
 // ========================================
 exports.verifyPhone = async (req, res) => {
   try {
@@ -398,15 +398,13 @@ exports.verifyPhone = async (req, res) => {
       });
     }
 
-    // ✅ Format phone number properly
+    // Format phone number
     let formattedPhone = phoneNumber.replace(/\s/g, '').replace(/[()\-]/g, '');
     
-    // Remove leading 0 if present
     if (formattedPhone.startsWith('0')) {
       formattedPhone = formattedPhone.substring(1);
     }
     
-    // Add +91 if no country code
     if (!formattedPhone.startsWith('+')) {
       if (formattedPhone.startsWith('91')) {
         formattedPhone = `+${formattedPhone}`;
@@ -417,7 +415,6 @@ exports.verifyPhone = async (req, res) => {
 
     console.log(`📱 Formatted phone number: ${formattedPhone}`);
 
-    // Validate phone number
     const phoneRegex = /^\+[0-9]{8,15}$/;
     if (!phoneRegex.test(formattedPhone)) {
       return res.status(400).json({
@@ -472,9 +469,11 @@ exports.verifyPhone = async (req, res) => {
       }
 
       console.error('❌ SMS sending failed:', smsResult?.error);
+      
+      // ✅ User-friendly error message
       return res.status(500).json({
         success: false,
-        message: smsResult?.error || 'Failed to send OTP via SMS. Please try again.',
+        message: 'SMS service unavailable. Please try with email instead.', // ✅ Clear message
       });
     }
 
@@ -487,7 +486,7 @@ exports.verifyPhone = async (req, res) => {
     console.error('❌ Verify phone error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Server error. Please try again.',
+      message: 'SMS service unavailable. Please try with email instead.', // ✅ Clear message
     });
   }
 };

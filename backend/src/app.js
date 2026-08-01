@@ -22,11 +22,14 @@ const evRangeCalculatorRoutes = require('./tools/evRangeCalculator/evRangeCalcul
 const toolRoutes = require('./routes/toolRoutes');
 const usedCarValuationRoutes = require('./tools/usedCarValuation/usedCarValuation.route');
 
+
 const connectDB = require('./config/database');
 
 
 // Connect to MongoDB
 connectDB();
+
+
 
 const app = express();
 
@@ -119,6 +122,7 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/tools/ev-range-calculator', evRangeCalculatorRoutes);
 app.use('/api/tools', toolRoutes);
 app.use('/api/tools/used-car-valuation', usedCarValuationRoutes);
+
 
 
 

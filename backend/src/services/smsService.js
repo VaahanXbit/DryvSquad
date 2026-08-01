@@ -125,44 +125,44 @@ const sendSMSOTP = async (phoneNumber, otp, purpose = 'verify') => {
       if (error.response.status === 402) {
         return {
           success: false,
-          error: 'Insufficient SMS credits. Please add credits in Brevo.',
+          error: 'SMS credits exhausted. Please use email instead.', // ✅ User-friendly message
         };
       } else if (error.response.status === 403) {
         return {
           success: false,
-          error: 'SMS not enabled for this account. Please enable SMS in Brevo.',
+          error: 'SMS not enabled for this account. Please use email instead.',
         };
       } else if (error.response.status === 400) {
         const errorMsg = error.response.data?.message || 'Invalid SMS request';
         if (errorMsg.includes('telephone') || errorMsg.includes('number')) {
           return {
             success: false,
-            error: 'Invalid phone number. Please use format: +919876543210',
+            error: 'Invalid phone number. Please use email instead.',
           };
         }
         if (errorMsg.includes('sender')) {
           return {
             success: false,
-            error: 'Invalid Sender ID. Please register a sender in Brevo.',
+            error: 'Invalid Sender ID. Please use email instead.',
           };
         }
         return { success: false, error: errorMsg };
       } else if (error.response.status === 401) {
         return {
           success: false,
-          error: 'Invalid API key. Please check your BREVO_API_KEY.',
+          error: 'Invalid API key. Please use email instead.',
         };
       }
     } else if (error.code === 'ECONNABORTED') {
       return {
         success: false,
-        error: 'SMS service timeout. Please try again.',
+        error: 'SMS service timeout. Please try with email.',
       };
     }
 
     return {
       success: false,
-      error: error.message || 'Failed to send SMS',
+      error: 'SMS service unavailable. Please try with email.',
     };
   }
 };
