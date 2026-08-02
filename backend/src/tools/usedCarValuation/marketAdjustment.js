@@ -2,7 +2,7 @@
 /*
 ================================================================================
 File Name : marketAdjustment.js
-Description : STEP 5 — Market Adjustment. Combines Location, Vehicle
+Description : Market Adjustment. Combines Location, Vehicle
               Category and Brand into a single adjustment.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.

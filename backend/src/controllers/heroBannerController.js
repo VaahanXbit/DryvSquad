@@ -6,11 +6,6 @@ Description : Controller for Hero Banner Management.
               - Public endpoint: only active banners, sorted for the slider.
               - Admin endpoint: every banner (active + inactive) for the
                 management screen.
-              - Publish endpoint: the ONLY way banners are created, updated,
-                or removed. It applies the entire pending changeset inside a
-                single MongoDB transaction — either every change lands, or
-                none of them do, so the homepage is never left with a
-                partially-updated Hero.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

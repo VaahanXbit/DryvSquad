@@ -7,9 +7,7 @@ Description : Advanced Details (all optional). Reads whichever of
               serviceHistory / insuranceStatus / loanStatus the user
               filled in and converts each into a { label, impact, reason }
               row, entirely from OPTIONAL_ADJUSTMENTS in
-              usedCarValuation.config.js. Fields left blank contribute
-              nothing — valuation works with zero, some, or all of them
-              filled in.
+              usedCarValuation.config.js.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

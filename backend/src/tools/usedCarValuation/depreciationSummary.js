@@ -4,8 +4,6 @@
 File Name : depreciationSummary.js
 Description : "Depreciation Summary" card — Original Price -> Current
               Estimated Value -> Total Depreciation -> Depreciation %.
-              Pure arithmetic over numbers the engine already computed;
-              introduces no new business rule of its own.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

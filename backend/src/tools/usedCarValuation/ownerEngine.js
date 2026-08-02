@@ -2,7 +2,7 @@
 /*
 ================================================================================
 File Name : ownerEngine.js
-Description : STEP 4 — Ownership Engine. Converts Owner Number into an
+Description : Ownership Engine. Converts Owner Number into an
               Ownership Adjustment, entirely from
               usedCarValuation.config.js — first owners retain the most
               value, each subsequent owner reduces buyer confidence and

@@ -2,7 +2,7 @@
 /*
 ================================================================================
 File Name : depreciationEngine.js
-Description : STEP 2 — Age Depreciation. Pure function: vehicle age in, a
+Description : Age Depreciation. Pure function: vehicle age in, a
               fully-explained depreciation result out. Every rate is read
               from usedCarValuation.config.js.
 Company : Vaahan International

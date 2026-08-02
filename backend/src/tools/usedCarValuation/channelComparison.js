@@ -5,8 +5,7 @@ File Name : channelComparison.js
 Description : "Value Comparison" card — Dealer Exchange / Direct Buyer /
               Online Marketplace / Auction. Each channel's estimate is the
               final Estimated Value adjusted by a config-driven rate — see
-              CHANNEL_ADJUSTMENT in usedCarValuation.config.js. Retune
-              rates there; this module never hardcodes a number.
+              CHANNEL_ADJUSTMENT in usedCarValuation.config.js.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
