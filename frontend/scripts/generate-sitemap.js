@@ -22,7 +22,8 @@ const staticPaths = [
   '/loan-quotes',
   '/insurance-quotes',
   '/auto-loan-emi-calculator',
-  '/ev-range-calculator'
+  '/ev-range-calculator',
+  '/used-car-valuation'
 ];
 
 async function generate() {

@@ -3,10 +3,6 @@
 ================================================================================
 File Name : locationController.js
 Description : India-only location endpoints.
-                - GET /api/location/current  -> reverse geocode via OpenCage
-                - GET /api/location/search   -> local Mongo search (no
-                  external API calls, so it's safe to hit on every keystroke
-                  from the frontend, which itself debounces the calls)
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

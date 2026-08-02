@@ -4,10 +4,7 @@
 File Name : evRangeCalculator.costCalculation.js
 Description : Energy consumption and charging cost for a trip. Entirely
               derived from EstimatedPracticalRange (kWh-per-km) and
-              TripDistance — no independent/hardcoded numbers. Requires
-              batteryCapacityKwh; the service layer skips calling this
-              module entirely (and surfaces the "battery capacity
-              unavailable" message) when that spec is missing.
+              TripDistance.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

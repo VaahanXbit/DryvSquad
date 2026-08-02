@@ -4,13 +4,7 @@
 File Name : pricingController.js
 Description : GET /api/pricing — takes a variant + city/state (and
               optional loan/accessory selections) and returns the full
-              on-road price breakdown. This is the only place that
-              bridges the vehicle database (Variant), the location
-              database (Location), the accessory catalog
-              (AccessoryOption), and the pricing engine
-              (services/pricing) — the engine itself never imports any of
-              those models, keeping it fully reusable and testable in
-              isolation.
+              on-road price breakdown.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================

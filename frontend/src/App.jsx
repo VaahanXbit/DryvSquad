@@ -142,6 +142,7 @@ import ModelVariants from './pages/ModelVariants'
 import PaymentTest from './pages/PaymentTest' 
 import EvRangeCalculatorPage from './pages/EvRangeCalculatorPage'
 import AutoLoanEmiCalculator from './pages/AutoLoanEmiCalculator'
+import UsedCarValuationPage from './pages/UsedCarValuationPage'
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -195,6 +196,7 @@ function App() {
               <Route path="/payment-test" element={<PaymentTest />} /> 
               <Route path="/ev-range-calculator" element={<EvRangeCalculatorPage />} />
               <Route path="/auto-loan-emi-calculator" element={<AutoLoanEmiCalculator />} />
+              <Route path="/used-car-valuation" element={<UsedCarValuationPage />} />
             </Routes>
           </main>
           {!isAiModePage && <CommonFooter />}

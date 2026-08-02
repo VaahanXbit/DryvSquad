@@ -3,14 +3,8 @@
 ================================================================================
 File Name : evRangeCalculator.reductionFactors.js
 Description : Converts user-selected driving conditions into efficiency
-              multipliers (reading every value from
-              evRangeCalculator.config.js — never hardcoded here), computes
-              OverallEfficiency, and builds the human-readable Range
+              multipliers computes OverallEfficiency and builds the human-readable Range
               Reduction Breakdown, sorted highest-impact first.
-
-              To add a new factor later (e.g. wind speed, rain), add its
-              config table in evRangeCalculator.config.js and one entry to
-              the `factors` array below — nothing else changes.
 Company : Vaahan International
 Copyright : (c) 2026 Vaahan International. All rights reserved.
 ================================================================================
